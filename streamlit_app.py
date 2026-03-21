@@ -1,15 +1,14 @@
 import streamlit as st
 import pandas as pd
-import gdown
-import tempfile
-import os
-import io
 from datetime import datetime
 import pytz
 from PIL import Image
+import io
+import gdown
 
 # ===== Configuration =====
-GOOGLE_DRIVE_FILE_ID = "1Fskr_W72wVXYnIwEWgONldpWrLA-jngu"  # 새로운 ID
+GOOGLE_SHEET_ID = "1NSm_gy0a_QbWXquI2efdM93BjBuHn_sYLpU0NybL5_8"
+SHEET_NAME = "Sheet1"
 
 LEAFLET_TEMPLATE_IDS = {
     "메가": "16l4rB2dRYkmEARfP7shI_N5L_HKio9wO",
@@ -230,15 +229,16 @@ def get_image_id_by_agency_name(agency_name_full):
     return None
 
 # ===== Data Loading =====
-@st.cache_data(ttl=3600)
-def load_data_from_google_drive(file_id):
-    """Google Drive에서 Excel 데이터 로드"""
-    temp_path = os.path.join(tempfile.gettempdir(), "temp_data.xlsx")
-    gdown.download(f"https://drive.google.com/uc?id={file_id}", temp_path, quiet=True)
-    return pd.read_excel(temp_path, sheet_name=0, header=0)
+@st.cache_data(ttl=300)  # 5분마다 새로 고침
+def load_data_from_google_sheets(sheet_id, sheet_name):
+    """Google Sheets에서 데이터 로드 (실시간 업데이트)"""
+    url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/query?tqx=out:csv&sheet={sheet_name}"
+    return pd.read_csv(url)
 
 def load_leaflet_template_from_drive(file_id):
     """Google Drive에서 이미지 로드"""
+    import tempfile
+    import os
     temp_path = os.path.join(tempfile.gettempdir(), f"leaflet_{file_id}.jpg")
     try:
         gdown.download(f"https://drive.google.com/uc?id={file_id}", temp_path, quiet=True)
@@ -294,7 +294,7 @@ if search_clicked:
         st.error("매니저명과 설계사 코드를 모두 입력해주세요.")
     else:
         try:
-            df = load_data_from_google_drive(GOOGLE_DRIVE_FILE_ID)
+            df = load_data_from_google_sheets(GOOGLE_SHEET_ID, SHEET_NAME)
             
             # 매니저명과 설계사코드로 필터링
             filtered = df[(df["매니저"].astype(str).str.strip() == manager_name.strip()) &
@@ -328,8 +328,9 @@ if search_clicked:
                 bridge_shortage = safe_float(safe_get_value(row, "브릿지 부족"))
                 
                 # MC+
-                mc_challenge = safe_float(safe_get_value(row, "MC+구간"))
-                mc_shortage = safe_float(safe_get_value(row, "MC부족최종"))
+                mc_challenge = safe_float(safe_get_value(row, "MC+구간"))      # T열: 도전구간
+                mc_achievement = safe_float(safe_get_value(row, "3월실적"))    # L열: 실적
+                mc_shortage = safe_float(safe_get_value(row, "MC부족"))        # V열: 부족금액
                 
                 current_week = get_current_week()
                 
@@ -395,8 +396,12 @@ if search_clicked:
                         <div class="mc-label">도전구간</div>
                         <div class="mc-challenge">{format_currency(mc_challenge)}</div>
                         <div class="mc-bottom">
-                            <div class="mc-item" style="flex: 1;">
-                                <div class="mc-item-label">부족금액</div>
+                            <div class="mc-item">
+                                <div class="mc-item-label">실적</div>
+                                <div class="mc-item-value">{format_currency(mc_achievement)}</div>
+                            </div>
+                            <div class="mc-item">
+                                <div class="mc-item-label">부족</div>
                                 <div class="mc-item-value">{format_currency(mc_shortage)}</div>
                             </div>
                         </div>
