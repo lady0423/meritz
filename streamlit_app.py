@@ -14,16 +14,31 @@ GOOGLE_DRIVE_FILE_ID = "1eD-WgnXioOH7zb7oyydKu_l798BwuVtA"
 # 대리점명 → Google Drive 이미지 ID 매핑
 LEAFLET_TEMPLATE_IDS = {
     "메가": "16l4rB2dRYkmEARfP7shI_N5L_HKio9wO",
-    "토스": "1YOUR_TOSS_IMAGE_ID",  # ← 토스 이미지 ID 입력
-    "지금융": "1YOUR_JIGEUM_IMAGE_ID",
-    "브릿지": "1YOUR_BRIDGE_IMAGE_ID",
-    # ... 다른 대리점 추가
+    "토스": "17b27Cq0sN52ifJ5NvCsnr87KbaUcsqsr",
+    "지금융": "19lR3nBPV6guyEIAk9xw_6GwDPO1N_wbw",
+    "엠금융": "1BBJvzGqHrDWw-lFewIsBdEgk0WTVsfKq",
+    "스카이블루": "1DEFjI5-pnUJM1d7uJUzmoBZLHZ4z7YPf",
+    "유퍼스트": "1DPUTq6hU_M21dpliYkwSa5HQdY2J9fB3",
+    "케이지에이에셋": "1E24X08TpagWpuU0AeiQK1uh57Pf7hV9G",
+    "피플라이프": "1LNJw-eB_fRXLGTm7F5N7ndXx8S_wMISP",
+    "더금융": "1Nj05DgH3oatnEiCGbGHQU2K1dRsVEQHh",
+    "더좋은보험금융": "1Px8WawPHjME-oYAXd4TTkhIjQCFVDISc",
+    "프라임에셋": "1UniyB7NEUEPhRHuqormlWrS3v_rFaYy1",
+    "에이플러스": "1Z_7FNhOQJngRPiuICIwdmvJqJQw1qFwc",
+    "지에이코리아": "1aH3tXtWQHCeNUitXkMua9D7sAl6x8SLz",
+    "메타리치": "1kL-z0xn8vQBh5aEGkZiV3X_zYp-dYYni",
+    "글로벌금융": "1oDR5WfrM1XLOca13olvpx8AwZHYRqIVF",
+    "인카금융": "1r1ukWIJf3EG_pf6nhQuxwkab2CVeQdDG",
+    "아너스": "1rJ7SoZJyno5b6tAurjTpkkEmissGKntj",
+    "굿리치": "1vNoopxTYV5cK1zlOPlNvSGseK_dbXkXl",
+    "신한금융": "1z3Ayg6mJsUeeHdebaOrWyOK4lz1-ROB_",
+    "none": "1xGX9WTFcAtnzIa2kgMPOuG73V56ypbaf",
 }
 
 # 페이지 설정
 st.set_page_config(page_title="실적 안내장 조회", layout="wide", initial_sidebar_state="collapsed")
 
-# CSS 스타일링
+# CSS 스타일링 (예시 이미지 스타일 반영)
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
@@ -37,87 +52,188 @@ body {
     color: #c9d1d9;
 }
 
-.main {
-    background-color: #0e1117;
+.header-title {
+    font-size: 28px;
+    font-weight: 900;
+    color: #ffffff;
+    margin-bottom: 20px;
 }
 
-.info-card {
-    background: linear-gradient(135deg, #1f6feb 0%, #388bfd 100%);
-    padding: 20px;
-    border-radius: 10px;
-    color: white;
-    margin: 10px 0;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+.section-header {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-top: 20px;
+    margin-bottom: 10px;
 }
 
-.week-card {
+.basic-info-box {
     background: #161b22;
-    border: 2px solid #30363d;
+    border: 1px solid #30363d;
+    padding: 12px 15px;
+    border-radius: 6px;
+    margin: 5px 0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.cumulative-box {
+    background: linear-gradient(135deg, #1f6feb 0%, #388bfd 100%);
     padding: 15px;
     border-radius: 8px;
+    color: white;
+    margin: 10px 0;
     text-align: center;
-    margin: 8px 0;
-    transition: all 0.3s ease;
 }
 
-.week-card:hover {
-    background: #0d1117;
-    border-color: #58a6ff;
-}
-
-.week-card-current {
-    background: linear-gradient(135deg, #da3633 0%, #f85149 100%);
-    border: 3px solid #f85149;
-    transform: scale(1.05);
-    box-shadow: 0 8px 16px rgba(248, 81, 73, 0.4);
-}
-
-.week-number {
-    font-size: 16px;
-    font-weight: 700;
-    color: #79c0ff;
-    margin-bottom: 8px;
-}
-
-.week-card-current .week-number {
-    color: #ffffff;
-    font-size: 20px;
-}
-
-.week-amount {
-    font-size: 24px;
+.cumulative-value {
+    font-size: 36px;
     font-weight: 900;
     color: #79c0ff;
 }
 
-.week-card-current .week-amount {
-    color: #ffffff;
-    font-size: 28px;
+.week-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
 }
 
-.target-card {
+.week-row {
+    background: #161b22;
+    border: 1px solid #30363d;
+    display: flex;
+    margin: 6px 0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.week-row-current {
+    background: linear-gradient(135deg, #da3633 0%, #f85149 100%);
+    border: 2px solid #f85149;
+    box-shadow: 0 4px 12px rgba(248, 81, 73, 0.3);
+}
+
+.week-label {
+    width: 40%;
+    padding: 12px 15px;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+}
+
+.week-row-current .week-label {
+    color: #ffffff;
+}
+
+.week-amount {
+    width: 60%;
+    padding: 12px 15px;
+    font-size: 20px;
+    font-weight: 900;
+    text-align: right;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    color: #79c0ff;
+}
+
+.week-row-current .week-amount {
+    color: #ffffff;
+    font-size: 24px;
+}
+
+.target-box {
     background: #161b22;
     border-left: 4px solid #1f6feb;
-    padding: 15px;
-    border-radius: 6px;
-    margin: 10px 0;
+    padding: 12px 15px;
+    border-radius: 4px;
+    margin: 8px 0;
+    font-size: 14px;
 }
 
-.bridge-card {
+.target-label {
+    color: #8b949e;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.target-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #79c0ff;
+}
+
+.bridge-box {
     background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
-    padding: 20px;
-    border-radius: 10px;
-    color: white;
-    margin: 10px 0;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-}
-
-.mc-status {
-    background: #161b22;
     padding: 15px;
     border-radius: 8px;
-    border-left: 4px solid #79c0ff;
+    color: white;
     margin: 10px 0;
+}
+
+.bridge-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 5px;
+}
+
+.bridge-value {
+    font-size: 32px;
+    font-weight: 900;
+    color: #ffffff;
+}
+
+.bridge-info {
+    background: rgba(0,0,0,0.2);
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 8px;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.mc-box {
+    background: #161b22;
+    border-left: 4px solid #79c0ff;
+    padding: 12px 15px;
+    border-radius: 4px;
+    margin: 8px 0;
+    font-size: 13px;
+}
+
+.mc-status-text {
+    color: #79c0ff;
+    font-weight: 700;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mc-status-green::before {
+    content: "🟢";
+}
+
+.mc-status-red::before {
+    content: "🔴";
+}
+
+.mc-info-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 4px 0;
+    color: #c9d1d9;
+}
+
+.info-label {
+    color: #8b949e;
+}
+
+.info-value {
+    font-weight: 700;
+    color: #79c0ff;
 }
 
 </style>
@@ -207,14 +323,13 @@ def load_data_from_google_drive(file_id):
     return None
 
 def load_leaflet_template_from_drive(file_id):
-    """Google Drive에서 이미지 로드 (캐시 없음 - 항상 새로 로드)"""
+    """Google Drive에서 이미지 로드 (캐시 없음)"""
     if not file_id or file_id.startswith("1YOUR_"):
         return None
     
     temp_dir = tempfile.gettempdir()
     temp_file = os.path.join(temp_dir, f"leaflet_{file_id}.jpg")
     
-    # 기존 파일 삭제
     try:
         if os.path.exists(temp_file):
             os.remove(temp_file)
@@ -239,13 +354,10 @@ with col1:
     if os.path.exists("meritz.png"):
         logo = Image.open("meritz.png")
         st.image(logo, width=100)
-    else:
-        st.write("📌 로고 없음")
 
 with col2:
-    st.title("📊 실적 안내장 조회")
+    st.markdown('<div class="header-title">📊 실적 안내장 조회</div>', unsafe_allow_html=True)
 
-# 마지막 업데이트 시간
 kst = pytz.timezone('Asia/Seoul')
 now_kst = datetime.now(kst).strftime("%Y-%m-%d %H:%M:%S")
 st.caption(f"⏰ 마지막 업데이트: {now_kst}")
@@ -268,18 +380,10 @@ st.write("---")
 col1, col2, col3 = st.columns([2, 2, 1])
 
 with col1:
-    manager_input = st.text_input(
-        "👤 매니저명",
-        autocomplete="off",
-        key="manager_key"
-    )
+    manager_input = st.text_input("👤 매니저명", autocomplete="off", key="manager_key")
 
 with col2:
-    agent_code_input = st.text_input(
-        "🔍 설계사 코드",
-        autocomplete="off",
-        key="agent_code_key"
-    )
+    agent_code_input = st.text_input("🔍 설계사 코드", autocomplete="off", key="agent_code_key")
 
 with col3:
     search_button = st.button("🔍 검색", key="search_btn", use_container_width=True)
@@ -290,7 +394,6 @@ if search_button:
     if not manager_input or not agent_code_input:
         st.warning("⚠️ 매니저명과 설계사 코드를 입력하세요.")
     else:
-        # 필터링
         filtered = df_data[
             (df_data.iloc[:, 0].astype(str).str.strip() == agent_code_input.strip()) &
             (df_data.iloc[:, 3].astype(str).str.contains(manager_input.strip(), case=False, na=False))
@@ -301,110 +404,100 @@ if search_button:
         else:
             row = filtered.iloc[0]
             
-            # 데이터 추출 (열 인덱스 확인 필요)
-            agent_code = safe_get_value(row, 0)  # A열
-            agent_name = safe_get_value(row, 6)  # G열
-            branch = safe_get_value(row, 5)  # F열
-            manager_name = safe_get_value(row, 3)  # D열
-            agency_name = safe_get_value(row, 22)  # W열 (대리점명)
+            # 데이터 추출
+            agent_code = safe_get_value(row, 0)
+            agent_name = safe_get_value(row, 6)
+            branch = safe_get_value(row, 5)
+            manager_name = safe_get_value(row, 3)
+            agency_name = safe_get_value(row, 22)
             
-            # 실적 데이터 (열 인덱스 확인 필수)
-            cumulative = safe_float(safe_get_value(row, 11))  # L열 (누계)
-            week1 = safe_float(safe_get_value(row, 12))  # M열
-            week2 = safe_float(safe_get_value(row, 13))  # N열
-            week3 = safe_float(safe_get_value(row, 14))  # O열
-            week4 = safe_float(safe_get_value(row, 15))  # P열
-            week5 = safe_float(safe_get_value(row, 16))  # Q열
+            cumulative = safe_float(safe_get_value(row, 11))
+            week1 = safe_float(safe_get_value(row, 12))
+            week2 = safe_float(safe_get_value(row, 13))
+            week3 = safe_float(safe_get_value(row, 14))
+            week4 = safe_float(safe_get_value(row, 15))
+            week5 = safe_float(safe_get_value(row, 16))
             
-            # 목표 및 부족액
+            bridge_target = safe_float(safe_get_value(row, 18))  # S열 (브릿지 목표)
+            bridge_performance = safe_float(safe_get_value(row, 17))  # R열 (브릿지 실적)
+            bridge_shortage = bridge_target - bridge_performance if bridge_target > 0 else 0
+            
+            mc_challenge = safe_get_value(row, 19)  # T열 (MC+도전구간)
+            mc_shortage = safe_float(safe_get_value(row, 21))  # V열 (MC+부족금액)
+            
             current_week = get_current_week()
-            target = safe_float(safe_get_value(row, 8))  # I열 (목표)
-            shortage = safe_float(safe_get_value(row, 9))  # J열 (부족액)
-            
-            # 브릿지 실적
-            bridge_performance = safe_float(safe_get_value(row, 17))  # R열
-            
-            # MC+ 상태 (T열: MC+도전구간, V열: MC+부족금액)
-            mc_challenge = safe_get_value(row, 19)  # T열
-            mc_shortage = safe_float(safe_get_value(row, 21))  # V열
-            
-            # MC+ 상태 텍스트
-            if pd.isna(mc_challenge) or mc_challenge == "":
-                mc_status_text = "미달성"
-                mc_status_color = "🔴"
-            else:
-                mc_status_text = str(mc_challenge)
-                mc_status_color = "🟢"
-            
-            # ============ 결과 표시 ============
             
             st.write("---")
             st.success("✅ 검색 완료!")
             
+            # 좌측: 상세 정보, 우측: 안내장
             col_left, col_right = st.columns([1, 1])
             
             with col_left:
-                st.markdown("### 📋 기본 정보")
+                # 기본 정보
+                st.markdown('<div class="section-header">📋 기본 정보</div>', unsafe_allow_html=True)
                 st.markdown(f"""
-                <div class="info-card">
-                    <strong>설계사 코드:</strong> {agent_code}<br>
-                    <strong>설계사명:</strong> {agent_name}<br>
-                    <strong>지점:</strong> {branch}<br>
-                    <strong>매니저:</strong> {manager_name}<br>
-                    <strong>대리점:</strong> {agency_name}
+                <div class="basic-info-box">
+                <strong>설계사 코드:</strong> {agent_code}<br>
+                <strong>설계사명:</strong> {agent_name}<br>
+                <strong>지점:</strong> {branch}<br>
+                <strong>매니저:</strong> {manager_name}<br>
+                <strong>대리점:</strong> {agency_name}
                 </div>
                 """, unsafe_allow_html=True)
                 
-                st.markdown("### 💰 누계 실적")
+                # 누계 실적 (더 작게)
+                st.markdown('<div class="section-header">💰 누계 실적</div>', unsafe_allow_html=True)
                 st.markdown(f"""
-                <div class="info-card">
-                    <div style="font-size: 32px; font-weight: 900; color: #79c0ff;">
-                        {format_currency(cumulative)}
-                    </div>
+                <div class="cumulative-box">
+                    <div class="cumulative-value">{format_currency(cumulative)}</div>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                st.markdown("### 📈 주차별 실적")
+                # 주차별 실적 (더 간결하게)
+                st.markdown('<div class="section-header">📈 주차별 실적</div>', unsafe_allow_html=True)
                 weeks = [week1, week2, week3, week4, week5]
                 for i, week in enumerate(weeks, 1):
                     is_current = (i == current_week)
-                    card_class = "week-card-current" if is_current else "week-card"
+                    row_class = "week-row week-row-current" if is_current else "week-row"
                     st.markdown(f"""
-                    <div class="{card_class}">
-                        <div class="week-number">{i}주차</div>
+                    <div class="{row_class}">
+                        <div class="week-label">{i}주차</div>
                         <div class="week-amount">{format_currency(week)}</div>
                     </div>
                     """, unsafe_allow_html=True)
                 
-                st.markdown("### 🎯 현재 주차 목표")
+                # 브릿지 실적
+                st.markdown('<div class="section-header">🌉 브릿지 실적</div>', unsafe_allow_html=True)
                 st.markdown(f"""
-                <div class="target-card">
-                    <strong>목표:</strong> {format_currency(target)}<br>
-                    <strong>부족액:</strong> {format_currency(shortage)}
-                </div>
-                """, unsafe_allow_html=True)
-                
-                st.markdown("### 🌉 브릿지 실적")
-                st.markdown(f"""
-                <div class="bridge-card">
-                    <div style="font-size: 28px; font-weight: 900;">
-                        {format_currency(bridge_performance)}
+                <div class="bridge-box">
+                    <div class="bridge-label">실적</div>
+                    <div class="bridge-value">{format_currency(bridge_performance)}</div>
+                    <div class="bridge-info">
+                        <div><strong>목표:</strong> {format_currency(bridge_target)}</div>
+                        <div><strong>부족:</strong> {format_currency(bridge_shortage)}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                st.markdown("### 📊 MC+ 상태")
+                # MC+ 상태
+                st.markdown('<div class="section-header">📊 MC+ 상태</div>', unsafe_allow_html=True)
+                mc_status_class = "mc-status-green" if mc_challenge and mc_challenge != "" else "mc-status-red"
+                mc_status_text = str(mc_challenge) if mc_challenge and mc_challenge != "" else "미달성"
+                
                 st.markdown(f"""
-                <div class="mc-status">
-                    <strong>{mc_status_color} 상태:</strong> {mc_status_text}<br>
-                    <strong>부족금액:</strong> {format_currency(mc_shortage)}
+                <div class="mc-box">
+                    <div class="mc-status-text {mc_status_class}">상태: {mc_status_text}</div>
+                    <div class="mc-info-row">
+                        <span class="info-label">부족금액:</span>
+                        <span class="info-value">{format_currency(mc_shortage)}</span>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
             
             with col_right:
-                st.markdown("### 📄 안내장 템플릿")
+                st.markdown('<div class="section-header">📄 안내장 템플릿</div>', unsafe_allow_html=True)
                 
-                # 대리점명으로 이미지 ID 조회
                 image_id = LEAFLET_TEMPLATE_IDS.get(str(agency_name).strip(), None)
                 
                 if image_id and not image_id.startswith("1YOUR_"):
@@ -412,7 +505,6 @@ if search_button:
                     if leaflet_img:
                         st.image(leaflet_img, use_container_width=True)
                         
-                        # JPG 다운로드 버튼
                         img_byte_arr = io.BytesIO()
                         leaflet_img.save(img_byte_arr, format='JPEG')
                         img_byte_arr.seek(0)
@@ -425,12 +517,11 @@ if search_button:
                             use_container_width=True
                         )
                     else:
-                        st.warning(f"⚠️ 이미지를 로드할 수 없습니다. (ID: {image_id})")
+                        st.warning(f"⚠️ 이미지를 로드할 수 없습니다.")
                 else:
                     st.info(f"📌 대리점명: {agency_name}\n이미지 ID가 설정되지 않았습니다.")
             
             st.write("---")
-            
             col_print, col_reset = st.columns([1, 1])
             with col_print:
                 st.button("🖨️ 인쇄", key="print_btn", use_container_width=True)
