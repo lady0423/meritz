@@ -447,7 +447,7 @@ if search_clicked:
                 
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
                 
-                # 모든 경우 M~Q 컬럼에서 1~5주차 데이터 가져오기
+                # 모든 경우 1~5주차 데이터 가져오기
                 week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
                 for idx, week_col in enumerate(week_columns, 1):
                     week_value = safe_float(safe_get_value(row, week_col))
@@ -466,17 +466,16 @@ if search_clicked:
                         </div>
                         """, unsafe_allow_html=True)
                 
-                # ====== 수정 부분: 현재주차 목표 & 브릿지 & MC/MC+ ======
-                
-                # 현재주차 목표 - 어센틱과 기타 구분
+                # ============ 수정된 부분 시작 ============
+                # 현재주차 목표
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎯 현재주차 목표</h3>", unsafe_allow_html=True)
                 
                 if is_authentic and not is_partner_channel:
-                    # 어센틱(Y=1, 파트너채널 제외): AD열 어센틱주차목표 + AF열 어센틱주차부족최종
+                    # Y=1 (어센틱, 파트너채널 제외)
                     weekly_target = safe_float(safe_get_value(row, "어센틱주차목표"))
                     weekly_shortage = safe_float(safe_get_value(row, "어센틱주차부족최종"))
                 else:
-                    # 기타(Y=0): R열 주차목표 + S열 주차부족
+                    # Y=0 (기타)
                     weekly_target = safe_float(safe_get_value(row, "주차목표"))
                     weekly_shortage = safe_float(safe_get_value(row, "주차부족"))
                 
@@ -487,7 +486,7 @@ if search_clicked:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # 브릿지는 어센틱이 아닐 때만 표시 (Y=0일 때만)
+                # 브릿지는 Y=0일 때만 표시
                 if not is_authentic:
                     st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
                     bridge_achievement = safe_float(safe_get_value(row, "브릿지 실적"))
@@ -506,28 +505,31 @@ if search_clicked:
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>💰 성과</h3>", unsafe_allow_html=True)
                 
                 if is_authentic and not is_partner_channel:
-                    # 어센틱(Y=1, 파트너채널 제외): MC + MC+ 둘 다 표시
-                    # MC: AA열 MC도전구간 + AC열 MC부족최종
+                    # Y=1 (어센틱, 파트너채널 제외): MC + MC+ 둘 다 표시
+                    
+                    # MC: AA열(MC도전구간) + AC열(MC부족최종)
                     mc_challenge = safe_get_value(row, "MC도전구간")
-                    mc_shortage_raw = safe_get_value(row, "MC부족최종")
+                    mc_shortage_raw = safe_get_value(row, "MC부족")
                     mc_status_raw = safe_get_value(row, "MC부족최종")
                     
                     render_mc_box(mc_challenge, mc_shortage_raw, mc_status_raw, is_mc_plus=False)
                     
-                    # MC+: T열 MC+구간 + V열 MC+부족최종
+                    # MC+: T열(MC+구간) + V열(MC+부족최종)
                     mc_plus_challenge = safe_get_value(row, "MC+구간")
-                    mc_plus_shortage_raw = safe_get_value(row, "MC+부족최종")
+                    mc_plus_shortage_raw = safe_get_value(row, "MC+부족")
                     mc_plus_status_raw = safe_get_value(row, "MC+부족최종")
                     
                     render_mc_box(mc_plus_challenge, mc_plus_shortage_raw, mc_plus_status_raw, is_mc_plus=True)
                 else:
-                    # 기타(Y=0) 또는 파트너채널: MC+ 만 표시
-                    # MC+: T열 MC+구간 + V열 MC+부족최종
+                    # Y=0 (기타): MC+ 만 표시
+                    # T열(MC+구간) + V열(MC+부족최종)
                     mc_plus_challenge = safe_get_value(row, "MC+구간")
-                    mc_plus_shortage_raw = safe_get_value(row, "MC+부족최종")
+                    mc_plus_shortage_raw = safe_get_value(row, "MC+부족")
                     mc_plus_status_raw = safe_get_value(row, "MC+부족최종")
                     
                     render_mc_box(mc_plus_challenge, mc_plus_shortage_raw, mc_plus_status_raw, is_mc_plus=True)
+                
+                # ============ 수정된 부분 끝 ============
             
             with col_right:
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
