@@ -11,18 +11,20 @@ import io
 # ============ 설정 ============
 GOOGLE_DRIVE_FILE_ID = "1eD-WgnXioOH7zb7oyydKu_l798BwuVtA"
 
-# 대리점명 → Google Drive 이미지 ID 매핑
+# 대리점명 → Google Drive 이미지 ID 매핑 (최신)
 LEAFLET_TEMPLATE_IDS = {
     "메가": "16l4rB2dRYkmEARfP7shI_N5L_HKio9wO",
     "토스": "17b27Cq0sN52ifJ5NvCsnr87KbaUcsqsr",
     "지금융": "19lR3nBPV6guyEIAk9xw_6GwDPO1N_wbw",
     "엠금융": "1BBJvzGqHrDWw-lFewIsBdEgk0WTVsfKq",
     "스카이블루": "1DEFjI5-pnUJM1d7uJUzmoBZLHZ4z7YPf",
+    "스카이블루에셋": "1DEFjI5-pnUJM1d7uJUzmoBZLHZ4z7YPf",
     "유퍼스트": "1DPUTq6hU_M21dpliYkwSa5HQdY2J9fB3",
     "케이지에이에셋": "1E24X08TpagWpuU0AeiQK1uh57Pf7hV9G",
     "피플라이프": "1LNJw-eB_fRXLGTm7F5N7ndXx8S_wMISP",
     "더금융": "1Nj05DgH3oatnEiCGbGHQU2K1dRsVEQHh",
     "더좋은보험금융": "1Px8WawPHjME-oYAXd4TTkhIjQCFVDISc",
+    "더좋은보험": "1Px8WawPHjME-oYAXd4TTkhIjQCFVDISc",
     "프라임에셋": "1UniyB7NEUEPhRHuqormlWrS3v_rFaYy1",
     "에이플러스": "1Z_7FNhOQJngRPiuICIwdmvJqJQw1qFwc",
     "지에이코리아": "1aH3tXtWQHCeNUitXkMua9D7sAl6x8SLz",
@@ -32,6 +34,7 @@ LEAFLET_TEMPLATE_IDS = {
     "아너스": "1rJ7SoZJyno5b6tAurjTpkkEmissGKntj",
     "굿리치": "1vNoopxTYV5cK1zlOPlNvSGseK_dbXkXl",
     "신한금융": "1z3Ayg6mJsUeeHdebaOrWyOK4lz1-ROB_",
+    "none": "1xGX9WTFcAtnzIa2kgMPOuG73V56ypbaf",
 }
 
 # 페이지 설정
@@ -78,7 +81,7 @@ body {
 
 .cumulative-box {
     background: linear-gradient(135deg, #1f6feb 0%, #388bfd 100%);
-    padding: 15px;
+    padding: 12px 15px;
     border-radius: 8px;
     color: white;
     margin: 10px 0;
@@ -86,9 +89,9 @@ body {
 }
 
 .cumulative-value {
-    font-size: 36px;
+    font-size: 20px;
     font-weight: 900;
-    color: #79c0ff;
+    color: #ffffff;
 }
 
 .week-row {
@@ -139,13 +142,26 @@ body {
     margin-bottom: 5px;
 }
 
+.bridge-value {
+    font-size: 32px;
+    font-weight: 900;
+    color: #ffffff;
+    margin-bottom: 10px;
+}
+
 .bridge-section {
-    margin: 10px 0;
-    padding: 10px;
     background: rgba(0,0,0,0.2);
+    padding: 10px;
     border-radius: 4px;
+    font-size: 13px;
     display: flex;
     justify-content: space-between;
+}
+
+.bridge-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
 .bridge-section-label {
@@ -154,40 +170,55 @@ body {
 }
 
 .bridge-section-value {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 900;
     color: #ffffff;
 }
 
 .mc-box {
-    background: #161b22;
-    border-left: 4px solid #79c0ff;
-    padding: 12px 15px;
-    border-radius: 4px;
-    margin: 8px 0;
-    font-size: 13px;
+    background: linear-gradient(135deg, #1f6feb 0%, #388bfd 100%);
+    padding: 15px;
+    border-radius: 8px;
+    color: white;
+    margin: 10px 0;
 }
 
-.mc-status-text {
-    color: #79c0ff;
-    font-weight: 700;
+.mc-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.8);
     margin-bottom: 5px;
 }
 
-.mc-info-row {
+.mc-value {
+    font-size: 32px;
+    font-weight: 900;
+    color: #ffffff;
+    margin-bottom: 10px;
+}
+
+.mc-info {
+    background: rgba(0,0,0,0.15);
+    padding: 10px;
+    border-radius: 4px;
     display: flex;
     justify-content: space-between;
-    margin: 4px 0;
-    color: #c9d1d9;
+    font-size: 13px;
 }
 
-.info-label {
-    color: #8b949e;
+.mc-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
-.info-value {
-    font-weight: 700;
-    color: #79c0ff;
+.mc-info-label {
+    color: rgba(255,255,255,0.7);
+}
+
+.mc-info-value {
+    font-size: 16px;
+    font-weight: 900;
+    color: #ffffff;
 }
 
 .leaflet-placeholder {
@@ -295,7 +326,6 @@ def load_leaflet_template_from_drive(file_id):
             img = Image.open(temp_file)
             return img
     except Exception as e:
-        st.warning(f"이미지 로드 실패: {str(e)}")
         pass
     
     return None
@@ -362,7 +392,7 @@ if search_button:
             agent_name = safe_get_value(row, 6)
             branch = safe_get_value(row, 5)
             manager_name = safe_get_value(row, 3)
-            agency_name = safe_get_value(row, 22)  # W열: 대리점명
+            agency_name = safe_get_value(row, 22)
             
             cumulative = safe_float(safe_get_value(row, 11))
             week1 = safe_float(safe_get_value(row, 12))
@@ -371,20 +401,18 @@ if search_button:
             week4 = safe_float(safe_get_value(row, 15))
             week5 = safe_float(safe_get_value(row, 16))
             
-            # 브릿지: S열(목표), R열(진척/실적)
-            bridge_target = safe_float(safe_get_value(row, 18))  # S열: 목표
-            bridge_progress = safe_float(safe_get_value(row, 17))  # R열: 진척
+            bridge_target = safe_float(safe_get_value(row, 18))
+            bridge_progress = safe_float(safe_get_value(row, 17))
             bridge_shortage = bridge_target - bridge_progress if bridge_target > 0 else 0
             
-            mc_challenge = safe_get_value(row, 19)  # T열
-            mc_shortage = safe_float(safe_get_value(row, 21))  # V열
+            mc_challenge = safe_get_value(row, 19)
+            mc_shortage = safe_float(safe_get_value(row, 21))
             
             current_week = get_current_week()
             
             st.write("---")
             st.success("✅ 검색 완료!")
             
-            # 좌측: 상세 정보, 우측: 안내장
             col_left, col_right = st.columns([1, 1])
             
             with col_left:
@@ -420,20 +448,18 @@ if search_button:
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # 브릿지 실적 (진척, 목표, 부족)
+                # 브릿지 실적
                 st.markdown('<div class="section-header">🌉 브릿지 실적</div>', unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class="bridge-box">
-                    <div class="bridge-label">진척</div>
-                    <div style="font-size: 32px; font-weight: 900; color: #ffffff; margin-bottom: 10px;">
-                        {format_currency(bridge_progress)}
-                    </div>
+                    <div class="bridge-label">목표</div>
+                    <div class="bridge-value">{format_currency(bridge_target)}</div>
                     <div class="bridge-section">
-                        <div>
-                            <div class="bridge-section-label">목표</div>
-                            <div class="bridge-section-value">{format_currency(bridge_target)}</div>
+                        <div class="bridge-info-item">
+                            <div class="bridge-section-label">진척</div>
+                            <div class="bridge-section-value">{format_currency(bridge_progress)}</div>
                         </div>
-                        <div>
+                        <div class="bridge-info-item">
                             <div class="bridge-section-label">부족</div>
                             <div class="bridge-section-value">{format_currency(bridge_shortage)}</div>
                         </div>
@@ -443,15 +469,16 @@ if search_button:
                 
                 # MC+ 상태
                 st.markdown('<div class="section-header">📊 MC+ 상태</div>', unsafe_allow_html=True)
-                mc_status_indicator = "🟢" if (mc_challenge and str(mc_challenge).strip() != "") else "🔴"
                 mc_status_text = str(mc_challenge) if (mc_challenge and str(mc_challenge).strip() != "") else "미달성"
-                
                 st.markdown(f"""
                 <div class="mc-box">
-                    <div class="mc-status-text">{mc_status_indicator} {mc_status_text}</div>
-                    <div class="mc-info-row">
-                        <span class="info-label">부족금액:</span>
-                        <span class="info-value">{format_currency(mc_shortage)}</span>
+                    <div class="mc-label">도전구간</div>
+                    <div class="mc-value">{mc_status_text}</div>
+                    <div class="mc-info">
+                        <div class="mc-info-item">
+                            <div class="mc-info-label">부족금액</div>
+                            <div class="mc-info-value">{format_currency(mc_shortage)}</div>
+                        </div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -459,7 +486,6 @@ if search_button:
             with col_right:
                 st.markdown('<div class="section-header">📄 안내장 템플릿</div>', unsafe_allow_html=True)
                 
-                # 대리점명으로 이미지 ID 조회
                 agency_name_str = str(agency_name).strip()
                 image_id = LEAFLET_TEMPLATE_IDS.get(agency_name_str, None)
                 
@@ -485,16 +511,14 @@ if search_button:
                         st.markdown(f"""
                         <div class="leaflet-placeholder">
                             ⚠️ 이미지를 로드할 수 없습니다.<br><br>
-                            <strong>대리점:</strong> {agency_name_str}<br>
-                            <strong>ID:</strong> {image_id}<br><br>
-                            Google Drive에서 파일 접근 권한을 확인하세요.
+                            <strong>대리점:</strong> {agency_name_str}
                         </div>
                         """, unsafe_allow_html=True)
                 else:
                     st.markdown(f"""
                     <div class="leaflet-placeholder">
                         📌 대리점명: {agency_name_str}<br><br>
-                        이 대리점의 이미지 ID가 설정되지 않았습니다.
+                        이 대리점의 이미지가 설정되지 않았습니다.
                     </div>
                     """, unsafe_allow_html=True)
             
