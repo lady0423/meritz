@@ -280,10 +280,22 @@ def get_current_week():
             return 5
     return 1
 
-def get_image_id_by_agency_name(agency_name, branch_name, is_authentic_not_partner):
-    if is_authentic_not_partner:
-        return LEAFLET_TEMPLATE_IDS.get("어센틱")
+def get_image_id_by_authentic_and_partner(is_authentic, is_partner_channel, agency_name):
+    """
+    리플렛 이미지 ID를 결정하는 함수
+    - is_authentic=True이고 is_partner_channel=False → 어센틱 리플렛
+    - is_authentic=True이고 is_partner_channel=True → none
+    - 그 외 → 대리점명으로 매칭
+    """
+    if is_authentic:
+        if is_partner_channel:
+            # 어센틱이지만 파트너채널 → none 사용
+            return LEAFLET_TEMPLATE_IDS.get("none")
+        else:
+            # 어센틱이고 파트너채널 아님 → 어센틱 리플렛
+            return LEAFLET_TEMPLATE_IDS.get("어센틱")
     else:
+        # 기존 방식: 대리점명으로 매칭
         agency_name_lower = str(agency_name).strip().lower()
         for keyword, image_id in LEAFLET_TEMPLATE_IDS.items():
             if keyword.lower() in agency_name_lower:
@@ -416,11 +428,12 @@ if search_clicked:
             agent_name = safe_get_value(row, "설계사명")
             branch = safe_get_value(row, "지사명")
             agency_name = safe_get_value(row, "대리점")
+            
+            # Y열 어센틱구분 확인
             is_authentic = safe_float(safe_get_value(row, "어센틱구분")) == 1
             
-            # 파트너채널 확인
+            # 파트너채널 확인: 지사명에 "파트너채널" 포함
             is_partner_channel = "파트너채널" in branch
-            is_authentic_not_partner = is_authentic and not is_partner_channel
             
             col_left, col_right = st.columns([1.5, 1])
             
@@ -444,7 +457,8 @@ if search_clicked:
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
                 
                 # 어센틱(파트너채널 제외)일 때와 기타일 때 구분
-                if is_authentic_not_partner:
+                if is_authentic and not is_partner_channel:
+                    # 어센틱(파트너채널 제외): 어센틱주차목표, 어센틱주차부족최종 사용
                     week_target = safe_float(safe_get_value(row, "어센틱주차목표"))
                     week_shortage = safe_float(safe_get_value(row, "어센틱주차부족최종"))
                     week_value = week_target - week_shortage if week_target > 0 else 0
@@ -455,6 +469,7 @@ if search_clicked:
                     </div>
                     """, unsafe_allow_html=True)
                 else:
+                    # 기존 방식 또는 파트너채널: 5주차 데이터 표시
                     week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
                     for idx, week_col in enumerate(week_columns, 1):
                         week_value = safe_float(safe_get_value(row, week_col))
@@ -474,7 +489,7 @@ if search_clicked:
                             """, unsafe_allow_html=True)
                 
                 # 현재주차 목표
-                if is_authentic_not_partner:
+                if is_authentic and not is_partner_channel:
                     weekly_target = safe_float(safe_get_value(row, "어센틱주차목표"))
                     weekly_shortage = safe_float(safe_get_value(row, "어센틱주차부족최종"))
                 else:
@@ -503,7 +518,7 @@ if search_clicked:
                 """, unsafe_allow_html=True)
                 
                 # MC와 MC+ 표시 로직
-                if is_authentic_not_partner:
+                if is_authentic and not is_partner_channel:
                     # 어센틱(파트너채널 제외): MC + MC+ 둘 다 표시
                     mc_challenge = safe_get_value(row, "MC도전구간")
                     mc_shortage_raw = safe_get_value(row, "MC부족")
@@ -527,7 +542,7 @@ if search_clicked:
             
             with col_right:
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
-                image_id = get_image_id_by_agency_name(agency_name, branch, is_authentic_not_partner)
+                image_id = get_image_id_by_authentic_and_partner(is_authentic, is_partner_channel, agency_name)
                 image = load_leaflet_template_from_drive(image_id)
                 
                 if image:
