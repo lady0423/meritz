@@ -36,7 +36,7 @@ LEAFLET_TEMPLATE_IDS = {
 # ===== 페이지 설정 =====
 st.set_page_config(page_title="메리츠 설계사 성과 조회", layout="wide")
 
-# ===== 고급 CSS 스타일 (Google Fonts 포함) =====
+# ===== 고급 CSS 스타일 =====
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 
@@ -149,8 +149,6 @@ h1, h2, h3 {
     box-shadow: 0 4px 12px rgba(204, 102, 255, 0.2);
     font-weight: 600;
     color: #ffffff;
-    word-wrap: break-word;
-    white-space: normal;
 }
 
 .target-box {
@@ -179,12 +177,6 @@ input, select {
 input:focus, select:focus {
     border-color: #00d4ff !important;
     box-shadow: 0 0 10px rgba(0, 212, 255, 0.3) !important;
-}
-
-.stTextInput > label, .stSelectbox > label {
-    font-weight: 600;
-    color: #ffffff;
-    font-family: 'Noto Sans KR', sans-serif;
 }
 
 </style>
@@ -218,12 +210,12 @@ def format_currency(value):
     return f"₩{value:,.0f}"
 
 def get_current_week():
-    """현재 주차 계산 (1~5주)"""
+    """현재 주차 계산"""
     kst = pytz.timezone('Asia/Seoul')
     today = datetime.datetime.now(kst).date()
-    year, month, day = today.year, today.month, today.day
+    day = today.day
     
-    if month == 3:
+    if today.month == 3:
         if day <= 7:
             return 1
         elif day <= 14:
@@ -244,7 +236,7 @@ def get_image_id_by_agency_name(agency_name):
             return image_id
     return LEAFLET_TEMPLATE_IDS.get("none")
 
-# ===== 데이터 로딩 함수 =====
+# ===== 데이터 로딩 =====
 @st.cache_data(ttl=300)
 def load_data_from_google_sheets():
     """Google Sheets에서 데이터 로드"""
@@ -268,14 +260,12 @@ def load_leaflet_template_from_drive(file_id):
         pass
     return None
 
-# ===== UI 메인 =====
+# ===== UI =====
 st.markdown("<h1 style='text-align: center; color: #00d4ff; font-size: 32px;'>📊 메리츠 설계사 성과 조회</h1>", unsafe_allow_html=True)
 st.markdown("<hr style='border: 1px solid #0066cc;'>", unsafe_allow_html=True)
 
-# 데이터 로드
 df = load_data_from_google_sheets()
 if df is None:
-    st.error("데이터를 로드할 수 없습니다.")
     st.stop()
 
 current_week = get_current_week()
@@ -290,12 +280,11 @@ with col2:
 with col3:
     search_clicked = st.button("🔍 검색", use_container_width=True)
 
-# ===== 검색 후에만 결과 표시 =====
+# 검색 로직
 if search_clicked:
     if not manager_name or not agent_code:
         st.error("⚠️ 매니저명과 설계사 코드를 모두 입력해주세요.")
     else:
-        # 데이터 필터링
         filtered = df[(df["매니저"].astype(str).str.strip() == manager_name.strip()) &
                       (df["현재대리점설계사조직코드"].astype(str).str.strip() == agent_code.strip())]
         
@@ -304,7 +293,6 @@ if search_clicked:
         else:
             row = filtered.iloc[0]
             
-            # ===== 기본 정보 =====
             agent_name = safe_get_value(row, "설계사명")
             branch = safe_get_value(row, "지사명")
             agency_name = safe_get_value(row, "대리점")
@@ -321,7 +309,7 @@ if search_clicked:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # ===== 누계 실적 =====
+                # 누계 실적
                 cumulative = safe_float(safe_get_value(row, "3월실적"))
                 st.markdown("<h3 style='color: #ffffff;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
                 st.markdown(f"""
@@ -330,7 +318,7 @@ if search_clicked:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # ===== 주차별 실적 =====
+                # 주차별 실적
                 st.markdown("<h3 style='color: #ffffff;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
                 week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
                 for idx, week_col in enumerate(week_columns, 1):
@@ -350,7 +338,7 @@ if search_clicked:
                         </div>
                         """, unsafe_allow_html=True)
                 
-                # ===== 현재주차 목표 + 부족금액 =====
+                # 현재주차 목표
                 weekly_target = safe_float(safe_get_value(row, "주차목표"))
                 weekly_shortage = safe_float(safe_get_value(row, "주차부족"))
                 st.markdown("<h3 style='color: #ffffff;'>🎯 현재주차 목표</h3>", unsafe_allow_html=True)
@@ -361,7 +349,7 @@ if search_clicked:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # ===== 브릿지 성과 =====
+                # 브릿지 성과
                 st.markdown("<h3 style='color: #ffffff;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
                 bridge_achievement = safe_float(safe_get_value(row, "브릿지 실적"))
                 bridge_target = safe_float(safe_get_value(row, "브릿지 도전구간"))
@@ -375,17 +363,31 @@ if search_clicked:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # ===== MC+ 성과 (수정됨) =====
+                # MC+ 성과 (수정됨)
                 st.markdown("<h3 style='color: #ffffff;'>💎 MC+ 성과</h3>", unsafe_allow_html=True)
-                mc_challenge = safe_get_value(row, "MC+구간")  # T열 - 도전구간 (예: "20만", "40만")
-                mc_shortage_amount = safe_get_value(row, "MC부족")  # U열 - 숫자 금액 (예: "-260070")
-                mc_status = safe_get_value(row, "MC부족최종")  # V열 - 상태 (예: "최종달성")
+                mc_challenge = safe_get_value(row, "MC+구간")
+                mc_shortage_amount = safe_float(safe_get_value(row, "MC부족"))
+                mc_status = safe_get_value(row, "MC부족최종")
+                
+                # MC+ 상태 판단 로직
+                if mc_shortage_amount < 0:  # 음수 = 초과달성
+                    mc_display_status = "✅ 최종달성"
+                    mc_display_shortage = "🎉 달성!"
+                    mc_shortage_color = "#66ff66"
+                elif mc_shortage_amount == 0:
+                    mc_display_status = "✅ 최종달성"
+                    mc_display_shortage = "🎉 달성!"
+                    mc_shortage_color = "#66ff66"
+                else:
+                    mc_display_status = mc_status if mc_status else "진행중"
+                    mc_display_shortage = format_currency(mc_shortage_amount)
+                    mc_shortage_color = "#ff6b6b"
                 
                 st.markdown(f"""
                 <div class='mc-box'>
                 <strong>도전구간:</strong> {mc_challenge}<br>
-                <strong>부족금액:</strong> {mc_shortage_amount}<br>
-                <strong>상태:</strong> <span style='color: #ffcc66; font-weight: 700;'>{mc_status}</span>
+                <strong>부족금액:</strong> <span style='color: {mc_shortage_color}; font-weight: 700;'>{mc_display_shortage}</span><br>
+                <strong>상태:</strong> <span style='color: #ffcc66; font-weight: 700;'>{mc_display_status}</span>
                 </div>
                 """, unsafe_allow_html=True)
             
@@ -397,7 +399,6 @@ if search_clicked:
                 if image:
                     st.image(image, use_container_width=True)
                     
-                    # 다운로드 버튼
                     with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
                         image.save(tmp_file.name, "JPEG")
                         with open(tmp_file.name, "rb") as f:
@@ -411,7 +412,7 @@ if search_clicked:
                 else:
                     st.info(f"⚠️ 리플렛 이미지를 불러올 수 없습니다.\n(대리점: {agency_name})")
             
-            # ===== 하단 버튼 =====
+            # 하단 버튼
             st.markdown("<hr style='border: 1px solid #0066cc; margin: 30px 0;'>", unsafe_allow_html=True)
             col_print, col_reset = st.columns(2)
             with col_print:
@@ -421,7 +422,6 @@ if search_clicked:
                 if st.button("🔄 초기화", use_container_width=True):
                     st.rerun()
 else:
-    # ===== 검색 전: 안내 메시지만 표시 (보안) =====
     st.markdown("""
     <div style='text-align: center; margin-top: 60px; padding: 40px; background: linear-gradient(135deg, #1f2937 0%, #111827 100%); border-radius: 10px; border-left: 5px solid #0066cc;'>
     <p style='color: #00d4ff; font-weight: 600; font-size: 16px;'>🔒 매니저명과 설계사 코드를 입력하고 검색 버튼을 클릭하세요.</p>
