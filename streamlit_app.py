@@ -250,16 +250,6 @@ def safe_float(value):
     except:
         return 0.0
 
-def format_number(value):
-    """숫자는 그대로 1,000,000 원으로 표시"""
-    try:
-        num = safe_float(value)
-        if num == 0:
-            return "₩0"
-        return f"₩{num:,.0f}"
-    except:
-        return str(value)
-
 def format_display(value):
     """원본 값 그대로 표시 (숫자면 포맷, 문자면 그대로)"""
     v = str(value).strip()
@@ -361,13 +351,10 @@ def render_mc_box(mc_challenge, mc_shortage, is_mc_plus=False):
         mc_shortage_color = "#ffb366"
     
     box_class = "mc-plus-box" if is_mc_plus else "mc-box"
-    title_color = "#9d66ff" if is_mc_plus else "#ff8a99"
-    title_emoji = "MC+ 성과" if is_mc_plus else "MC 성과"
     status_color = "#9d66ff" if is_mc_plus else "#ffb366"
     
     st.markdown(f"""
     <div class='{box_class}'>
-    <h3 style='color: {title_color}; font-size: 18px; margin: 0 0 10px 0;'>{title_emoji}</h3>
     <strong>도전구간:</strong> {mc_challenge_display}<br>
     <strong>부족금액:</strong> <span style='color: {mc_shortage_color}; font-weight: 700;'>{mc_shortage_display}</span><br>
     <strong>상태:</strong> <span style='color: {status_color}; font-weight: 700;'>{mc_display_status}</span>
@@ -492,16 +479,16 @@ if search_clicked:
                     </div>
                     """, unsafe_allow_html=True)
                 
-                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>💰 성과</h3>", unsafe_allow_html=True)
-                
                 # ===== MC / MC+ 성과 =====
                 if is_authentic:
                     # MC (어센틱만)
+                    st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>💰 MC 성과</h3>", unsafe_allow_html=True)
                     mc_challenge = row["MC도전구간"]
                     mc_shortage = row["MC부족최종"]
                     render_mc_box(mc_challenge, mc_shortage, is_mc_plus=False)
                 
                 # MC+ (모두)
+                st.markdown("<h3 style='color: #9d66ff; font-size: 18px;'>💰 MC플러스 성과</h3>", unsafe_allow_html=True)
                 mc_plus_challenge = row["MC+구간"]
                 mc_plus_shortage = row["MC+부족최종"]
                 render_mc_box(mc_plus_challenge, mc_plus_shortage, is_mc_plus=True)
