@@ -298,9 +298,9 @@ def load_logo():
         return Image.open("meritz.png")
     return None
 
-def create_screenshot_data(agent_name, branch, cumulative, week_data, weekly_target, weekly_shortage, 
-                           bridge_achievement, bridge_target, bridge_shortage, mc_challenge, 
-                           mc_display_shortage, mc_display_status):
+def create_screenshot_image(agent_name, branch, cumulative, week_data, weekly_target, weekly_shortage, 
+                            bridge_achievement, bridge_target, bridge_shortage, mc_challenge, 
+                            mc_display_shortage, mc_display_status):
     """데이터를 기반으로 이미지 생성"""
     try:
         from PIL import ImageDraw, ImageFont
@@ -316,7 +316,7 @@ def create_screenshot_data(agent_name, branch, cumulative, week_data, weekly_tar
         line_height = 40
         
         # 제목
-        draw.text((img_width//2 - 150, y_pos), "메리츠 실적현황", fill='#ff8a99')
+        draw.text((50, y_pos), "메리츠 실적현황", fill='#ff8a99')
         y_pos += line_height * 2
         
         # 기본정보
@@ -367,11 +367,7 @@ def create_screenshot_data(agent_name, branch, cumulative, week_data, weekly_tar
         y_pos += line_height
         draw.text((50, y_pos), f"상태: {mc_display_status}", fill='#ffffff')
         
-        # 이미지를 바이트로 변환
-        img_byte_arr = io.BytesIO()
-        img.save(img_byte_arr, format='PNG')
-        img_byte_arr.seek(0)
-        return img_byte_arr.getvalue()
+        return img
     except Exception as e:
         st.error(f"이미지 생성 실패: {str(e)}")
         return None
@@ -571,22 +567,27 @@ if search_clicked:
                     """, unsafe_allow_html=True)
             
             with col_download:
-                if st.button("📥 화면 다운로드 (PNG)", use_container_width=True):
-                    screenshot_data = create_screenshot_data(
-                        agent_name, branch, cumulative, week_data, 
-                        weekly_target, weekly_shortage, bridge_achievement, 
-                        bridge_target, bridge_shortage, mc_challenge, 
-                        mc_display_shortage, mc_display_status
-                    )
+                # 이미지 생성
+                screenshot_img = create_screenshot_image(
+                    agent_name, branch, cumulative, week_data, 
+                    weekly_target, weekly_shortage, bridge_achievement, 
+                    bridge_target, bridge_shortage, mc_challenge, 
+                    mc_display_shortage, mc_display_status
+                )
+                
+                if screenshot_img:
+                    # 이미지를 바이트로 변환
+                    img_byte_arr = io.BytesIO()
+                    screenshot_img.save(img_byte_arr, format='PNG')
+                    img_byte_arr.seek(0)
                     
-                    if screenshot_data:
-                        st.download_button(
-                            label="💾 PNG 다운로드",
-                            data=screenshot_data,
-                            file_name=f"{agent_name}_성과현황_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.png",
-                            mime="image/png",
-                            use_container_width=True
-                        )
+                    st.download_button(
+                        label="📥 화면 다운로드 (PNG)",
+                        data=img_byte_arr.getvalue(),
+                        file_name=f"{agent_name}_성과현황_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.png",
+                        mime="image/png",
+                        use_container_width=True
+                    )
             
             with col_reset:
                 if st.button("🔄 초기화", use_container_width=True):
