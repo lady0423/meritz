@@ -1,15 +1,13 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+import datetime
 import pytz
 from PIL import Image
 import gdown
 import tempfile
 import os
 
-# ============================================
-# 설정
-# ============================================
+# ===== 설정 =====
 GOOGLE_SHEET_ID = "1NSm_gy0a_QbWXquI2efdM93BjBuHn_sYLpU0NybL5_8"
 
 LEAFLET_TEMPLATE_IDS = {
@@ -35,152 +33,182 @@ LEAFLET_TEMPLATE_IDS = {
     "none": "1xGX9WTFcAtnzIa2kgMPOuG73V56ypbaf",
 }
 
-# ============================================
-# 페이지 설정
-# ============================================
-st.set_page_config(
-    page_title="메리츠 실적현황",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
+st.set_page_config(page_title="메리츠 실적현황", layout="wide")
 
-# ============================================
-# CSS 스타일링 (메리츠 빨강색 테마 + 검은 배경)
-# ============================================
 st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 
+<style>
 * {
     font-family: 'Noto Sans KR', sans-serif !important;
 }
 
-body {
-    background-color: #0f0f0f;
-    color: #ffffff;
+html, body, [data-testid="stAppViewContainer"], .main, [data-testid="stDecoration"] {
+    background: #0f0f0f !important;
+    color: #e0e0e0;
 }
 
-/* 메인 제목 */
-.main-title {
-    font-size: 40px;
+[data-testid="stHeader"] {
+    background: rgba(0, 0, 0, 0.3) !important;
+}
+
+h1, h2, h3 {
+    font-family: 'Noto Sans KR', sans-serif;
     font-weight: 700;
-    color: #ffffff;
-    text-align: center;
-    margin-bottom: 20px;
-    margin-top: 10px;
+    letter-spacing: -0.5px;
 }
 
-/* 기본정보 박스 */
-.info-box {
-    background-color: #1a1a1a;
-    border-left: 4px solid #c41e3a;
-    padding: 15px;
+input::-webkit-autofill,
+input::-webkit-autofill:hover,
+input::-webkit-autofill:focus,
+input::-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #1a1a1a inset !important;
+    box-shadow: 0 0 0 30px #1a1a1a inset !important;
+}
+
+input::-webkit-autofill {
+    -webkit-text-fill-color: #ffffff !important;
+}
+
+.stButton > button {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 600;
+    background: linear-gradient(135deg, #c41e3a 0%, #a01729 100%);
+    border: none;
     border-radius: 8px;
-    margin-bottom: 15px;
+    padding: 12px 24px;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(196, 30, 58, 0.4);
+}
+
+.stButton > button:hover {
+    background: linear-gradient(135deg, #a01729 0%, #7d111f 100%);
+    box-shadow: 0 6px 20px rgba(196, 30, 58, 0.6);
+    transform: translateY(-2px);
+}
+
+.info-box {
+    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
+    border-left: 5px solid #c41e3a;
+    padding: 18px;
+    border-radius: 10px;
+    margin: 12px 0;
     font-size: 17px;
     line-height: 2;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    font-weight: 500;
 }
 
-/* 누계 박스 */
 .cumulative-box {
-    background-color: #1a1a1a;
-    border-left: 4px solid #c41e3a;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
+    border-left: 5px solid #ff6b7a;
+    padding: 25px;
+    border-radius: 10px;
+    margin: 15px 0;
     font-size: 26px;
     font-weight: 700;
-    color: #ff6b7a;
+    color: #ff8a99;
     text-align: center;
+    box-shadow: 0 4px 20px rgba(196, 30, 58, 0.3);
+    letter-spacing: 1px;
 }
 
-/* 주차 진척 행 */
 .weekly-row {
-    background-color: #131313;
-    border: 1px solid #2a2a2a;
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 6px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
+    border-left: 5px solid #66cc66;
+    padding: 16px;
+    border-radius: 8px;
+    margin: 10px 0;
     font-size: 18px;
-    line-height: 1.8;
-}
-
-.weekly-row.current {
-    background-color: #2a2a2a;
-    border: 2px solid #c41e3a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
     font-weight: 600;
 }
 
-/* 브릿지 박스 */
+.weekly-row.current {
+    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
+    border-left: 5px solid #ffcc00;
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(255, 204, 0, 0.3); }
+    50% { box-shadow: 0 0 25px rgba(255, 204, 0, 0.5); }
+}
+
 .bridge-box {
-    background-color: #1a1a1a;
-    border-left: 4px solid #ff6b7a;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
+    border-left: 5px solid #ff8a99;
+    padding: 18px;
+    border-radius: 10px;
+    margin: 15px 0;
     font-size: 17px;
     line-height: 2.2;
+    box-shadow: 0 4px 12px rgba(196, 30, 58, 0.2);
+    font-weight: 600;
 }
 
-/* MC+ 박스 */
 .mc-box {
-    background-color: #1a1a1a;
-    border-left: 4px solid #ff6b7a;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
+    border-left: 5px solid #ff6b7a;
+    padding: 18px;
+    border-radius: 10px;
+    margin: 15px 0;
     font-size: 17px;
     line-height: 2.2;
+    box-shadow: 0 4px 12px rgba(196, 30, 58, 0.2);
+    font-weight: 600;
+    color: #ffffff;
 }
 
-/* 현재주차 목표 박스 */
 .target-box {
-    background-color: #1a1a1a;
-    border-left: 4px solid #ff6b7a;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
+    border-left: 5px solid #ffb366;
+    padding: 18px;
+    border-radius: 10px;
+    margin: 15px 0;
     font-size: 17px;
     line-height: 2.2;
+    box-shadow: 0 4px 12px rgba(196, 30, 58, 0.15);
+    font-weight: 600;
 }
 
-/* 입력 필드 */
-input, select, textarea {
-    background-color: #2a2a2a !important;
+input, select {
+    background-color: #1a1a1a !important;
     color: #ffffff !important;
-    border: 1px solid #3a3a3a !important;
-    border-radius: 6px !important;
-    padding: 10px !important;
+    border: 2px solid #c41e3a !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
     font-family: 'Noto Sans KR', sans-serif !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease;
+}
+
+input:focus, select:focus {
+    border-color: #ff6b7a !important;
+    box-shadow: 0 0 10px rgba(255, 107, 122, 0.3) !important;
 }
 
 input::placeholder {
-    color: #888888 !important;
+    color: #666666 !important;
 }
 
-/* 버튼 */
-button {
-    background-color: #c41e3a !important;
-    color: #ffffff !important;
-    border: none !important;
-    border-radius: 6px !important;
-    padding: 10px 20px !important;
-    font-weight: 600 !important;
-    font-family: 'Noto Sans KR', sans-serif !important;
-    transition: all 0.3s ease !important;
+.stTextInput > label, .stSelectbox > label {
+    font-weight: 600;
+    color: #ffffff;
+    font-family: 'Noto Sans KR', sans-serif;
 }
 
-button:hover {
-    background-color: #a01830 !important;
-}
-
-/* 스크롤바 */
 ::-webkit-scrollbar {
     width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #1a1a1a;
+    background: #0f0f0f;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -189,379 +217,276 @@ button:hover {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #a01830;
-}
-
-/* 텍스트 선택 */
-::selection {
-    background-color: #c41e3a;
-    color: #ffffff;
-}
-
-/* 상태 색상 */
-.status-achievement {
-    color: #66ff66;
-    font-weight: 700;
-}
-
-.status-challenge {
-    color: #ffa500;
-    font-weight: 700;
-}
-
-.status-inactive {
-    color: #999999;
-    font-weight: 700;
-}
-
-.status-shortage {
-    color: #ff6b6b;
-    font-weight: 700;
-}
-
-/* 캡션 */
-.caption {
-    color: #888888;
-    font-size: 14px;
-    text-align: center;
-    margin-top: 20px;
-}
-
-/* 오류 메시지 */
-.error-message {
-    color: #ff6b6b;
-    padding: 15px;
-    background-color: #2a1a1a;
-    border-left: 4px solid #ff6b6b;
-    border-radius: 6px;
-    margin-bottom: 15px;
-}
-
-/* 안내 메시지 */
-.info-message {
-    color: #888888;
-    padding: 15px;
-    background-color: #1a1a1a;
-    border-left: 4px solid #c41e3a;
-    border-radius: 6px;
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-/* 자동완성 제거 */
-input:-webkit-autofill {
-    -webkit-box-shadow: 0 0 0 1000px #2a2a2a inset !important;
-    -webkit-text-fill-color: #ffffff !important;
-}
-
-input:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0 1000px #2a2a2a inset !important;
-    -webkit-text-fill-color: #ffffff !important;
+    background: #ff6b7a;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ============================================
-# 유틸리티 함수
-# ============================================
-
 def safe_float(value):
-    """안전한 float 변환"""
-    if value is None or value == "":
+    if pd.isna(value):
         return 0.0
     try:
-        return float(str(value).replace(",", ""))
+        if isinstance(value, str):
+            return float(value.replace(",", "").strip())
+        return float(value)
     except:
         return 0.0
 
 def safe_get_value(row, column_name):
-    """안전한 행 값 조회"""
     try:
-        val = row.get(column_name, "")
-        if pd.isna(val):
+        value = row.get(column_name, "")
+        if pd.isna(value):
             return ""
-        return str(val).strip()
+        return str(value).strip()
     except:
         return ""
 
 def format_currency(value):
-    """숫자를 통화 형식으로 변환"""
-    try:
-        num = safe_float(value)
-        if num == 0:
-            return "0"
-        return f"{int(num):,}"
-    except:
-        return str(value)
+    value = safe_float(value)
+    return f"₩{value:,.0f}"
 
 def get_current_week():
-    """현재 주차 계산 (3월 기준)"""
-    today = datetime.now(pytz.timezone('Asia/Seoul'))
+    kst = pytz.timezone('Asia/Seoul')
+    today = datetime.datetime.now(kst).date()
     day = today.day
-    if day <= 7:
-        return 1
-    elif day <= 14:
-        return 2
-    elif day <= 21:
-        return 3
-    elif day <= 28:
-        return 4
-    else:
-        return 5
+    
+    if today.month == 3:
+        if day <= 7:
+            return 1
+        elif day <= 14:
+            return 2
+        elif day <= 21:
+            return 3
+        elif day <= 28:
+            return 4
+        else:
+            return 5
+    return 1
 
 def get_image_id_by_agency_name(agency_name):
-    """대리점명으로 리플렛 이미지 ID 조회"""
-    if not agency_name:
-        return LEAFLET_TEMPLATE_IDS.get("none", "")
-    
-    agency_lower = agency_name.lower()
-    for key, image_id in LEAFLET_TEMPLATE_IDS.items():
-        if key != "none" and key.lower() in agency_lower:
+    agency_name_lower = str(agency_name).strip().lower()
+    for keyword, image_id in LEAFLET_TEMPLATE_IDS.items():
+        if keyword.lower() in agency_name_lower:
             return image_id
-    return LEAFLET_TEMPLATE_IDS.get("none", "")
+    return LEAFLET_TEMPLATE_IDS.get("none")
 
 @st.cache_data(ttl=300)
 def load_data_from_google_sheets():
-    """Google Sheets에서 데이터 로드"""
+    url = f"https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/export?format=csv&gid=0"
     try:
-        url = f"https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/export?format=csv&gid=0"
         df = pd.read_csv(url)
         return df
     except Exception as e:
-        st.error(f"데이터 로드 실패: {str(e)}")
+        st.error(f"데이터 로드 실패: {e}")
         return None
 
 def load_leaflet_template_from_drive(file_id):
-    """Google Drive에서 리플렛 이미지 다운로드"""
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
-            temp_file = os.path.join(temp_dir, "leaflet.pdf")
-            download_url = f"https://drive.google.com/uc?id={file_id}"
-            gdown.download(download_url, temp_file, quiet=True)
-            if os.path.exists(temp_file):
-                with open(temp_file, "rb") as f:
-                    return f.read()
+            output_path = os.path.join(temp_dir, "template.jpg")
+            gdown.download(f"https://drive.google.com/uc?id={file_id}", output_path, quiet=True)
+            if os.path.exists(output_path):
+                return Image.open(output_path)
     except:
         pass
     return None
 
 def load_logo():
-    """로고 이미지 로드"""
-    try:
-        if os.path.exists("meritz.png"):
-            return Image.open("meritz.png")
-    except:
-        pass
+    if os.path.exists("meritz.png"):
+        return Image.open("meritz.png")
     return None
 
-# ============================================
-# UI - 로고와 제목
-# ============================================
-logo = load_logo()
-col1, col2 = st.columns([1, 4])
-with col1:
+col_logo, col_title = st.columns([1, 4])
+with col_logo:
+    logo = load_logo()
     if logo:
         st.image(logo, width=80)
     else:
-        st.markdown("🏢", unsafe_allow_html=True)
+        st.write("📊")
 
-with col2:
-    st.markdown('<div class="main-title">메리츠 실적현황</div>', unsafe_allow_html=True)
+with col_title:
+    st.markdown("<h1 style='color: #ff8a99; font-size: 28px; margin-top: 10px;'>메리츠 실적현황</h1>", unsafe_allow_html=True)
 
-st.markdown("---")
+st.markdown("<hr style='border: 1px solid #c41e3a;'>", unsafe_allow_html=True)
 
-# ============================================
-# 데이터 로드
-# ============================================
 df = load_data_from_google_sheets()
-
 if df is None:
-    st.error("데이터를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.")
     st.stop()
 
-# ============================================
-# 검색 섹션
-# ============================================
+current_week = get_current_week()
+
+st.markdown("<h3 style='color: #ffffff; margin-top: 20px; font-size: 18px;'>🔍 검색 정보 입력</h3>", unsafe_allow_html=True)
 col1, col2, col3 = st.columns([2, 2, 1])
-
 with col1:
-    manager_name = st.text_input("매니저명", placeholder="예: 박메리", autocomplete="off")
-
+    manager_name = st.text_input("매니저명", placeholder="예: 박메리", label_visibility="collapsed", key="manager", autocomplete="off")
 with col2:
-    agent_code = st.text_input("설계사코드 (7로 시작)", placeholder="예: 7XXXXXX", autocomplete="off")
-
+    agent_code = st.text_input("설계사 코드", placeholder="예: 7로 시작하는 숫자", label_visibility="collapsed", key="code", autocomplete="off")
 with col3:
-    search_clicked = st.button("조회", use_container_width=True)
+    search_clicked = st.button("🔍 검색", use_container_width=True)
 
-# ============================================
-# 검색 결과 표시
-# ============================================
 if search_clicked:
     if not manager_name or not agent_code:
-        st.markdown('<div class="error-message">⚠️ 매니저명과 설계사코드를 모두 입력해주세요.</div>', unsafe_allow_html=True)
+        st.error("⚠️ 매니저명과 설계사 코드를 모두 입력해주세요.")
     else:
-        # 데이터 필터링
-        filtered_df = df[
-            (df['매니저'].astype(str).str.strip() == manager_name.strip()) &
-            (df['현재대리점설계사조직코드'].astype(str).str.strip() == agent_code.strip())
-        ]
-
-        if filtered_df.empty:
-            st.markdown('<div class="error-message">❌ 검색 결과가 없습니다. 매니저명과 설계사코드를 확인해주세요.</div>', unsafe_allow_html=True)
+        filtered = df[(df["매니저"].astype(str).str.strip() == manager_name.strip()) &
+                      (df["현재대리점설계사조직코드"].astype(str).str.strip() == agent_code.strip())]
+        
+        if len(filtered) == 0:
+            st.error(f"❌ 데이터를 찾을 수 없습니다: {manager_name} / {agent_code}")
         else:
-            row = filtered_df.iloc[0]
-
-            # 기본정보
-            agent_name = safe_get_value(row, "설계사명")
-            branch_name = safe_get_value(row, "지사명")
-
-            st.markdown(f"""
-            <div class="info-box">
-            <strong>설계사명:</strong> {agent_name}<br>
-            <strong>지사:</strong> {branch_name}
-            </div>
-            """, unsafe_allow_html=True)
-
-            # 3월 누계 실적
-            march_total = safe_get_value(row, "3월실적")
-            st.markdown(f"""
-            <div class="cumulative-box">
-            3월 누계 실적<br>
-            {format_currency(march_total)}
-            </div>
-            """, unsafe_allow_html=True)
-
-            # 주차 진척 (1~5주차)
-            st.markdown("<h3 style='font-size: 22px; margin-top: 20px; margin-bottom: 15px;'>📊 주차 진척</h3>", unsafe_allow_html=True)
-            current_week = get_current_week()
+            row = filtered.iloc[0]
             
-            for week in range(1, 6):
-                week_col = f"{week}주차"
-                week_value = safe_get_value(row, week_col)
-                is_current = week == current_week
-                current_class = "current" if is_current else ""
-                current_badge = "🟡 현재주차" if is_current else ""
-                
+            agent_name = safe_get_value(row, "설계사명")
+            branch = safe_get_value(row, "지사명")
+            agency_name = safe_get_value(row, "대리점")
+            
+            col_left, col_right = st.columns([1.5, 1])
+            
+            with col_left:
+                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📋 기본 정보</h3>", unsafe_allow_html=True)
                 st.markdown(f"""
-                <div class="weekly-row {current_class}">
-                {week}주차: <strong>{format_currency(week_value)}</strong> {current_badge}
+                <div class='info-box'>
+                <strong>설계사명:</strong> {agent_name}<br>
+                <strong>지사:</strong> {branch}
                 </div>
                 """, unsafe_allow_html=True)
-
-            # 현재주차 목표 및 부족금액
-            st.markdown("<h3 style='font-size: 22px; margin-top: 20px; margin-bottom: 15px;'>🎯 현재주차 목표</h3>", unsafe_allow_html=True)
-            weekly_target = safe_get_value(row, "주차목표")
-            weekly_shortage = safe_get_value(row, "주차부족")
-            
-            st.markdown(f"""
-            <div class="target-box">
-            <strong>목표:</strong> {format_currency(weekly_target)}<br>
-            <strong>부족금액:</strong> <span class="status-shortage">{format_currency(weekly_shortage)}</span>
-            </div>
-            """, unsafe_allow_html=True)
-
-            # 브릿지 진척
-            st.markdown("<h3 style='font-size: 22px; margin-top: 20px; margin-bottom: 15px;'>🌉 브릿지 진척</h3>", unsafe_allow_html=True)
-            bridge_actual = safe_get_value(row, "브릿지 실적")
-            bridge_target = safe_get_value(row, "브릿지 도전구간")
-            bridge_shortage = safe_get_value(row, "브릿지 부족")
-            
-            st.markdown(f"""
-            <div class="bridge-box">
-            <strong>실적:</strong> {format_currency(bridge_actual)}<br>
-            <strong>도전구간:</strong> {format_currency(bridge_target)}<br>
-            <strong>부족금액:</strong> <span class="status-shortage">{format_currency(bridge_shortage)}</span>
-            </div>
-            """, unsafe_allow_html=True)
-
-            # MC+ 성과
-            st.markdown("<h3 style='font-size: 22px; margin-top: 20px; margin-bottom: 15px;'>⭐ MC+ 성과</h3>", unsafe_allow_html=True)
-            
-            mc_challenge = safe_get_value(row, "MC+구간")  # T열
-            mc_shortage_amount = safe_get_value(row, "MC부족")  # U열
-            mc_status = safe_get_value(row, "MC부족최종")  # V열
-
-            # MC+ 상태 로직
-            if mc_status and mc_status.strip():
-                # V열 값이 있는 경우
-                if "최종달성" in mc_status:
-                    mc_display_status = "✅ 시상금확보"
-                    mc_display_shortage = mc_status
-                    mc_shortage_color = "#66ff66"
-                elif "다음기회에" in mc_status or "재도전" in mc_status:
-                    mc_display_status = "⚪ 대상아님"
-                    mc_display_shortage = mc_status
-                    mc_shortage_color = "#999999"
-                elif "대상아님" in mc_status:
-                    mc_display_status = "⚪ 대상아님"
-                    mc_display_shortage = mc_status
-                    mc_shortage_color = "#999999"
+                
+                cumulative = safe_float(safe_get_value(row, "3월실적"))
+                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
+                st.markdown(f"""
+                <div class='cumulative-box'>
+                {format_currency(cumulative)}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
+                week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
+                for idx, week_col in enumerate(week_columns, 1):
+                    week_value = safe_float(safe_get_value(row, week_col))
+                    is_current = (idx == current_week)
+                    
+                    if is_current:
+                        st.markdown(f"""
+                        <div class='weekly-row current'>
+                        <strong>{week_col}</strong> <span style='color: #ffcc00; font-size: 20px;'>⭐</span> <strong style='color: #ffcc00;'>{format_currency(week_value)}</strong>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"""
+                        <div class='weekly-row'>
+                        <strong>{week_col}</strong> <strong style='color: #66cc66;'>{format_currency(week_value)}</strong>
+                        </div>
+                        """, unsafe_allow_html=True)
+                
+                weekly_target = safe_float(safe_get_value(row, "주차목표"))
+                weekly_shortage = safe_float(safe_get_value(row, "주차부족"))
+                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎯 현재주차 목표</h3>", unsafe_allow_html=True)
+                st.markdown(f"""
+                <div class='target-box'>
+                <strong>목표:</strong> {format_currency(weekly_target)}<br>
+                <strong>부족금액:</strong> {format_currency(weekly_shortage)}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
+                bridge_achievement = safe_float(safe_get_value(row, "브릿지 실적"))
+                bridge_target = safe_float(safe_get_value(row, "브릿지 도전구간"))
+                bridge_shortage = safe_float(safe_get_value(row, "브릿지 부족"))
+                
+                st.markdown(f"""
+                <div class='bridge-box'>
+                <strong>진척:</strong> {format_currency(bridge_achievement)}<br>
+                <strong>목표:</strong> {format_currency(bridge_target)}<br>
+                <strong>부족금액:</strong> {format_currency(bridge_shortage)}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>💎 MC+ 성과</h3>", unsafe_allow_html=True)
+                mc_challenge = safe_get_value(row, "MC+구간")
+                mc_shortage_raw = safe_get_value(row, "MC부족")
+                mc_status_raw = safe_get_value(row, "MC부족최종")
+                
+                if mc_status_raw and mc_status_raw.strip():
+                    mc_display_shortage = mc_status_raw
+                    
+                    if "최종달성" in mc_status_raw:
+                        mc_display_status = "✅ 시상금확보"
+                        mc_shortage_color = "#66ff66"
+                    elif "다음기회에" in mc_status_raw or "재도전" in mc_status_raw:
+                        mc_display_status = "⚪ 대상아님"
+                        mc_shortage_color = "#999999"
+                    elif "대상아님" in mc_status_raw:
+                        mc_display_status = "⚪ 대상아님"
+                        mc_shortage_color = "#999999"
+                    else:
+                        try:
+                            float(mc_status_raw.replace(",", ""))
+                            mc_display_status = "🟡 도전중"
+                            mc_shortage_color = "#ffb366"
+                        except:
+                            mc_display_status = mc_status_raw
+                            mc_shortage_color = "#ff6b6b"
                 else:
-                    mc_display_status = "🟡 도전중"
-                    mc_display_shortage = format_currency(mc_shortage_amount) if mc_shortage_amount else "-"
-                    mc_shortage_color = "#ff6b6b"
-            else:
-                # V열이 비어있으면 U열(MC부족) 참고
-                mc_shortage_float = safe_float(mc_shortage_amount)
-                if mc_shortage_float <= 0:
-                    mc_display_status = "✅ 시상금확보"
-                    mc_display_shortage = "달성!"
-                    mc_shortage_color = "#66ff66"
-                else:
-                    mc_display_status = "🟡 도전중"
-                    mc_display_shortage = format_currency(mc_shortage_amount)
-                    mc_shortage_color = "#ff6b6b"
-
-            st.markdown(f"""
-            <div class="mc-box">
-            <strong>도전구간:</strong> {format_currency(mc_challenge)}<br>
-            <strong>부족금액:</strong> <span style="color: {mc_shortage_color};">{mc_display_shortage}</span><br>
-            <strong>상태:</strong> {mc_display_status}
-            </div>
-            """, unsafe_allow_html=True)
-
-            # 리플렛 이미지 (우측 컬럼)
-            st.markdown("---")
-            st.markdown("<h3 style='font-size: 22px; margin-top: 20px; margin-bottom: 15px;'>📄 리플렛</h3>", unsafe_allow_html=True)
+                    mc_display_shortage = mc_shortage_raw
+                    
+                    try:
+                        shortage_num = safe_float(mc_shortage_raw)
+                        if shortage_num < 0:
+                            mc_display_status = "✅ 시상금확보"
+                            mc_shortage_color = "#66ff66"
+                        elif shortage_num == 0:
+                            mc_display_status = "✅ 시상금확보"
+                            mc_shortage_color = "#66ff66"
+                        else:
+                            mc_display_status = "🟡 도전중"
+                            mc_display_shortage = format_currency(shortage_num)
+                            mc_shortage_color = "#ffb366"
+                    except:
+                        mc_display_status = "진행중"
+                        mc_shortage_color = "#ff6b6b"
+                
+                st.markdown(f"""
+                <div class='mc-box'>
+                <strong>도전구간:</strong> {mc_challenge}<br>
+                <strong>부족금액:</strong> <span style='color: {mc_shortage_color}; font-weight: 700;'>{mc_display_shortage}</span><br>
+                <strong>상태:</strong> <span style='color: #ffb366; font-weight: 700;'>{mc_display_status}</span>
+                </div>
+                """, unsafe_allow_html=True)
             
-            agency_name = safe_get_value(row, "대리점")
-            image_id = get_image_id_by_agency_name(agency_name)
-            
-            if image_id:
-                leaflet_data = load_leaflet_template_from_drive(image_id)
-                if leaflet_data:
-                    st.download_button(
-                        label="📥 리플렛 다운로드",
-                        data=leaflet_data,
-                        file_name=f"{agent_name}_leaflet.pdf",
-                        mime="application/pdf"
-                    )
+            with col_right:
+                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
+                image_id = get_image_id_by_agency_name(agency_name)
+                image = load_leaflet_template_from_drive(image_id)
+                
+                if image:
+                    st.image(image, use_container_width=True)
+                    
+                    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
+                        image.save(tmp_file.name, "JPEG")
+                        with open(tmp_file.name, "rb") as f:
+                            st.download_button(
+                                label="📥 리플렛 다운로드",
+                                data=f.read(),
+                                file_name=f"{agency_name}_leaflet.jpg",
+                                mime="image/jpeg",
+                                use_container_width=True
+                            )
                 else:
-                    st.info(f"📧 리플렛을 다운로드할 수 없습니다. (대리점: {agency_name})")
-            else:
-                st.info(f"📧 리플렛이 등록되지 않았습니다. (대리점: {agency_name})")
-
-            # 하단 버튼
-            st.markdown("---")
-            col1, col2 = st.columns(2)
-            with col1:
+                    st.info(f"⚠️ 리플렛 이미지를 불러올 수 없습니다.\n(대리점: {agency_name})")
+            
+            st.markdown("<hr style='border: 1px solid #c41e3a; margin: 30px 0;'>", unsafe_allow_html=True)
+            col_print, col_reset = st.columns(2)
+            with col_print:
                 if st.button("🖨️ 인쇄", use_container_width=True):
-                    st.markdown("<script>window.print();</script>", unsafe_allow_html=True)
-            with col2:
+                    st.info("💡 브라우저의 인쇄 기능을 사용해주세요 (Ctrl+P 또는 Cmd+P)")
+            with col_reset:
                 if st.button("🔄 초기화", use_container_width=True):
                     st.rerun()
-
 else:
-    # 검색 전 안내 메시지
     st.markdown("""
-    <div class="info-message">
-    🔍 매니저명과 설계사코드를 입력하고 '조회' 버튼을 클릭하세요.
+    <div style='text-align: center; margin-top: 60px; padding: 40px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #c41e3a;'>
+    <p style='color: #ff8a99; font-weight: 600; font-size: 16px;'>🔒 매니저명과 설계사 코드를 입력하고 검색 버튼을 클릭하세요.</p>
+    <p style='color: #888888; font-weight: 400; font-size: 14px; margin-top: 10px;'>개인정보 보호를 위해 검색 후에만 데이터가 표시됩니다.</p>
     </div>
     """, unsafe_allow_html=True)
-
-st.markdown("""
-<div class="caption">
-© 2026 Meritz Financial Group. All rights reserved.
-</div>
-""", unsafe_allow_html=True)
