@@ -420,7 +420,7 @@ if search_clicked:
             branch = safe_get_value(row, "지사명")
             agency_name = safe_get_value(row, "대리점")
             
-            # Y열 어센틱구분 확인
+            # Y열 어센틱구분 확인 (정확한 컬럼명)
             is_authentic = safe_float(safe_get_value(row, "어센틱구분")) == 1
             
             # 파트너채널 확인
@@ -447,7 +447,7 @@ if search_clicked:
                 
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
                 
-                # 모든 경우 1~5주차 데이터 가져오기
+                # 모든 경우 1~5주차 데이터 가져오기 (정확한 컬럼명)
                 week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
                 for idx, week_col in enumerate(week_columns, 1):
                     week_value = safe_float(safe_get_value(row, week_col))
@@ -466,16 +466,17 @@ if search_clicked:
                         </div>
                         """, unsafe_allow_html=True)
                 
-                # ============ 수정된 부분 시작 ============
-                # 현재주차 목표
+                # ============ 수정된 부분 (정확한 컬럼명 사용) ============
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎯 현재주차 목표</h3>", unsafe_allow_html=True)
                 
                 if is_authentic and not is_partner_channel:
                     # Y=1 (어센틱, 파트너채널 제외)
+                    # AD열: 어센틱주차목표, AF열: 어센틱주차부족최종
                     weekly_target = safe_float(safe_get_value(row, "어센틱주차목표"))
                     weekly_shortage = safe_float(safe_get_value(row, "어센틱주차부족최종"))
                 else:
                     # Y=0 (기타)
+                    # R열: 주차목표, S열: 주차부족
                     weekly_target = safe_float(safe_get_value(row, "주차목표"))
                     weekly_shortage = safe_float(safe_get_value(row, "주차부족"))
                 
@@ -490,7 +491,7 @@ if search_clicked:
                 if not is_authentic:
                     st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
                     bridge_achievement = safe_float(safe_get_value(row, "브릿지 실적"))
-                    bridge_target = safe_float(safe_get_value(row, "브릿지 도전구간"))  # H열
+                    bridge_target = safe_float(safe_get_value(row, "브릿지 도전구간"))  # I열
                     bridge_shortage = safe_float(safe_get_value(row, "브릿지 부족"))  # J열
                     
                     st.markdown(f"""
