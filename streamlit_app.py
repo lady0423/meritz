@@ -8,7 +8,6 @@ import gdown
 import tempfile
 import os
 
-# ===== Configuration =====
 GOOGLE_SHEET_ID = "1NSm_gy0a_QbWXquI2efdM93BjBuHn_sYLpU0NybL5_8"
 
 LEAFLET_TEMPLATE_IDS = {
@@ -302,7 +301,7 @@ if search_clicked:
                 bridge_shortage = safe_float(safe_get_value(row, "브릿지 부족"))
                 
                 mc_challenge = safe_float(safe_get_value(row, "MC+구간"))
-                mc_achievement = safe_float(safe_get_value(row, "3월실적"))
+                mc_progress = safe_float(safe_get_value(row, "3월실적"))
                 mc_shortage = safe_float(safe_get_value(row, "MC부족"))
                 
                 current_week = get_current_week()
@@ -364,8 +363,8 @@ if search_clicked:
                         <div class="mc-challenge">{format_currency(mc_challenge)}</div>
                         <div class="mc-bottom">
                             <div class="mc-item">
-                                <div class="mc-item-label">실적</div>
-                                <div class="mc-item-value">{format_currency(mc_achievement)}</div>
+                                <div class="mc-item-label">진척</div>
+                                <div class="mc-item-value">{format_currency(mc_progress)}</div>
                             </div>
                             <div class="mc-item">
                                 <div class="mc-item-label">부족</div>
