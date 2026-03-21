@@ -11,7 +11,7 @@ import io
 # ============ 설정 ============
 GOOGLE_DRIVE_FILE_ID = "1eD-WgnXioOH7zb7oyydKu_l798BwuVtA"
 
-# 대리점명 → Google Drive 이미지 ID 매핑 (최신)
+# 대리점명 → Google Drive 이미지 ID 매핑
 LEAFLET_TEMPLATE_IDS = {
     "메가": "16l4rB2dRYkmEARfP7shI_N5L_HKio9wO",
     "토스": "17b27Cq0sN52ifJ5NvCsnr87KbaUcsqsr",
@@ -228,6 +228,17 @@ body {
     border-radius: 8px;
     text-align: center;
     color: #8b949e;
+    font-size: 14px;
+}
+
+.debug-info {
+    background: #161b22;
+    border: 1px solid #30363d;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #8b949e;
+    margin-top: 10px;
 }
 
 </style>
@@ -321,7 +332,7 @@ def load_leaflet_template_from_drive(file_id):
     
     download_url = f"https://drive.google.com/uc?id={file_id}"
     try:
-        gdown.download(download_url, temp_file, quiet=True, timeout=10)
+        gdown.download(download_url, temp_file, quiet=True, timeout=15)
         if os.path.exists(temp_file) and os.path.getsize(temp_file) > 0:
             img = Image.open(temp_file)
             return img
@@ -401,9 +412,10 @@ if search_button:
             week4 = safe_float(safe_get_value(row, 15))
             week5 = safe_float(safe_get_value(row, 16))
             
-            bridge_target = safe_float(safe_get_value(row, 18))
-            bridge_progress = safe_float(safe_get_value(row, 17))
-            bridge_shortage = bridge_target - bridge_progress if bridge_target > 0 else 0
+            # 브릿지: H열(실적), I열(목표), J열(부족금액)
+            bridge_progress = safe_float(safe_get_value(row, 7))   # H열
+            bridge_target = safe_float(safe_get_value(row, 8))     # I열
+            bridge_shortage = safe_float(safe_get_value(row, 9))   # J열
             
             mc_challenge = safe_get_value(row, 19)
             mc_shortage = safe_float(safe_get_value(row, 21))
@@ -511,9 +523,19 @@ if search_button:
                         st.markdown(f"""
                         <div class="leaflet-placeholder">
                             ⚠️ 이미지를 로드할 수 없습니다.<br><br>
-                            <strong>대리점:</strong> {agency_name_str}
+                            <strong>대리점:</strong> {agency_name_str}<br>
+                            <strong>이미지 ID:</strong> {image_id}
+                            <div class="debug-info">
+                            Google Drive 파일 접근 권한을 확인하세요.
+                            </div>
                         </div>
                         """, unsafe_allow_html=True)
+                    
+                    # 디버그 정보 (개발용)
+                    with st.expander("🔍 디버그 정보"):
+                        st.write(f"**대리점명:** {agency_name_str}")
+                        st.write(f"**이미지 ID:** {image_id}")
+                        st.write(f"**다운로드 URL:** `https://drive.google.com/uc?id={image_id}`")
                 else:
                     st.markdown(f"""
                     <div class="leaflet-placeholder">
