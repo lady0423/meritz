@@ -66,6 +66,7 @@ st.markdown("""
     .stButton>button:hover {
         background-color: #ff5252;
     }
+    
     .info-card {
         background-color: #2d2d2d;
         padding: 20px;
@@ -74,6 +75,55 @@ st.markdown("""
         margin: 10px 0;
         font-family: 'Noto Sans KR', sans-serif;
     }
+    
+    .week-container {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+        margin: 15px 0;
+    }
+    
+    .week-card {
+        background-color: #2d2d2d;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        border: 2px solid #666;
+        font-family: 'Noto Sans KR', sans-serif;
+    }
+    
+    .week-card-current {
+        background-color: #ff6b6b;
+        border: 2px solid #ff9999;
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+    }
+    
+    .week-card-current .week-number {
+        font-weight: 700;
+        font-size: 18px;
+        color: #ffffff;
+        margin-bottom: 8px;
+    }
+    
+    .week-card-current .week-amount {
+        font-weight: 700;
+        font-size: 16px;
+        color: #ffffff;
+    }
+    
+    .week-card .week-number {
+        font-weight: 600;
+        font-size: 14px;
+        color: #aaa;
+        margin-bottom: 8px;
+    }
+    
+    .week-card .week-amount {
+        font-weight: 600;
+        font-size: 14px;
+        color: #ffffff;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -81,10 +131,10 @@ st.markdown("""
 header_col1, header_col2 = st.columns([0.8, 3])
 
 with header_col1:
-    if os.path.exists("metiz.png"):
-        st.image("metiz.png", width=100)
+    if os.path.exists("meritz.png"):
+        st.image("meritz.png", width=100)
     else:
-        st.warning("⚠️ metiz.png 파일이 없습니다.")
+        st.warning("⚠️ meritz.png 파일을 찾을 수 없습니다.")
 
 with header_col2:
     st.markdown("<h1 style='margin-top: 20px;'>📊 실적 안내장 조회</h1>", unsafe_allow_html=True)
@@ -251,8 +301,9 @@ if search_button:
             mc_target = safe_int(safe_get_value(agent_row, 19, 0))
             mc_shortage = safe_int(safe_get_value(agent_row, 21, 0))
             
-            # 현재 주차 (정확한 계산)
+            # 현재 주차
             current_week = get_current_week()
+            weeks = [week1, week2, week3, week4, week5]
             
             # ============ 결과 표시 ============
             st.write("---")
@@ -282,11 +333,28 @@ if search_button:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # 주차별 실적 (세로 표시)
+                # 주차별 실적 (개선된 디자인)
                 st.subheader("📈 주차별 실적")
-                weeks = [week1, week2, week3, week4, week5]
+                
+                week_html = '<div class="week-container">'
                 for i, week in enumerate(weeks):
-                    st.metric(f"{i+1}주차", format_currency(week))
+                    week_num = i + 1
+                    if week_num == current_week:
+                        week_html += f'''
+                        <div class="week-card week-card-current">
+                            <div class="week-number">{week_num}주차</div>
+                            <div class="week-amount">{format_currency(week)}</div>
+                        </div>
+                        '''
+                    else:
+                        week_html += f'''
+                        <div class="week-card">
+                            <div class="week-number">{week_num}주차</div>
+                            <div class="week-amount">{format_currency(week)}</div>
+                        </div>
+                        '''
+                week_html += '</div>'
+                st.markdown(week_html, unsafe_allow_html=True)
                 
                 # 목표/부족 (현재 주차 정확하게 표시)
                 st.subheader(f"🎯 {current_week}주차 목표 / 부족")
@@ -321,6 +389,9 @@ if search_button:
                 
                 # 템플릿 선택 (W열 대리점명으로 매칭)
                 template_id = LEAFLET_TEMPLATE_IDS.get(agency_name, LEAFLET_TEMPLATE_IDS["none"])
+                
+                st.write(f"**대리점:** {agency_name}")
+                st.write(f"**템플릿 ID:** {template_id}")
                 
                 with st.spinner(f"🖼️ {agency_name} 템플릿 로드 중..."):
                     template_img = load_leaflet_template_from_drive(template_id)
