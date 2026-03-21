@@ -248,11 +248,11 @@ def load_leaflet_template_from_drive(file_id):
     """Google Drive에서 이미지 로드"""
     temp_path = os.path.join(tempfile.gettempdir(), f"leaflet_{file_id}.jpg")
     try:
-        gdown.download(f"https://drive.google.com/uc?id={file_id}", temp_path, quiet=True, timeout=15)
+        gdown.download(f"https://drive.google.com/uc?id={file_id}", temp_path, quiet=True)
         if os.path.exists(temp_path):
             return Image.open(temp_path)
     except Exception as e:
-        st.warning(f"이미지 로드 실패: {e}")
+        pass
     return None
 
 # ===== Header =====
@@ -273,7 +273,7 @@ st.caption(f"최신 업데이트: {last_update} (KST)")
 
 st.markdown("---")
 
-# ===== Search Input (입력 이력 제거) =====
+# ===== Search Input =====
 col_manager, col_agent, col_search = st.columns([3, 3, 1])
 
 with col_manager:
@@ -303,21 +303,20 @@ if search_clicked:
         try:
             df = load_data_from_google_drive(GOOGLE_DRIVE_FILE_ID)
             
-            # 매니저명(D열)과 설계사 코드(A열)로 필터링
-            filtered = df[(df.iloc[:, 3].astype(str).str.strip() == manager_name.strip()) &
-                         (df.iloc[:, 0].astype(str).str.strip() == agent_code.strip())]
+            # 원래 구조: A열=매니저명, B열=설계사코드
+            filtered = df[(df.iloc[:, 0].astype(str).str.strip() == manager_name.strip()) &
+                         (df.iloc[:, 1].astype(str).str.strip() == agent_code.strip())]
             
             if filtered.empty:
                 st.warning("해당하는 데이터가 없습니다.")
             else:
                 row = filtered.iloc[0]
                 
-                # 필드 추출 (정정된 열 인덱스)
-                agent_code_display = safe_get_value(row, 0)   # A열: 설계사 코드
-                agent_name = safe_get_value(row, 1)           # B열: 설계사명
-                branch = safe_get_value(row, 2)               # C열: 지사
-                manager = safe_get_value(row, 3)              # D열: 매니저명
-                agency_name = safe_get_value(row, 22)         # W열: 대리점명
+                # 필드 추출 (원래 열 인덱스)
+                manager = safe_get_value(row, 0)             # A열: 매니저명
+                agent_code_display = safe_get_value(row, 1)  # B열: 설계사 코드
+                agent_name = safe_get_value(row, 2)          # C열: 설계사명
+                branch = safe_get_value(row, 3)              # D열: 지사
                 cumulative = safe_float(safe_get_value(row, 4))  # E열: 누계
                 
                 # 주차별 값 (F-J: 1-5주차)
@@ -337,6 +336,9 @@ if search_clicked:
                 # MC+: T=도전구간, V=부족금액
                 mc_challenge = safe_float(safe_get_value(row, 19))  # T열
                 mc_shortage = safe_float(safe_get_value(row, 21))   # V열
+                
+                # 대리점명
+                agency_name = safe_get_value(row, 22)  # W열: 대리점명
                 
                 current_week = get_current_week()
                 
@@ -436,16 +438,8 @@ if search_clicked:
                             )
                         else:
                             st.warning(f"⚠️ 이미지를 로드할 수 없습니다.\n\n**대리점:** {agency_name_str}")
-                            with st.expander("🔍 디버그 정보"):
-                                st.write(f"**대리점명 (원본):** {agency_name_str}")
-                                st.write(f"**이미지 ID:** {image_id}")
-                                st.write(f"**현재 주차:** {current_week}")
                     else:
                         st.info(f"📌 **대리점명:** {agency_name_str}\n\n이 대리점의 이미지가 설정되지 않았습니다.")
-                        with st.expander("🔍 디버그 정보"):
-                            st.write(f"**대리점명 (원본):** {agency_name_str}")
-                            st.write(f"**이미지 ID:** 매칭 실패")
-                            st.write(f"**현재 주차:** {current_week}")
                 
                 st.markdown("---")
                 
