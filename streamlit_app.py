@@ -36,98 +36,154 @@ LEAFLET_TEMPLATE_IDS = {
 # ===== 페이지 설정 =====
 st.set_page_config(page_title="메리츠 설계사 성과 조회", layout="wide")
 
-# ===== CSS 스타일 =====
+# ===== 고급 CSS 스타일 (Google Fonts 포함) =====
 st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+
 <style>
-body {
-    background-color: #1a1a1a;
-    color: #ffffff;
+* {
+    font-family: 'Noto Sans KR', sans-serif !important;
+}
+
+html, body, [data-testid="stAppViewContainer"] {
+    background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 100%);
+    color: #e0e0e0;
+}
+
+h1, h2, h3 {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.stButton > button {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 600;
+    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+}
+
+.stButton > button:hover {
+    background: linear-gradient(135deg, #0052a3 0%, #003d7a 100%);
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.5);
+    transform: translateY(-2px);
 }
 
 .info-box {
-    background: linear-gradient(135deg, #2d2d2d 0%, #1f1f1f 100%);
-    border-left: 4px solid #0066cc;
-    padding: 15px;
-    border-radius: 8px;
-    margin: 10px 0;
-    font-size: 14px;
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    border-left: 5px solid #0066cc;
+    padding: 18px;
+    border-radius: 10px;
+    margin: 12px 0;
+    font-size: 15px;
+    line-height: 1.8;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-weight: 500;
 }
 
 .cumulative-box {
-    background: linear-gradient(135deg, #1a3a52 0%, #0f2233 100%);
-    border-left: 4px solid #00ccff;
-    padding: 20px;
-    border-radius: 8px;
-    margin: 10px 0;
-    font-size: 18px;
-    font-weight: bold;
+    background: linear-gradient(135deg, #1e3a5f 0%, #0f2233 100%);
+    border-left: 5px solid #00d4ff;
+    padding: 25px;
+    border-radius: 10px;
+    margin: 15px 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: #00d4ff;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 212, 255, 0.2);
+    letter-spacing: 1px;
 }
 
 .weekly-row {
-    background: linear-gradient(135deg, #2d3a2d 0%, #1f261f 100%);
-    border-left: 4px solid #66cc66;
-    padding: 15px;
+    background: linear-gradient(135deg, #1a3a1a 0%, #0f260f 100%);
+    border-left: 5px solid #66cc66;
+    padding: 16px;
     border-radius: 8px;
-    margin: 8px 0;
-    font-size: 14px;
+    margin: 10px 0;
+    font-size: 15px;
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    font-weight: 600;
 }
 
 .weekly-row.current {
     background: linear-gradient(135deg, #3d5a3d 0%, #2f4a2f 100%);
-    border-left: 4px solid #ffcc00;
-    box-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
+    border-left: 5px solid #ffcc00;
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); }
+    50% { box-shadow: 0 0 25px rgba(255, 204, 0, 0.6); }
 }
 
 .bridge-box {
-    background: linear-gradient(135deg, #4a2d2d 0%, #331f1f 100%);
-    border-left: 4px solid #ff6666;
-    padding: 15px;
-    border-radius: 8px;
-    margin: 10px 0;
-    font-size: 14px;
+    background: linear-gradient(135deg, #3a1f1f 0%, #251414 100%);
+    border-left: 5px solid #ff6b6b;
+    padding: 18px;
+    border-radius: 10px;
+    margin: 15px 0;
+    font-size: 15px;
+    line-height: 2;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+    font-weight: 600;
 }
 
 .mc-box {
-    background: linear-gradient(135deg, #3d2d4a 0%, #2a1f33 100%);
-    border-left: 4px solid #cc66ff;
-    padding: 15px;
-    border-radius: 8px;
-    margin: 10px 0;
-    font-size: 14px;
+    background: linear-gradient(135deg, #2d1a3a 0%, #1a0f25 100%);
+    border-left: 5px solid #cc66ff;
+    padding: 18px;
+    border-radius: 10px;
+    margin: 15px 0;
+    font-size: 15px;
+    line-height: 2;
+    box-shadow: 0 4px 12px rgba(204, 102, 255, 0.2);
+    font-weight: 600;
 }
 
 .target-box {
-    background: linear-gradient(135deg, #4a4a2d 0%, #33331f 100%);
-    border-left: 4px solid #ffcc66;
-    padding: 15px;
-    border-radius: 8px;
-    margin: 10px 0;
-    font-size: 14px;
+    background: linear-gradient(135deg, #3a3a1f 0%, #252514 100%);
+    border-left: 5px solid #ffcc66;
+    padding: 18px;
+    border-radius: 10px;
+    margin: 15px 0;
+    font-size: 15px;
+    line-height: 2;
+    box-shadow: 0 4px 12px rgba(255, 204, 102, 0.2);
+    font-weight: 600;
 }
 
 input, select {
-    background-color: #2d2d2d;
-    color: #ffffff;
-    border: 1px solid #0066cc;
-    border-radius: 4px;
-    padding: 8px;
+    background-color: #1f2937 !important;
+    color: #ffffff !important;
+    border: 2px solid #0066cc !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    font-family: 'Noto Sans KR', sans-serif !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease;
 }
 
-button {
-    background-color: #0066cc;
-    color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    padding: 10px 20px;
-    cursor: pointer;
-    font-weight: bold;
+input:focus, select:focus {
+    border-color: #00d4ff !important;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.3) !important;
 }
 
-button:hover {
-    background-color: #0052a3;
+.stTextInput > label, .stSelectbox > label {
+    font-weight: 600;
+    color: #ffffff;
+    font-family: 'Noto Sans KR', sans-serif;
 }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -138,7 +194,7 @@ def safe_float(value):
         return 0.0
     try:
         if isinstance(value, str):
-            return float(value.replace(",", ""))
+            return float(value.replace(",", "").replace("최종달성", "").replace("다음기회에", "").strip())
         return float(value)
     except:
         return 0.0
@@ -207,7 +263,8 @@ def load_leaflet_template_from_drive(file_id):
     return None
 
 # ===== UI 메인 =====
-st.title("📊 메리츠 설계사 성과 조회")
+st.markdown("<h1 style='text-align: center; color: #00d4ff; font-size: 32px;'>📊 메리츠 설계사 성과 조회</h1>", unsafe_allow_html=True)
+st.markdown("<hr style='border: 1px solid #0066cc;'>", unsafe_allow_html=True)
 
 # 데이터 로드
 df = load_data_from_google_sheets()
@@ -218,11 +275,12 @@ if df is None:
 current_week = get_current_week()
 
 # 입력 섹션
+st.markdown("<h3 style='color: #ffffff; margin-top: 20px;'>🔍 검색 정보 입력</h3>", unsafe_allow_html=True)
 col1, col2, col3 = st.columns([2, 2, 1])
 with col1:
-    manager_name = st.text_input("매니저명", placeholder="예: 김대길")
+    manager_name = st.text_input("매니저명", placeholder="예: 박메리", label_visibility="collapsed", key="manager")
 with col2:
-    agent_code = st.text_input("설계사 코드", placeholder="예: 724043483")
+    agent_code = st.text_input("설계사 코드", placeholder="예: 7로 시작하는 숫자", label_visibility="collapsed", key="code")
 with col3:
     search_clicked = st.button("🔍 검색", use_container_width=True)
 
@@ -248,7 +306,7 @@ if search_clicked:
             col_left, col_right = st.columns([1.5, 1])
             
             with col_left:
-                st.markdown("### 📋 기본 정보")
+                st.markdown("<h3 style='color: #ffffff;'>📋 기본 정보</h3>", unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class='info-box'>
                 <strong>설계사명:</strong> {agent_name}<br>
@@ -259,7 +317,7 @@ if search_clicked:
                 
                 # ===== 누계 실적 =====
                 cumulative = safe_float(safe_get_value(row, "3월실적"))
-                st.markdown("### 📈 3월 누계 실적")
+                st.markdown("<h3 style='color: #ffffff;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class='cumulative-box'>
                 {format_currency(cumulative)}
@@ -267,7 +325,7 @@ if search_clicked:
                 """, unsafe_allow_html=True)
                 
                 # ===== 주차별 실적 =====
-                st.markdown("### 📅 주차별 실적")
+                st.markdown("<h3 style='color: #ffffff;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
                 week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
                 for idx, week_col in enumerate(week_columns, 1):
                     week_value = safe_float(safe_get_value(row, week_col))
@@ -276,27 +334,29 @@ if search_clicked:
                     if is_current:
                         st.markdown(f"""
                         <div class='weekly-row current'>
-                        <strong>{week_col}</strong> <span style='color: #ffcc00;'>⭐</span> {format_currency(week_value)}
+                        <strong>{week_col}</strong> <span style='color: #ffcc00; font-size: 18px;'>⭐</span> <strong style='color: #ffcc00;'>{format_currency(week_value)}</strong>
                         </div>
                         """, unsafe_allow_html=True)
                     else:
                         st.markdown(f"""
                         <div class='weekly-row'>
-                        <strong>{week_col}</strong> {format_currency(week_value)}
+                        <strong>{week_col}</strong> <strong style='color: #66cc66;'>{format_currency(week_value)}</strong>
                         </div>
                         """, unsafe_allow_html=True)
                 
-                # ===== 주차 목표 =====
+                # ===== 현재주차 목표 + 부족금액 =====
                 weekly_target = safe_float(safe_get_value(row, "주차목표"))
-                st.markdown("### 🎯 현재주차 목표")
+                weekly_shortage = safe_float(safe_get_value(row, "주차부족"))
+                st.markdown("<h3 style='color: #ffffff;'>🎯 현재주차 목표</h3>", unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class='target-box'>
-                <strong>1주차 목표:</strong> {format_currency(weekly_target)}
+                <strong>목표:</strong> {format_currency(weekly_target)}<br>
+                <strong>부족금액:</strong> {format_currency(weekly_shortage)}
                 </div>
                 """, unsafe_allow_html=True)
                 
                 # ===== 브릿지 성과 =====
-                st.markdown("### 🌉 브릿지 성과")
+                st.markdown("<h3 style='color: #ffffff;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
                 bridge_achievement = safe_float(safe_get_value(row, "브릿지 실적"))
                 bridge_target = safe_float(safe_get_value(row, "브릿지 도전구간"))
                 bridge_shortage = safe_float(safe_get_value(row, "브릿지 부족"))
@@ -310,21 +370,19 @@ if search_clicked:
                 """, unsafe_allow_html=True)
                 
                 # ===== MC+ 성과 =====
-                st.markdown("### 💎 MC+ 성과")
-                mc_challenge = safe_float(safe_get_value(row, "MC+구간"))
-                mc_achievement = safe_float(safe_get_value(row, "3월실적"))  # L열 = 3월실적과 동일
-                mc_shortage = safe_float(safe_get_value(row, "MC부족최종"))  # V열
+                st.markdown("<h3 style='color: #ffffff;'>💎 MC+ 성과</h3>", unsafe_allow_html=True)
+                mc_challenge = safe_get_value(row, "MC+구간")  # U열 - 문자열 그대로 (예: "20만")
+                mc_shortage_text = safe_get_value(row, "MC부족최종")  # V열 - 상태 (예: "최종달성")
                 
                 st.markdown(f"""
                 <div class='mc-box'>
-                <strong>도전구간:</strong> {format_currency(mc_challenge)}<br>
-                <strong>실적:</strong> {format_currency(mc_achievement)}<br>
-                <strong>부족금액:</strong> {format_currency(mc_shortage)}
+                <strong>도전구간:</strong> {mc_challenge}<br>
+                <strong>부족금액:</strong> {mc_shortage_text}
                 </div>
                 """, unsafe_allow_html=True)
             
             with col_right:
-                st.markdown("### 🎁 대리점 리플렛")
+                st.markdown("<h3 style='color: #ffffff;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
                 image_id = get_image_id_by_agency_name(agency_name)
                 image = load_leaflet_template_from_drive(image_id)
                 
@@ -346,13 +404,18 @@ if search_clicked:
                     st.info(f"⚠️ 리플렛 이미지를 불러올 수 없습니다.\n(대리점: {agency_name})")
             
             # ===== 하단 버튼 =====
+            st.markdown("<hr style='border: 1px solid #0066cc; margin: 30px 0;'>", unsafe_allow_html=True)
             col_print, col_reset = st.columns(2)
             with col_print:
                 if st.button("🖨️ 인쇄", use_container_width=True):
-                    st.info("브라우저의 인쇄 기능을 사용해주세요 (Ctrl+P 또는 Cmd+P)")
+                    st.info("💡 브라우저의 인쇄 기능을 사용해주세요 (Ctrl+P 또는 Cmd+P)")
             with col_reset:
                 if st.button("🔄 초기화", use_container_width=True):
                     st.rerun()
 
 # 팁
-st.caption("💡 매니저명과 설계사 코드를 입력하고 검색 버튼을 클릭하세요.")
+st.markdown("""
+<div style='text-align: center; margin-top: 40px; padding: 20px; background: linear-gradient(135deg, #1f2937 0%, #111827 100%); border-radius: 10px; border-left: 5px solid #0066cc;'>
+<p style='color: #00d4ff; font-weight: 600; font-size: 14px;'>💡 매니저명과 설계사 코드를 입력하고 검색 버튼을 클릭하세요.</p>
+</div>
+""", unsafe_allow_html=True)
