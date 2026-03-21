@@ -127,7 +127,7 @@ body {
 }
 
 .bridge-box {
-    background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
+    background: linear-gradient(135deg, #2d5a3d 0%, #3d7a4f 100%);
     padding: 15px;
     border-radius: 8px;
     color: white;
@@ -135,21 +135,21 @@ body {
 }
 
 .bridge-label {
-    font-size: 14px;
-    color: rgba(255,255,255,0.8);
-    margin-bottom: 8px;
-    font-weight: 600;
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 6px;
+    font-weight: 500;
 }
 
 .bridge-value {
-    font-size: 32px;
+    font-size: 24px;
     font-weight: 900;
     color: #ffffff;
     margin-bottom: 12px;
 }
 
 .bridge-section {
-    background: rgba(0,0,0,0.2);
+    background: rgba(0,0,0,0.15);
     padding: 12px;
     border-radius: 4px;
     display: flex;
@@ -165,18 +165,18 @@ body {
 }
 
 .bridge-section-label {
-    font-size: 13px;
-    color: rgba(255,255,255,0.7);
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
 }
 
 .bridge-section-value {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 900;
     color: #ffffff;
 }
 
 .mc-box {
-    background: linear-gradient(135deg, #1f6feb 0%, #388bfd 100%);
+    background: linear-gradient(135deg, #1a4d6d 0%, #2570a0 100%);
     padding: 15px;
     border-radius: 8px;
     color: white;
@@ -184,14 +184,14 @@ body {
 }
 
 .mc-label {
-    font-size: 14px;
-    color: rgba(255,255,255,0.8);
-    margin-bottom: 8px;
-    font-weight: 600;
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 6px;
+    font-weight: 500;
 }
 
 .mc-value {
-    font-size: 32px;
+    font-size: 24px;
     font-weight: 900;
     color: #ffffff;
     margin-bottom: 12px;
@@ -213,12 +213,12 @@ body {
 }
 
 .mc-info-label {
-    color: rgba(255,255,255,0.7);
-    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    font-size: 12px;
 }
 
 .mc-info-value {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 900;
     color: #ffffff;
 }
@@ -272,20 +272,10 @@ def get_current_week():
     month = now.month
     day = now.day
     
-    # 월별 주차 매핑 (첫 주는 1-7일, 두 번째 주는 8-14일 등)
     week = (day - 1) // 7 + 1
     
-    # 월별 시작 주차
-    if month == 3:
-        return week  # 3월 1-7일 = 1주차
-    elif month == 4:
-        return week  # 4월 1-7일 = 1주차
-    elif month == 5:
-        return week  # 5월 1-7일 = 1주차
-    elif month == 6:
-        return week  # 6월 1-7일 = 1주차
-    elif month == 7:
-        return week  # 7월 1-7일 = 1주차
+    if month in [3, 4, 5, 6, 7]:
+        return week
     else:
         return 0
 
@@ -296,14 +286,11 @@ def get_image_id_by_agency_name(agency_name_full):
     """
     agency_name_full = str(agency_name_full).strip().lower()
     
-    # LEAFLET_TEMPLATE_IDS의 키들을 확인
     for keyword, image_id in LEAFLET_TEMPLATE_IDS.items():
         keyword_lower = keyword.lower()
-        # 대리점명에 키워드가 포함되어 있는지 확인
         if keyword_lower in agency_name_full:
             return image_id
     
-    # 일치하는 키워드가 없으면 None 반환
     return None
 
 # ============ 데이터 로드 ============
