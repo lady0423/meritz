@@ -1,5 +1,5 @@
-# if os.path.exists("metiz.png"):
-#     logo = Image.open("metiz.png")
-#     col1, col2 = st.columns([1, 4])
-#     with col1:
-#         st.image(logo, width=100)
+streamlit==1.31.0
+pandas==2.1.0
+gdown==4.7.1
+pytz==2023.3
+openpyxl==3.10.10
