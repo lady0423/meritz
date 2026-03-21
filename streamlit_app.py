@@ -7,7 +7,6 @@ import gdown
 import tempfile
 import os
 
-# ===== 설정 =====
 GOOGLE_SHEET_ID = "1NSm_gy0a_QbWXquI2efdM93BjBuHn_sYLpU0NybL5_8"
 
 LEAFLET_TEMPLATE_IDS = {
@@ -238,7 +237,6 @@ input::placeholder {
 """, unsafe_allow_html=True)
 
 def safe_float(value):
-    """안전하게 float으로 변환"""
     if pd.isna(value):
         return 0.0
     if value == "" or value is None:
@@ -315,7 +313,6 @@ def load_logo():
     return None
 
 def render_mc_box(mc_challenge, mc_shortage_raw, mc_status_raw, is_mc_plus=False):
-    """MC 또는 MC+ 박스를 렌더링하는 함수"""
     mc_challenge_val = safe_float(mc_challenge)
     mc_shortage_val = safe_float(mc_shortage_raw)
     
@@ -408,12 +405,12 @@ if search_clicked:
         else:
             row = filtered.iloc[0]
             
-            agent_name = str(row.get("설계사명", "")).strip()
-            branch = str(row.get("지사명", "")).strip()
-            agency_name = str(row.get("대리점", "")).strip()
+            agent_name = str(row["설계사명"]).strip()
+            branch = str(row["지사명"]).strip()
+            agency_name = str(row["대리점"]).strip()
             
-            # Y열 어센틱구분 확인
-            is_authentic = safe_float(row.get("어센틱구분", 0)) == 1
+            # Y열 어센틱구분 확인 - 직접 접근
+            is_authentic = safe_float(row["어센틱구분"]) == 1
             
             # 파트너채널 확인
             is_partner_channel = "파트너채널" in branch
@@ -429,7 +426,7 @@ if search_clicked:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                cumulative = safe_float(row.get("3월실적", 0))
+                cumulative = safe_float(row["3월실적"])
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class='cumulative-box'>
@@ -439,10 +436,9 @@ if search_clicked:
                 
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
                 
-                # 모든 경우 1~5주차 데이터 가져오기
                 week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
                 for idx, week_col in enumerate(week_columns, 1):
-                    week_value = safe_float(row.get(week_col, 0))
+                    week_value = safe_float(row[week_col])
                     is_current = (idx == current_week)
                     
                     if is_current:
@@ -458,19 +454,17 @@ if search_clicked:
                         </div>
                         """, unsafe_allow_html=True)
                 
-                # ============ 핵심: Y열 값에 따른 조건부 처리 ============
+                # ============ 핵심 수정: Y=1/0 조건 처리 ============
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎯 현재주차 목표</h3>", unsafe_allow_html=True)
                 
                 if is_authentic and not is_partner_channel:
-                    # Y=1 (어센틱, 파트너채널 제외)
-                    # AD열: 어센틱주차목표, AF열: 어센틱주차부족최종
-                    weekly_target = safe_float(row.get("어센틱주차목표", 0))
-                    weekly_shortage = safe_float(row.get("어센틱주차부족최종", 0))
+                    # Y=1 어센틱 (파트너채널 제외)
+                    weekly_target = safe_float(row["어센틱주차목표"])
+                    weekly_shortage = safe_float(row["어센틱주차부족최종"])
                 else:
-                    # Y=0 (기타) 또는 파트너채널
-                    # R열: 주차목표, S열: 주차부족
-                    weekly_target = safe_float(row.get("주차목표", 0))
-                    weekly_shortage = safe_float(row.get("주차부족", 0))
+                    # Y=0 기타
+                    weekly_target = safe_float(row["주차목표"])
+                    weekly_shortage = safe_float(row["주차부족"])
                 
                 st.markdown(f"""
                 <div class='target-box'>
@@ -479,12 +473,12 @@ if search_clicked:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # 브릿지는 Y=0일 때만 표시
+                # 브릿지는 Y=0일 때만
                 if not is_authentic:
                     st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
-                    bridge_achievement = safe_float(row.get("브릿지 실적", 0))
-                    bridge_target = safe_float(row.get("브릿지 도전구간", 0))
-                    bridge_shortage = safe_float(row.get("브릿지 부족", 0))
+                    bridge_achievement = safe_float(row["브릿지 실적"])
+                    bridge_target = safe_float(row["브릿지 도전구간"])
+                    bridge_shortage = safe_float(row["브릿지 부족"])
                     
                     st.markdown(f"""
                     <div class='bridge-box'>
@@ -494,33 +488,29 @@ if search_clicked:
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # MC와 MC+ 표시 로직
+                # MC와 MC+ 로직
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>💰 성과</h3>", unsafe_allow_html=True)
                 
                 if is_authentic and not is_partner_channel:
-                    # Y=1 (어센틱, 파트너채널 제외): MC + MC+ 둘 다 표시
+                    # Y=1: MC + MC+ 둘 다
                     
                     # MC: AA열(MC도전구간) + AC열(MC부족최종)
-                    mc_challenge = safe_float(row.get("MC도전구간", 0))
-                    mc_shortage_raw = safe_float(row.get("MC부족", 0))
-                    mc_status_raw = safe_float(row.get("MC부족최종", 0))
+                    mc_challenge = safe_float(row["MC도전구간"])
+                    mc_shortage = safe_float(row["MC부족최종"])
                     
-                    render_mc_box(mc_challenge, mc_shortage_raw, mc_status_raw, is_mc_plus=False)
+                    render_mc_box(mc_challenge, mc_shortage, mc_shortage, is_mc_plus=False)
                     
                     # MC+: T열(MC+구간) + V열(MC+부족최종)
-                    mc_plus_challenge = safe_float(row.get("MC+구간", 0))
-                    mc_plus_shortage_raw = safe_float(row.get("MC+부족", 0))
-                    mc_plus_status_raw = safe_float(row.get("MC+부족최종", 0))
+                    mc_plus_challenge = safe_float(row["MC+구간"])
+                    mc_plus_shortage = safe_float(row["MC+부족최종"])
                     
-                    render_mc_box(mc_plus_challenge, mc_plus_shortage_raw, mc_plus_status_raw, is_mc_plus=True)
+                    render_mc_box(mc_plus_challenge, mc_plus_shortage, mc_plus_shortage, is_mc_plus=True)
                 else:
-                    # Y=0 (기타): MC+ 만 표시
-                    # T열(MC+구간) + V열(MC+부족최종)
-                    mc_plus_challenge = safe_float(row.get("MC+구간", 0))
-                    mc_plus_shortage_raw = safe_float(row.get("MC+부족", 0))
-                    mc_plus_status_raw = safe_float(row.get("MC+부족최종", 0))
+                    # Y=0: MC+ 만
+                    mc_plus_challenge = safe_float(row["MC+구간"])
+                    mc_plus_shortage = safe_float(row["MC+부족최종"])
                     
-                    render_mc_box(mc_plus_challenge, mc_plus_shortage_raw, mc_plus_status_raw, is_mc_plus=True)
+                    render_mc_box(mc_plus_challenge, mc_plus_shortage, mc_plus_shortage, is_mc_plus=True)
                 
                 # ============ 핵심 부분 끝 ============
             
