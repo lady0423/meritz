@@ -33,10 +33,8 @@ LEAFLET_TEMPLATE_IDS = {
     "none": "1xGX9WTFcAtnzIa2kgMPOuG73V56ypbaf",
 }
 
-# ===== 페이지 설정 =====
 st.set_page_config(page_title="메리츠 설계사 성과 조회", layout="wide")
 
-# ===== 고급 CSS 스타일 =====
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 
@@ -225,9 +223,7 @@ input::placeholder {
 </style>
 """, unsafe_allow_html=True)
 
-# ===== 유틸리티 함수 =====
 def safe_float(value):
-    """문자열을 float로 안전하게 변환"""
     if pd.isna(value):
         return 0.0
     try:
@@ -238,7 +234,6 @@ def safe_float(value):
         return 0.0
 
 def safe_get_value(row, column_name):
-    """행에서 값을 안전하게 추출"""
     try:
         value = row.get(column_name, "")
         if pd.isna(value):
@@ -248,12 +243,10 @@ def safe_get_value(row, column_name):
         return ""
 
 def format_currency(value):
-    """숫자를 한국 원화로 포맷"""
     value = safe_float(value)
     return f"₩{value:,.0f}"
 
 def get_current_week():
-    """현재 주차 계산"""
     kst = pytz.timezone('Asia/Seoul')
     today = datetime.datetime.now(kst).date()
     day = today.day
@@ -272,17 +265,14 @@ def get_current_week():
     return 1
 
 def get_image_id_by_agency_name(agency_name):
-    """대리점명으로 이미지 ID 매칭"""
     agency_name_lower = str(agency_name).strip().lower()
     for keyword, image_id in LEAFLET_TEMPLATE_IDS.items():
         if keyword.lower() in agency_name_lower:
             return image_id
     return LEAFLET_TEMPLATE_IDS.get("none")
 
-# ===== 데이터 로딩 =====
 @st.cache_data(ttl=300)
 def load_data_from_google_sheets():
-    """Google Sheets에서 데이터 로드"""
     url = f"https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/export?format=csv&gid=0"
     try:
         df = pd.read_csv(url)
@@ -292,7 +282,6 @@ def load_data_from_google_sheets():
         return None
 
 def load_leaflet_template_from_drive(file_id):
-    """Google Drive에서 이미지 로드"""
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = os.path.join(temp_dir, "template.jpg")
@@ -304,12 +293,10 @@ def load_leaflet_template_from_drive(file_id):
     return None
 
 def load_logo():
-    """로컬 로고 로드"""
     if os.path.exists("meritz.png"):
         return Image.open("meritz.png")
     return None
 
-# ===== UI =====
 col_logo, col_title = st.columns([1, 4])
 with col_logo:
     logo = load_logo()
@@ -416,38 +403,50 @@ if search_clicked:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # ===== MC+ 성과 (수정됨) =====
+                # ===== MC+ 성과 (완전 수정) =====
                 st.markdown("<h3 style='color: #ff8a99;'>💎 MC+ 성과</h3>", unsafe_allow_html=True)
                 mc_challenge = safe_get_value(row, "MC+구간")
-                mc_shortage_amount = safe_get_value(row, "MC부족")
-                mc_status = safe_get_value(row, "MC부족최종")
+                mc_shortage_raw = safe_get_value(row, "MC부족")
+                mc_status_raw = safe_get_value(row, "MC부족최종")
                 
-                # MC+ 상태 판단 로직 (개선됨)
-                if mc_status and mc_status.strip():  # V열에 값이 있으면 그대로 사용
-                    mc_display_status = mc_status
-                    if "달성" in mc_status or "최종" in mc_status:
-                        mc_display_shortage = "🎉 달성!"
+                # MC+ 상태 판단 로직
+                if mc_status_raw and mc_status_raw.strip():
+                    mc_display_shortage = mc_status_raw
+                    
+                    if "최종달성" in mc_status_raw:
+                        mc_display_status = "✅ 시상금확보"
                         mc_shortage_color = "#66ff66"
-                    elif "대상아님" in mc_status or "기회" in mc_status:
-                        mc_display_shortage = mc_shortage_amount if mc_shortage_amount else "대상 아님"
+                    elif "다음기회에" in mc_status_raw or "재도전" in mc_status_raw:
+                        mc_display_status = "⚪ 대상아님"
+                        mc_shortage_color = "#999999"
+                    elif "대상아님" in mc_status_raw:
+                        mc_display_status = "⚪ 대상아님"
                         mc_shortage_color = "#999999"
                     else:
-                        mc_display_shortage = mc_shortage_amount if mc_shortage_amount else "-"
-                        mc_shortage_color = "#ff6b6b"
-                else:  # V열이 비어있으면 U열의 숫자로 판단
-                    mc_shortage_float = safe_float(mc_shortage_amount)
+                        try:
+                            float(mc_status_raw.replace(",", ""))
+                            mc_display_status = "🟡 도전중"
+                            mc_shortage_color = "#ffb366"
+                        except:
+                            mc_display_status = mc_status_raw
+                            mc_shortage_color = "#ff6b6b"
+                else:
+                    mc_display_shortage = mc_shortage_raw
                     
-                    if mc_shortage_float < 0:
-                        mc_display_status = "✅ 최종달성"
-                        mc_display_shortage = "🎉 달성!"
-                        mc_shortage_color = "#66ff66"
-                    elif mc_shortage_float == 0:
-                        mc_display_status = "✅ 최종달성"
-                        mc_display_shortage = "🎉 달성!"
-                        mc_shortage_color = "#66ff66"
-                    else:
+                    try:
+                        shortage_num = safe_float(mc_shortage_raw)
+                        if shortage_num < 0:
+                            mc_display_status = "✅ 시상금확보"
+                            mc_shortage_color = "#66ff66"
+                        elif shortage_num == 0:
+                            mc_display_status = "✅ 시상금확보"
+                            mc_shortage_color = "#66ff66"
+                        else:
+                            mc_display_status = "🟡 도전중"
+                            mc_display_shortage = format_currency(shortage_num)
+                            mc_shortage_color = "#ffb366"
+                    except:
                         mc_display_status = "진행중"
-                        mc_display_shortage = format_currency(mc_shortage_float)
                         mc_shortage_color = "#ff6b6b"
                 
                 st.markdown(f"""
