@@ -261,7 +261,7 @@ def format_display(value):
         num = float(v.replace(",", ""))
         return f"₩ {num:,.0f}"
     except:
-        # 문자 (80만원, 최종달성 등)
+        # 문자 (최종달성 등)
         return v
 
 def get_current_week():
@@ -324,13 +324,13 @@ def load_logo():
         return Image.open("meritz.png")
     return None
 
-def render_mc_box(mc_challenge, mc_shortage, is_mc_plus=False):
+def render_mc_box(mc_challenge, mc_shortage, is_authentic=False, is_mc_plus=False):
     mc_challenge_display = format_display(mc_challenge)
     mc_shortage_display = format_display(mc_shortage)
     
     mc_shortage_val = safe_float(mc_shortage)
     
-    # 상태 결정 - 미달성 여부 확인
+    # 상태 결정
     shortage_str = str(mc_shortage).strip()
     
     if "최종달성" in shortage_str:
@@ -343,6 +343,10 @@ def render_mc_box(mc_challenge, mc_shortage, is_mc_plus=False):
         mc_display_status = "⚪ 대상아님"
         mc_shortage_color = "#999999"
     elif "미달성" in shortage_str:
+        mc_display_status = "⚪ 대상아님"
+        mc_shortage_color = "#999999"
+    elif is_authentic and not is_mc_plus and "전월" in str(mc_challenge):
+        # MC 도전구간에 "전월 20만원 미달성" 같은 텍스트 있으면 대상아님
         mc_display_status = "⚪ 대상아님"
         mc_shortage_color = "#999999"
     elif mc_shortage_val < 0:
@@ -454,7 +458,7 @@ if search_clicked:
                 
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
                 
-                # ===== 컬럼명으로 직접 접근 =====
+                # ===== 정확한 컬럼명 매핑 =====
                 if is_authentic:
                     # 어센틱구분 = 1
                     weekly_target = row["어센틱주차목표"]
@@ -490,13 +494,13 @@ if search_clicked:
                     st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>💰 MC 성과</h3>", unsafe_allow_html=True)
                     mc_challenge = row["MC도전구간"]
                     mc_shortage = row["MC부족최종"]
-                    render_mc_box(mc_challenge, mc_shortage, is_mc_plus=False)
+                    render_mc_box(mc_challenge, mc_shortage, is_authentic=True, is_mc_plus=False)
                 
                 # MC+ (모두)
                 st.markdown("<h3 style='color: #9d66ff; font-size: 18px;'>💰 MC플러스 성과</h3>", unsafe_allow_html=True)
                 mc_plus_challenge = row["MC+구간"]
                 mc_plus_shortage = row["MC+부족최종"]
-                render_mc_box(mc_plus_challenge, mc_plus_shortage, is_mc_plus=True)
+                render_mc_box(mc_plus_challenge, mc_plus_shortage, is_authentic=is_authentic, is_mc_plus=True)
             
             with col_right:
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
