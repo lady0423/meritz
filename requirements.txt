@@ -2,4 +2,4 @@ streamlit==1.31.0
 pandas==2.1.0
 gdown==4.7.1
 pytz==2023.3
-openpyxl==3.10.10
+openpyxl==3.11.0
