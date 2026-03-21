@@ -186,6 +186,10 @@ st.markdown("""
         font-weight: 700;
         color: #ffffff;
     }
+    input[type="text"] {
+        background-color: #1a2634 !important;
+        color: #ffffff !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -235,10 +239,11 @@ def get_image_id_by_agency_name(agency_name_full):
 # ===== Data Loading =====
 @st.cache_data(ttl=3600)
 def load_data_from_google_drive(file_id):
-    """Google Drive에서 Excel 데이터 로드"""
+    """Google Drive에서 Excel 데이터 로드 (첫 번째 시트 자동 사용)"""
     temp_path = os.path.join(tempfile.gettempdir(), "temp_data.xlsx")
     gdown.download(f"https://drive.google.com/uc?id={file_id}", temp_path, quiet=True)
-    return pd.read_excel(temp_path, sheet_name="data_s")
+    # 첫 번째 시트 자동으로 읽기
+    return pd.read_excel(temp_path, sheet_name=0)
 
 def load_leaflet_template_from_drive(file_id):
     """Google Drive에서 이미지 로드"""
@@ -269,14 +274,22 @@ st.caption(f"최신 업데이트: {last_update} (KST)")
 
 st.markdown("---")
 
-# ===== Search Input =====
+# ===== Search Input (입력 이력 제거) =====
 col_manager, col_agent, col_search = st.columns([3, 3, 1])
 
 with col_manager:
-    manager_name = st.text_input("매니저명", key="manager_input")
+    manager_name = st.text_input(
+        "매니저명",
+        key="manager_input",
+        autocomplete="off"
+    )
 
 with col_agent:
-    agent_code = st.text_input("설계사 코드", key="agent_input")
+    agent_code = st.text_input(
+        "설계사 코드",
+        key="agent_input",
+        autocomplete="off"
+    )
 
 with col_search:
     search_clicked = st.button("🔍 검색", use_container_width=True)
@@ -447,6 +460,8 @@ if search_clicked:
         
         except Exception as e:
             st.error(f"오류 발생: {e}")
+            with st.expander("🔍 상세 오류 정보"):
+                st.write(str(e))
 
 st.markdown("---")
 st.caption("💡 팁: 매니저명과 설계사 코드를 입력하고 검색 버튼을 클릭하세요.")
