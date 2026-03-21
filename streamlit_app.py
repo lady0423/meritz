@@ -238,25 +238,16 @@ input::placeholder {
 """, unsafe_allow_html=True)
 
 def safe_float(value):
+    """안전하게 float으로 변환"""
     if pd.isna(value):
         return 0.0
-    try:
-        if isinstance(value, str):
-            return float(value.replace(",", "").strip())
-        return float(value)
-    except:
+    if value == "" or value is None:
         return 0.0
-
-def safe_get_value(row, column_name):
     try:
-        # 정확한 컬럼명으로 직접 접근
-        if column_name in row.index:
-            value = row[column_name]
-            if pd.isna(value):
-                return 0.0
-            return safe_float(value)
-        else:
+        v = str(value).strip()
+        if v == "":
             return 0.0
+        return float(v.replace(",", ""))
     except:
         return 0.0
 
@@ -325,11 +316,11 @@ def load_logo():
 
 def render_mc_box(mc_challenge, mc_shortage_raw, mc_status_raw, is_mc_plus=False):
     """MC 또는 MC+ 박스를 렌더링하는 함수"""
-    mc_challenge = safe_float(mc_challenge)
-    mc_shortage_raw = safe_float(mc_shortage_raw)
+    mc_challenge_val = safe_float(mc_challenge)
+    mc_shortage_val = safe_float(mc_shortage_raw)
     
-    if mc_status_raw and str(mc_status_raw).strip():
-        mc_display_shortage = str(mc_status_raw)
+    if mc_status_raw and str(mc_status_raw).strip() and str(mc_status_raw).strip() != "nan":
+        mc_display_shortage = str(mc_status_raw).strip()
         
         if "최종달성" in str(mc_status_raw):
             mc_display_status = "✅ 시상금확보"
@@ -350,16 +341,16 @@ def render_mc_box(mc_challenge, mc_shortage_raw, mc_status_raw, is_mc_plus=False
                 mc_display_status = str(mc_status_raw)
                 mc_shortage_color = "#ff6b6b"
     else:
-        if mc_shortage_raw < 0:
+        if mc_shortage_val < 0:
             mc_display_shortage = "✅ 시상금확보"
             mc_display_status = "✅ 시상금확보"
             mc_shortage_color = "#66ff66"
-        elif mc_shortage_raw == 0:
+        elif mc_shortage_val == 0:
             mc_display_shortage = "✅ 시상금확보"
             mc_display_status = "✅ 시상금확보"
             mc_shortage_color = "#66ff66"
         else:
-            mc_display_shortage = format_currency(mc_shortage_raw)
+            mc_display_shortage = format_currency(mc_shortage_val)
             mc_display_status = "🟡 도전중"
             mc_shortage_color = "#ffb366"
     
@@ -371,7 +362,7 @@ def render_mc_box(mc_challenge, mc_shortage_raw, mc_status_raw, is_mc_plus=False
     st.markdown(f"""
     <div class='{box_class}'>
     <h3 style='color: {title_color}; font-size: 18px; margin: 0 0 10px 0;'>{title_emoji}</h3>
-    <strong>도전구간:</strong> {format_currency(mc_challenge)}<br>
+    <strong>도전구간:</strong> {format_currency(mc_challenge_val)}<br>
     <strong>부족금액:</strong> <span style='color: {mc_shortage_color}; font-weight: 700;'>{mc_display_shortage}</span><br>
     <strong>상태:</strong> <span style='color: {status_color}; font-weight: 700;'>{mc_display_status}</span>
     </div>
@@ -467,15 +458,17 @@ if search_clicked:
                         </div>
                         """, unsafe_allow_html=True)
                 
-                # ============ 핵심 수정 부분 ============
+                # ============ 핵심: Y열 값에 따른 조건부 처리 ============
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎯 현재주차 목표</h3>", unsafe_allow_html=True)
                 
                 if is_authentic and not is_partner_channel:
                     # Y=1 (어센틱, 파트너채널 제외)
+                    # AD열: 어센틱주차목표, AF열: 어센틱주차부족최종
                     weekly_target = safe_float(row.get("어센틱주차목표", 0))
                     weekly_shortage = safe_float(row.get("어센틱주차부족최종", 0))
                 else:
-                    # Y=0 (기타)
+                    # Y=0 (기타) 또는 파트너채널
+                    # R열: 주차목표, S열: 주차부족
                     weekly_target = safe_float(row.get("주차목표", 0))
                     weekly_shortage = safe_float(row.get("주차부족", 0))
                 
@@ -529,7 +522,7 @@ if search_clicked:
                     
                     render_mc_box(mc_plus_challenge, mc_plus_shortage_raw, mc_plus_status_raw, is_mc_plus=True)
                 
-                # ============ 수정 부분 끝 ============
+                # ============ 핵심 부분 끝 ============
             
             with col_right:
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
