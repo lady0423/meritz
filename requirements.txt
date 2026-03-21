@@ -1,5 +1,6 @@
 streamlit
 pandas
-gdown
 pytz
-openpyxl
+pillow
+gdown
+html2image
