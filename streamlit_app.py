@@ -32,7 +32,6 @@ LEAFLET_TEMPLATE_IDS = {
     "아너스": "1rJ7SoZJyno5b6tAurjTpkkEmissGKntj",
     "굿리치": "1vNoopxTYV5cK1zlOPlNvSGseK_dbXkXl",
     "신한금융": "1z3Ayg6mJsUeeHdebaOrWyOK4lz1-ROB_",
-    "none": "1xGX9WTFcAtnzIa2kgMPOuG73V56ypbaf",
 }
 
 # 페이지 설정
@@ -112,6 +111,7 @@ body {
 .week-label {
     font-size: 16px;
     font-weight: 700;
+    color: #ffffff;
 }
 
 .week-amount {
@@ -139,25 +139,24 @@ body {
     margin-bottom: 5px;
 }
 
-.bridge-value {
-    font-size: 32px;
-    font-weight: 900;
-    color: #ffffff;
-    margin-bottom: 10px;
-}
-
-.bridge-info {
-    background: rgba(0,0,0,0.2);
+.bridge-section {
+    margin: 10px 0;
     padding: 10px;
+    background: rgba(0,0,0,0.2);
     border-radius: 4px;
-    font-size: 13px;
     display: flex;
     justify-content: space-between;
 }
 
-.bridge-info-item {
-    display: flex;
-    gap: 5px;
+.bridge-section-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+}
+
+.bridge-section-value {
+    font-size: 18px;
+    font-weight: 900;
+    color: #ffffff;
 }
 
 .mc-box {
@@ -189,6 +188,15 @@ body {
 .info-value {
     font-weight: 700;
     color: #79c0ff;
+}
+
+.leaflet-placeholder {
+    background: #161b22;
+    border: 2px dashed #30363d;
+    padding: 40px;
+    border-radius: 8px;
+    text-align: center;
+    color: #8b949e;
 }
 
 </style>
@@ -267,8 +275,8 @@ def load_data_from_google_drive(file_id):
     return None
 
 def load_leaflet_template_from_drive(file_id):
-    """Google Drive에서 이미지 로드 (캐시 없음)"""
-    if not file_id or file_id.startswith("1YOUR_"):
+    """Google Drive에서 이미지 로드"""
+    if not file_id:
         return None
     
     temp_dir = tempfile.gettempdir()
@@ -282,11 +290,12 @@ def load_leaflet_template_from_drive(file_id):
     
     download_url = f"https://drive.google.com/uc?id={file_id}"
     try:
-        gdown.download(download_url, temp_file, quiet=True)
-        if os.path.exists(temp_file):
+        gdown.download(download_url, temp_file, quiet=True, timeout=10)
+        if os.path.exists(temp_file) and os.path.getsize(temp_file) > 0:
             img = Image.open(temp_file)
             return img
-    except:
+    except Exception as e:
+        st.warning(f"이미지 로드 실패: {str(e)}")
         pass
     
     return None
@@ -351,8 +360,9 @@ if search_button:
             # 데이터 추출
             agent_code = safe_get_value(row, 0)
             agent_name = safe_get_value(row, 6)
-            branch = safe_get_value(row, 5)  # 지사
+            branch = safe_get_value(row, 5)
             manager_name = safe_get_value(row, 3)
+            agency_name = safe_get_value(row, 22)  # W열: 대리점명
             
             cumulative = safe_float(safe_get_value(row, 11))
             week1 = safe_float(safe_get_value(row, 12))
@@ -361,18 +371,15 @@ if search_button:
             week4 = safe_float(safe_get_value(row, 15))
             week5 = safe_float(safe_get_value(row, 16))
             
-            # 브릿지: S열(목표), R열(실적)
-            bridge_target = safe_float(safe_get_value(row, 18))  # S열
-            bridge_performance = safe_float(safe_get_value(row, 17))  # R열
-            bridge_shortage = bridge_target - bridge_performance if bridge_target > 0 else 0
+            # 브릿지: S열(목표), R열(진척/실적)
+            bridge_target = safe_float(safe_get_value(row, 18))  # S열: 목표
+            bridge_progress = safe_float(safe_get_value(row, 17))  # R열: 진척
+            bridge_shortage = bridge_target - bridge_progress if bridge_target > 0 else 0
             
-            mc_challenge = safe_get_value(row, 19)  # T열 (MC+도전구간)
-            mc_shortage = safe_float(safe_get_value(row, 21))  # V열 (MC+부족금액)
+            mc_challenge = safe_get_value(row, 19)  # T열
+            mc_shortage = safe_float(safe_get_value(row, 21))  # V열
             
             current_week = get_current_week()
-            
-            # 대리점명 (안내장 이미지 로드용)
-            agency_name = safe_get_value(row, 22)  # W열
             
             st.write("---")
             st.success("✅ 검색 완료!")
@@ -381,7 +388,7 @@ if search_button:
             col_left, col_right = st.columns([1, 1])
             
             with col_left:
-                # 기본 정보 (대리점명 제거, 지사로 변경)
+                # 기본 정보
                 st.markdown('<div class="section-header">📋 기본 정보</div>', unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class="basic-info-box">
@@ -413,18 +420,22 @@ if search_button:
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # 브릿지 실적 (목표와 부족액 정확하게 표기)
+                # 브릿지 실적 (진척, 목표, 부족)
                 st.markdown('<div class="section-header">🌉 브릿지 실적</div>', unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class="bridge-box">
-                    <div class="bridge-label">실적</div>
-                    <div class="bridge-value">{format_currency(bridge_performance)}</div>
-                    <div class="bridge-info">
-                        <div class="bridge-info-item">
-                            <strong>목표:</strong> {format_currency(bridge_target)}
+                    <div class="bridge-label">진척</div>
+                    <div style="font-size: 32px; font-weight: 900; color: #ffffff; margin-bottom: 10px;">
+                        {format_currency(bridge_progress)}
+                    </div>
+                    <div class="bridge-section">
+                        <div>
+                            <div class="bridge-section-label">목표</div>
+                            <div class="bridge-section-value">{format_currency(bridge_target)}</div>
                         </div>
-                        <div class="bridge-info-item">
-                            <strong>부족:</strong> {format_currency(bridge_shortage)}
+                        <div>
+                            <div class="bridge-section-label">부족</div>
+                            <div class="bridge-section-value">{format_currency(bridge_shortage)}</div>
                         </div>
                     </div>
                 </div>
@@ -449,10 +460,13 @@ if search_button:
                 st.markdown('<div class="section-header">📄 안내장 템플릿</div>', unsafe_allow_html=True)
                 
                 # 대리점명으로 이미지 ID 조회
-                image_id = LEAFLET_TEMPLATE_IDS.get(str(agency_name).strip(), None)
+                agency_name_str = str(agency_name).strip()
+                image_id = LEAFLET_TEMPLATE_IDS.get(agency_name_str, None)
                 
                 if image_id:
-                    leaflet_img = load_leaflet_template_from_drive(image_id)
+                    with st.spinner(f"🔄 {agency_name_str} 안내장 로드 중..."):
+                        leaflet_img = load_leaflet_template_from_drive(image_id)
+                    
                     if leaflet_img:
                         st.image(leaflet_img, use_container_width=True)
                         
@@ -463,14 +477,26 @@ if search_button:
                         st.download_button(
                             label="📥 안내장 다운로드 (JPG)",
                             data=img_byte_arr,
-                            file_name=f"{agent_code}_{agency_name}_안내장.jpg",
+                            file_name=f"{agent_code}_{agency_name_str}_안내장.jpg",
                             mime="image/jpeg",
                             use_container_width=True
                         )
                     else:
-                        st.warning(f"⚠️ 이미지를 로드할 수 없습니다. (대리점: {agency_name})")
+                        st.markdown(f"""
+                        <div class="leaflet-placeholder">
+                            ⚠️ 이미지를 로드할 수 없습니다.<br><br>
+                            <strong>대리점:</strong> {agency_name_str}<br>
+                            <strong>ID:</strong> {image_id}<br><br>
+                            Google Drive에서 파일 접근 권한을 확인하세요.
+                        </div>
+                        """, unsafe_allow_html=True)
                 else:
-                    st.info(f"📌 대리점명: {agency_name}\n이미지 ID가 설정되지 않았습니다.")
+                    st.markdown(f"""
+                    <div class="leaflet-placeholder">
+                        📌 대리점명: {agency_name_str}<br><br>
+                        이 대리점의 이미지 ID가 설정되지 않았습니다.
+                    </div>
+                    """, unsafe_allow_html=True)
             
             st.write("---")
             col_print, col_reset = st.columns([1, 1])
