@@ -151,9 +151,9 @@ if search_btn:
     if not manager_name or not agent_code:
         st.warning("⚠️ 매니저명과 설계사코드를 모두 입력해주세요.")
     else:
-        # 필터링 (A열 설계사코드, B열 매니저명으로 검색)
+        # 필터링 (A열 설계사조직코드, D열 매니저명으로 검색)
         filtered = df[
-            (df.iloc[:, 1].astype(str).str.strip().str.contains(manager_name.strip(), case=False, na=False)) &
+            (df.iloc[:, 3].astype(str).str.strip().str.contains(manager_name.strip(), case=False, na=False)) &
             (df.iloc[:, 0].astype(str).str.strip() == agent_code.strip())
         ]
         
@@ -163,9 +163,9 @@ if search_btn:
             row = filtered.iloc[0]
             
             # 기본 정보
-            agent_name = safe_get_value(row, row.columns[1])
-            branch = safe_get_value(row, row.columns[2])
-            branch_name = safe_get_value(row, row.columns[5])  # F열(지사명)
+            agent_name = safe_get_value(row, row.columns[6])  # G열 설계사명
+            branch = safe_get_value(row, row.columns[2])  # C열 지점명
+            branch_name = safe_get_value(row, row.columns[5])  # F열 지사명
             
             st.markdown(f"""
             <div class='info-box'>
@@ -173,10 +173,10 @@ if search_btn:
             </div>
             """, unsafe_allow_html=True)
             
-            # 어센틱 여부 확인 (Y열 = 24번째 컬럼, 0-indexed 23)
-            is_authentic = safe_float(row.iloc[23]) == 1
+            # 어센틱 여부 확인 (Y열 = 어센틱구분, 0-indexed 24)
+            is_authentic = safe_float(row.iloc[24]) == 1
             
-            # 3월 누계
+            # 3월 누계 (L열 = 3월실적)
             march_cumulative = safe_float(row.iloc[11])
             st.markdown(f"""
             <div class='cumulative-box'>
@@ -192,9 +192,9 @@ if search_btn:
             
             # 어센틱 (Y=1)인 경우: 새로운 주차 구조 사용
             if is_authentic:
-                # 어센틱: AD열(주차목표), AF열(주차부족) 사용
-                week_target = safe_float(row.iloc[29])  # AD열 (29 = 0-indexed)
-                week_shortage = safe_float(row.iloc[31])  # AF열 (31 = 0-indexed)
+                # 어센틱: 어센틱주차목표(AB열 = 27), 어센틱주차부족(AC열 = 28)
+                week_target = safe_float(row.iloc[27])  # AB열
+                week_shortage = safe_float(row.iloc[28])  # AC열
                 week_result = week_target - week_shortage if week_target > 0 else 0
                 
                 st.markdown(f"""
@@ -213,9 +213,9 @@ if search_btn:
                 """, unsafe_allow_html=True)
                 
                 # MC 성과 (추가 MC)
-                mc_challenge = safe_float(row.iloc[26])  # AA열 (26 = 0-indexed)
-                mc_shortage_raw = safe_float(row.iloc[28])  # AC열 (28 = 0-indexed)
-                mc_status_raw = safe_get_value(row, row.columns[21])
+                mc_challenge = safe_float(row.iloc[25])  # AA열 MC도전구간
+                mc_shortage_raw = safe_float(row.iloc[26])  # AB열 MC부족
+                mc_status_raw = safe_get_value(row, row.columns[27])  # AC열 MC부족최종
                 
                 # MC 상태 로직
                 if isinstance(mc_status_raw, str) and "최종달성" in mc_status_raw:
@@ -241,10 +241,10 @@ if search_btn:
                 """, unsafe_allow_html=True)
                 
                 # MC+ 성과 (추가 MC+)
-                mc_plus_challenge = safe_float(row.iloc[26])  # AA열 - MC추가목표
-                mc_plus_result = safe_float(row.iloc[11])  # L열 3월 목표 = MC추가 실적
-                mc_plus_shortage = safe_float(row.iloc[28])  # AC열 MC추가 부족금액
-                mc_plus_status_raw = safe_get_value(row, row.columns[21])
+                mc_plus_challenge = safe_float(row.iloc[25])  # AA열 MC도전구간
+                mc_plus_result = safe_float(row.iloc[11])  # L열 3월 실적 = MC추가 실적
+                mc_plus_shortage = safe_float(row.iloc[26])  # AB열 MC부족
+                mc_plus_status_raw = safe_get_value(row, row.columns[27])  # AC열 MC부족최종
                 
                 # MC+ 상태 로직
                 if isinstance(mc_plus_status_raw, str) and "최종달성" in mc_plus_status_raw:
@@ -270,9 +270,9 @@ if search_btn:
                 """, unsafe_allow_html=True)
             
             else:
-                # 기존 방식: 기존 주차 구조 사용
+                # 기존 방식: 기존 주차 구조 사용 (M~Q열 = 주차 1~5, 인덱스 12~16)
                 for week in range(1, 6):
-                    col_idx = 12 + (week - 1) * 3
+                    col_idx = 12 + (week - 1)
                     week_result = safe_float(row.iloc[col_idx])
                     is_current = week == current_week
                     row_class = "weekly-row current" if is_current else "weekly-row"
@@ -284,7 +284,7 @@ if search_btn:
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # 현재주차 목표 & 부족
+                # 현재주차 목표 & 부족 (R열 주차목표 = 17, S열 주차부족 = 18)
                 week_target = safe_float(row.iloc[17])
                 week_shortage = safe_float(row.iloc[18])
                 
@@ -296,10 +296,10 @@ if search_btn:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # 브릿지 성과
-                bridge_result = safe_float(row.iloc[15])
-                bridge_target = safe_float(row.iloc[17])
-                bridge_shortage = safe_float(row.iloc[18])
+                # 브릿지 성과 (H열 브릿지실적 = 7, I열 브릿지도전구간 = 8, J열 브릿지부족 = 9)
+                bridge_result = safe_float(row.iloc[7])
+                bridge_target = safe_float(row.iloc[8])
+                bridge_shortage = safe_float(row.iloc[9])
                 
                 st.markdown(f"""
                 <div class='bridge-box'>
@@ -311,8 +311,9 @@ if search_btn:
                 """, unsafe_allow_html=True)
                 
                 # MC+ 성과 (기존 방식)
-                mc_challenge = safe_float(row.iloc[26])
-                mc_shortage_raw = safe_float(row.iloc[28])
+                # T열 MC+구간 = 19, U열 MC+부족 = 20, V열 MC+부족최종 = 21
+                mc_challenge = safe_float(row.iloc[19])
+                mc_shortage_raw = safe_float(row.iloc[20])
                 mc_status_raw = safe_get_value(row, row.columns[21])
                 
                 if isinstance(mc_status_raw, str) and "최종달성" in mc_status_raw:
