@@ -5,10 +5,11 @@ import pytz
 from PIL import Image
 import io
 import gdown
+import tempfile
+import os
 
 # ===== Configuration =====
 GOOGLE_SHEET_ID = "1NSm_gy0a_QbWXquI2efdM93BjBuHn_sYLpU0NybL5_8"
-SHEET_NAME = "Sheet1"
 
 LEAFLET_TEMPLATE_IDS = {
     "메가": "16l4rB2dRYkmEARfP7shI_N5L_HKio9wO",
@@ -229,16 +230,15 @@ def get_image_id_by_agency_name(agency_name_full):
     return None
 
 # ===== Data Loading =====
-@st.cache_data(ttl=300)  # 5분마다 새로 고침
-def load_data_from_google_sheets(sheet_id, sheet_name):
-    """Google Sheets에서 데이터 로드 (실시간 업데이트)"""
-    url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/query?tqx=out:csv&sheet={sheet_name}"
-    return pd.read_csv(url)
+@st.cache_data(ttl=300)
+def load_data_from_google_sheets(sheet_id):
+    """Google Sheets에서 데이터 로드"""
+    url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=0"
+    df = pd.read_csv(url)
+    return df
 
 def load_leaflet_template_from_drive(file_id):
     """Google Drive에서 이미지 로드"""
-    import tempfile
-    import os
     temp_path = os.path.join(tempfile.gettempdir(), f"leaflet_{file_id}.jpg")
     try:
         gdown.download(f"https://drive.google.com/uc?id={file_id}", temp_path, quiet=True)
@@ -294,7 +294,7 @@ if search_clicked:
         st.error("매니저명과 설계사 코드를 모두 입력해주세요.")
     else:
         try:
-            df = load_data_from_google_sheets(GOOGLE_SHEET_ID, SHEET_NAME)
+            df = load_data_from_google_sheets(GOOGLE_SHEET_ID)
             
             # 매니저명과 설계사코드로 필터링
             filtered = df[(df["매니저"].astype(str).str.strip() == manager_name.strip()) &
@@ -430,27 +430,4 @@ if search_clicked:
                                 data=img_byte_arr,
                                 file_name=f"{agency_name_str}_leaflet.jpg",
                                 mime="image/jpeg",
-                                use_container_width=True
-                            )
-                        else:
-                            st.warning(f"⚠️ 이미지를 로드할 수 없습니다.\n\n**대리점:** {agency_name_str}")
-                    else:
-                        st.info(f"📌 **대리점명:** {agency_name_str}\n\n이 대리점의 이미지가 설정되지 않았습니다.")
-                
-                st.markdown("---")
-                
-                # 인쇄 및 초기화 버튼
-                col_print, col_reset = st.columns(2)
-                with col_print:
-                    st.button("🖨️ 인쇄", use_container_width=True)
-                with col_reset:
-                    if st.button("🔄 초기화", use_container_width=True):
-                        st.rerun()
-        
-        except Exception as e:
-            st.error(f"오류 발생: {e}")
-            with st.expander("🔍 상세 오류 정보"):
-                st.write(str(e))
-
-st.markdown("---")
-st.caption("💡 팁: 매니저명과 설계사 코드를 입력하고 검색 버튼을 클릭하세요.")
+                                use<span class="cursor">█</span>
