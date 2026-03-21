@@ -239,10 +239,9 @@ def get_image_id_by_agency_name(agency_name_full):
 # ===== Data Loading =====
 @st.cache_data(ttl=3600)
 def load_data_from_google_drive(file_id):
-    """Google Drive에서 Excel 데이터 로드 (첫 번째 시트 자동 사용)"""
+    """Google Drive에서 Excel 데이터 로드"""
     temp_path = os.path.join(tempfile.gettempdir(), "temp_data.xlsx")
     gdown.download(f"https://drive.google.com/uc?id={file_id}", temp_path, quiet=True)
-    # 첫 번째 시트 자동으로 읽기
     return pd.read_excel(temp_path, sheet_name=0)
 
 def load_leaflet_template_from_drive(file_id):
@@ -304,40 +303,40 @@ if search_clicked:
         try:
             df = load_data_from_google_drive(GOOGLE_DRIVE_FILE_ID)
             
-            # 매니저명과 설계사 코드로 필터링
-            filtered = df[(df.iloc[:, 0].astype(str).str.strip() == manager_name.strip()) &
-                         (df.iloc[:, 1].astype(str).str.strip() == agent_code.strip())]
+            # 매니저명(D열)과 설계사 코드(A열)로 필터링
+            filtered = df[(df.iloc[:, 3].astype(str).str.strip() == manager_name.strip()) &
+                         (df.iloc[:, 0].astype(str).str.strip() == agent_code.strip())]
             
             if filtered.empty:
                 st.warning("해당하는 데이터가 없습니다.")
             else:
                 row = filtered.iloc[0]
                 
-                # 필드 추출
-                agent_code_display = safe_get_value(row, 1)
-                agent_name = safe_get_value(row, 2)
-                branch = safe_get_value(row, 3)
-                manager = safe_get_value(row, 0)
-                agency_name = safe_get_value(row, 22)  # Column W
-                cumulative = safe_float(safe_get_value(row, 4))  # Column E
+                # 필드 추출 (정정된 열 인덱스)
+                agent_code_display = safe_get_value(row, 0)   # A열: 설계사 코드
+                agent_name = safe_get_value(row, 1)           # B열: 설계사명
+                branch = safe_get_value(row, 2)               # C열: 지사
+                manager = safe_get_value(row, 3)              # D열: 매니저명
+                agency_name = safe_get_value(row, 22)         # W열: 대리점명
+                cumulative = safe_float(safe_get_value(row, 4))  # E열: 누계
                 
                 # 주차별 값 (F-J: 1-5주차)
                 weekly_values = [
-                    safe_float(safe_get_value(row, 5)),   # 1주차 (F)
-                    safe_float(safe_get_value(row, 6)),   # 2주차 (G)
-                    safe_float(safe_get_value(row, 7)),   # 3주차 (H)
-                    safe_float(safe_get_value(row, 8)),   # 4주차 (I)
-                    safe_float(safe_get_value(row, 9)),   # 5주차 (J)
+                    safe_float(safe_get_value(row, 5)),   # F열: 1주차
+                    safe_float(safe_get_value(row, 6)),   # G열: 2주차
+                    safe_float(safe_get_value(row, 7)),   # H열: 3주차
+                    safe_float(safe_get_value(row, 8)),   # I열: 4주차
+                    safe_float(safe_get_value(row, 9)),   # J열: 5주차
                 ]
                 
                 # 브릿지: H=진척, I=목표, J=부족
-                bridge_progress = safe_float(safe_get_value(row, 7))   # H
-                bridge_target = safe_float(safe_get_value(row, 8))     # I
-                bridge_shortage = safe_float(safe_get_value(row, 9))   # J
+                bridge_progress = safe_float(safe_get_value(row, 7))   # H열
+                bridge_target = safe_float(safe_get_value(row, 8))     # I열
+                bridge_shortage = safe_float(safe_get_value(row, 9))   # J열
                 
                 # MC+: T=도전구간, V=부족금액
-                mc_challenge = safe_float(safe_get_value(row, 19))  # T
-                mc_shortage = safe_float(safe_get_value(row, 21))   # V
+                mc_challenge = safe_float(safe_get_value(row, 19))  # T열
+                mc_shortage = safe_float(safe_get_value(row, 21))   # V열
                 
                 current_week = get_current_week()
                 
