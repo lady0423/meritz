@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 import pytz
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import gdown
 import tempfile
 import os
@@ -301,71 +301,83 @@ def load_logo():
 def create_screenshot_image(agent_name, branch, cumulative, week_data, weekly_target, weekly_shortage, 
                             bridge_achievement, bridge_target, bridge_shortage, mc_challenge, 
                             mc_display_shortage, mc_display_status):
-    """데이터를 기반으로 이미지 생성"""
+    """데이터를 기반으로 큰 이미지 생성"""
     try:
-        from PIL import ImageDraw, ImageFont
-        
-        # 이미지 생성 (가로 1200px, 세로 동적)
-        img_width = 1200
-        img_height = 2400
-        img = Image.new('RGB', (img_width, img_height), color='#0f0f0f')
+        # 이미지 생성 (가로 2400px, 세로 3600px - 더 크게)
+        img_width = 2400
+        img_height = 3600
+        img = Image.new('RGB', (img_width, img_height), color=(15, 15, 15))
         draw = ImageDraw.Draw(img)
         
-        # 간단한 텍스트 렌더링 (기본 폰트 사용)
-        y_pos = 50
-        line_height = 40
+        # 텍스트 크기 설정
+        title_size = 120
+        section_size = 80
+        content_size = 60
+        line_height = 120
+        
+        y_pos = 100
         
         # 제목
-        draw.text((50, y_pos), "메리츠 실적현황", fill='#ff8a99')
-        y_pos += line_height * 2
+        draw.text((100, y_pos), "메리츠 실적현황", fill=(255, 138, 153))
+        y_pos += line_height * 1.5
         
         # 기본정보
-        draw.text((50, y_pos), f"설계사명: {agent_name}", fill='#ffffff')
-        y_pos += line_height
-        draw.text((50, y_pos), f"지사: {branch}", fill='#ffffff')
-        y_pos += line_height * 2
+        draw.text((100, y_pos), f"설계사명: {agent_name}", fill=(255, 255, 255))
+        y_pos += line_height * 0.8
+        draw.text((100, y_pos), f"지사: {branch}", fill=(255, 255, 255))
+        y_pos += line_height * 1.5
         
         # 누계 실적
-        draw.text((50, y_pos), "3월 누계 실적", fill='#ff8a99')
-        y_pos += line_height
-        draw.text((50, y_pos), format_currency(cumulative), fill='#ff8a99')
-        y_pos += line_height * 2
+        draw.text((100, y_pos), "━━━━━━━━━━━━━━━━━━━", fill=(196, 30, 58))
+        y_pos += line_height * 0.8
+        draw.text((100, y_pos), "3월 누계 실적", fill=(255, 138, 153))
+        y_pos += line_height * 0.8
+        draw.text((100, y_pos), format_currency(cumulative), fill=(255, 138, 153))
+        y_pos += line_height * 1.5
         
         # 주차별 실적
-        draw.text((50, y_pos), "주차별 실적", fill='#ff8a99')
-        y_pos += line_height
+        draw.text((100, y_pos), "━━━━━━━━━━━━━━━━━━━", fill=(196, 30, 58))
+        y_pos += line_height * 0.8
+        draw.text((100, y_pos), "📅 주차별 실적", fill=(255, 138, 153))
+        y_pos += line_height * 0.8
         for week, value in week_data.items():
-            draw.text((50, y_pos), f"{week}: {format_currency(value)}", fill='#66cc66')
-            y_pos += line_height
+            draw.text((100, y_pos), f"{week}: {format_currency(value)}", fill=(102, 204, 102))
+            y_pos += line_height * 0.8
         
-        y_pos += line_height
+        y_pos += line_height * 0.8
         
         # 현재주차 목표
-        draw.text((50, y_pos), "현재주차 목표", fill='#ff8a99')
-        y_pos += line_height
-        draw.text((50, y_pos), f"목표: {format_currency(weekly_target)}", fill='#ffffff')
-        y_pos += line_height
-        draw.text((50, y_pos), f"부족금액: {format_currency(weekly_shortage)}", fill='#ffffff')
-        y_pos += line_height * 2
+        draw.text((100, y_pos), "━━━━━━━━━━━━━━━━━━━", fill=(196, 30, 58))
+        y_pos += line_height * 0.8
+        draw.text((100, y_pos), "🎯 현재주차 목표", fill=(255, 138, 153))
+        y_pos += line_height * 0.8
+        draw.text((100, y_pos), f"목표: {format_currency(weekly_target)}", fill=(255, 255, 255))
+        y_pos += line_height * 0.8
+        draw.text((100, y_pos), f"부족금액: {format_currency(weekly_shortage)}", fill=(255, 255, 255))
+        y_pos += line_height * 1.5
         
         # 브릿지
-        draw.text((50, y_pos), "브릿지 성과", fill='#ff8a99')
-        y_pos += line_height
-        draw.text((50, y_pos), f"진척: {format_currency(bridge_achievement)}", fill='#ffffff')
-        y_pos += line_height
-        draw.text((50, y_pos), f"목표: {format_currency(bridge_target)}", fill='#ffffff')
-        y_pos += line_height
-        draw.text((50, y_pos), f"부족금액: {format_currency(bridge_shortage)}", fill='#ffffff')
-        y_pos += line_height * 2
+        draw.text((100, y_pos), "━━━━━━━━━━━━━━━━━━━", fill=(196, 30, 58))
+        y_pos += line_height * 0.8
+        draw.text((100, y_pos), "🌉 브릿지 성과", fill=(255, 138, 153))
+        y_pos += line_height * 0.8
+        draw.text((100, y_pos), f"진척: {format_currency(bridge_achievement)}", fill=(255, 255, 255))
+        y_pos += line_height * 0.8
+        draw.text((100, y_pos), f"목표: {format_currency(bridge_target)}", fill=(255, 255, 255))
+        y_pos += line_height * 0.8
+        draw.text((100, y_pos), f"부족금액: {format_currency(bridge_shortage)}", fill=(255, 255, 255))
+        y_pos += line_height * 1.5
         
         # MC+
-        draw.text((50, y_pos), "MC+ 성과", fill='#ff8a99')
-        y_pos += line_height
-        draw.text((50, y_pos), f"도전구간: {format_currency(safe_float(mc_challenge))}", fill='#ffffff')
-        y_pos += line_height
-        draw.text((50, y_pos), f"부족금액: {mc_display_shortage}", fill='#ffffff')
-        y_pos += line_height
-        draw.text((50, y_pos), f"상태: {mc_display_status}", fill='#ffffff')
+        draw.text((100, y_pos), "━━━━━━━━━━━━━━━━━━━", fill=(196, 30, 58))
+        y_pos += line_height * 0.8
+        draw.text((100, y_pos), "💎 MC+ 성과", fill=(255, 138, 153))
+        y_pos += line_height * 0.8
+        draw.text((100, y_pos), f"도전구간: {format_currency(safe_float(mc_challenge))}", fill=(255, 255, 255))
+        y_pos += line_height * 0.8
+        draw.text((100, y_pos), f"부족금액: {mc_display_shortage}", fill=(255, 255, 255))
+        y_pos += line_height * 0.8
+        draw.text((100, y_pos), f"상태: {mc_display_status}", fill=(255, 255, 255))
         
         return img
     except Exception as e:
