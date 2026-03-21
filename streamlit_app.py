@@ -6,6 +6,7 @@ from PIL import Image
 import gdown
 import tempfile
 import os
+import io
 
 # ===== 설정 =====
 GOOGLE_SHEET_ID = "1NSm_gy0a_QbWXquI2efdM93BjBuHn_sYLpU0NybL5_8"
@@ -297,6 +298,84 @@ def load_logo():
         return Image.open("meritz.png")
     return None
 
+def create_screenshot_data(agent_name, branch, cumulative, week_data, weekly_target, weekly_shortage, 
+                           bridge_achievement, bridge_target, bridge_shortage, mc_challenge, 
+                           mc_display_shortage, mc_display_status):
+    """데이터를 기반으로 이미지 생성"""
+    try:
+        from PIL import ImageDraw, ImageFont
+        
+        # 이미지 생성 (가로 1200px, 세로 동적)
+        img_width = 1200
+        img_height = 2400
+        img = Image.new('RGB', (img_width, img_height), color='#0f0f0f')
+        draw = ImageDraw.Draw(img)
+        
+        # 간단한 텍스트 렌더링 (기본 폰트 사용)
+        y_pos = 50
+        line_height = 40
+        
+        # 제목
+        draw.text((img_width//2 - 150, y_pos), "메리츠 실적현황", fill='#ff8a99')
+        y_pos += line_height * 2
+        
+        # 기본정보
+        draw.text((50, y_pos), f"설계사명: {agent_name}", fill='#ffffff')
+        y_pos += line_height
+        draw.text((50, y_pos), f"지사: {branch}", fill='#ffffff')
+        y_pos += line_height * 2
+        
+        # 누계 실적
+        draw.text((50, y_pos), "3월 누계 실적", fill='#ff8a99')
+        y_pos += line_height
+        draw.text((50, y_pos), format_currency(cumulative), fill='#ff8a99')
+        y_pos += line_height * 2
+        
+        # 주차별 실적
+        draw.text((50, y_pos), "주차별 실적", fill='#ff8a99')
+        y_pos += line_height
+        for week, value in week_data.items():
+            draw.text((50, y_pos), f"{week}: {format_currency(value)}", fill='#66cc66')
+            y_pos += line_height
+        
+        y_pos += line_height
+        
+        # 현재주차 목표
+        draw.text((50, y_pos), "현재주차 목표", fill='#ff8a99')
+        y_pos += line_height
+        draw.text((50, y_pos), f"목표: {format_currency(weekly_target)}", fill='#ffffff')
+        y_pos += line_height
+        draw.text((50, y_pos), f"부족금액: {format_currency(weekly_shortage)}", fill='#ffffff')
+        y_pos += line_height * 2
+        
+        # 브릿지
+        draw.text((50, y_pos), "브릿지 성과", fill='#ff8a99')
+        y_pos += line_height
+        draw.text((50, y_pos), f"진척: {format_currency(bridge_achievement)}", fill='#ffffff')
+        y_pos += line_height
+        draw.text((50, y_pos), f"목표: {format_currency(bridge_target)}", fill='#ffffff')
+        y_pos += line_height
+        draw.text((50, y_pos), f"부족금액: {format_currency(bridge_shortage)}", fill='#ffffff')
+        y_pos += line_height * 2
+        
+        # MC+
+        draw.text((50, y_pos), "MC+ 성과", fill='#ff8a99')
+        y_pos += line_height
+        draw.text((50, y_pos), f"도전구간: {format_currency(safe_float(mc_challenge))}", fill='#ffffff')
+        y_pos += line_height
+        draw.text((50, y_pos), f"부족금액: {mc_display_shortage}", fill='#ffffff')
+        y_pos += line_height
+        draw.text((50, y_pos), f"상태: {mc_display_status}", fill='#ffffff')
+        
+        # 이미지를 바이트로 변환
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format='PNG')
+        img_byte_arr.seek(0)
+        return img_byte_arr.getvalue()
+    except Exception as e:
+        st.error(f"이미지 생성 실패: {str(e)}")
+        return None
+
 col_logo, col_title = st.columns([1, 4])
 with col_logo:
     logo = load_logo()
@@ -362,8 +441,10 @@ if search_clicked:
                 
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
                 week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
+                week_data = {}
                 for idx, week_col in enumerate(week_columns, 1):
                     week_value = safe_float(safe_get_value(row, week_col))
+                    week_data[week_col] = week_value
                     is_current = (idx == current_week)
                     
                     if is_current:
@@ -479,28 +560,6 @@ if search_clicked:
             
             st.markdown("<hr style='border: 1px solid #c41e3a; margin: 30px 0;'>", unsafe_allow_html=True)
             
-            st.markdown("""
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-            <script>
-            function downloadScreenshot() {
-                const timestamp = new Date().toISOString().slice(0,10);
-                html2canvas(document.body, {
-                    backgroundColor: '#0f0f0f',
-                    scale: 2,
-                    logging: false,
-                    useCORS: true
-                }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.href = canvas.toDataURL('image/png');
-                    link.download = '메리츠_실적현황_' + timestamp + '.png';
-                    link.click();
-                }).catch(err => {
-                    alert('다운로드 실패: ' + err);
-                });
-            }
-            </script>
-            """, unsafe_allow_html=True)
-            
             col_print, col_download, col_reset = st.columns(3)
             
             with col_print:
@@ -513,12 +572,21 @@ if search_clicked:
             
             with col_download:
                 if st.button("📥 화면 다운로드 (PNG)", use_container_width=True):
-                    st.markdown("""
-                    <script>
-                    downloadScreenshot();
-                    </script>
-                    """, unsafe_allow_html=True)
-                    st.success("💾 화면이 PNG로 다운로드됩니다!")
+                    screenshot_data = create_screenshot_data(
+                        agent_name, branch, cumulative, week_data, 
+                        weekly_target, weekly_shortage, bridge_achievement, 
+                        bridge_target, bridge_shortage, mc_challenge, 
+                        mc_display_shortage, mc_display_status
+                    )
+                    
+                    if screenshot_data:
+                        st.download_button(
+                            label="💾 PNG 다운로드",
+                            data=screenshot_data,
+                            file_name=f"{agent_name}_성과현황_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.png",
+                            mime="image/png",
+                            use_container_width=True
+                        )
             
             with col_reset:
                 if st.button("🔄 초기화", use_container_width=True):
