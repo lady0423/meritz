@@ -34,14 +34,12 @@ LEAFLET_TEMPLATE_IDS = {
     "none": "1xGX9WTFcAtnzIa2kgMPOuG73V56ypbaf",
 }
 
-# ===== Page Config =====
 st.set_page_config(
     page_title="실적 안내장 조회",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# ===== CSS Styling =====
 st.markdown("""
 <style>
     * {
@@ -193,16 +191,13 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ===== Utility Functions =====
 def safe_float(value):
-    """안전하게 float 변환"""
     try:
         return float(value) if value not in [None, "", "nan"] else 0.0
     except:
         return 0.0
 
 def safe_get_value(row, col_name):
-    """행에서 안전하게 값 추출"""
     try:
         val = row[col_name] if col_name in row.index else None
         return val if val not in [None, "", "nan"] else 0
@@ -210,52 +205,45 @@ def safe_get_value(row, col_name):
         return 0
 
 def format_currency(amount):
-    """통화 형식으로 변환"""
     amount = safe_float(amount)
     return f"₩{amount:,.0f}"
 
 def get_current_week():
-    """현재 주차 계산 (월별)"""
     kst = pytz.timezone('Asia/Seoul')
     today = datetime.now(kst).date()
     day = today.day
     return (day - 1) // 7 + 1
 
 def get_image_id_by_agency_name(agency_name_full):
-    """대리점명으로 이미지 ID 자동 매칭"""
     agency_name_full = str(agency_name_full).strip().lower()
     for keyword, image_id in LEAFLET_TEMPLATE_IDS.items():
         if keyword.lower() in agency_name_full:
             return image_id
     return None
 
-# ===== Data Loading =====
 @st.cache_data(ttl=300)
 def load_data_from_google_sheets(sheet_id):
-    """Google Sheets에서 데이터 로드"""
     url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=0"
     df = pd.read_csv(url)
     return df
 
 def load_leaflet_template_from_drive(file_id):
-    """Google Drive에서 이미지 로드"""
     temp_path = os.path.join(tempfile.gettempdir(), f"leaflet_{file_id}.jpg")
     try:
         gdown.download(f"https://drive.google.com/uc?id={file_id}", temp_path, quiet=True)
         if os.path.exists(temp_path):
             return Image.open(temp_path)
-    except Exception as e:
+    except:
         pass
     return None
 
-# ===== Header =====
 col_logo, col_title = st.columns([1, 9])
 with col_logo:
     try:
         logo = Image.open("meritz.png")
         st.image(logo, width=60)
     except:
-        st.write("🏢")
+        st.write("Logo")
 
 with col_title:
     st.markdown('<div class="section-header">실적 안내장 조회</div>', unsafe_allow_html=True)
@@ -266,29 +254,19 @@ st.caption(f"최신 업데이트: {last_update} (KST)")
 
 st.markdown("---")
 
-# ===== Search Input =====
 col_manager, col_agent, col_search = st.columns([3, 3, 1])
 
 with col_manager:
-    manager_name = st.text_input(
-        "매니저명",
-        key="manager_input",
-        autocomplete="off"
-    )
+    manager_name = st.text_input("매니저명", key="manager_input", autocomplete="off")
 
 with col_agent:
-    agent_code = st.text_input(
-        "설계사 코드",
-        key="agent_input",
-        autocomplete="off"
-    )
+    agent_code = st.text_input("설계사 코드", key="agent_input", autocomplete="off")
 
 with col_search:
-    search_clicked = st.button("🔍 검색", use_container_width=True)
+    search_clicked = st.button("검색", use_container_width=True)
 
 st.markdown("---")
 
-# ===== Search Logic =====
 if search_clicked:
     if not manager_name or not agent_code:
         st.error("매니저명과 설계사 코드를 모두 입력해주세요.")
@@ -296,7 +274,6 @@ if search_clicked:
         try:
             df = load_data_from_google_sheets(GOOGLE_SHEET_ID)
             
-            # 매니저명과 설계사코드로 필터링
             filtered = df[(df["매니저"].astype(str).str.strip() == manager_name.strip()) &
                          (df["현재대리점설계사조직코드"].astype(str).str.strip() == agent_code.strip())]
             
@@ -305,7 +282,6 @@ if search_clicked:
             else:
                 row = filtered.iloc[0]
                 
-                # 필드 추출
                 agent_code_display = safe_get_value(row, "현재대리점설계사조직코드")
                 agent_name = safe_get_value(row, "설계사명")
                 branch = safe_get_value(row, "지사명")
@@ -313,7 +289,6 @@ if search_clicked:
                 agency_name = safe_get_value(row, "대리점")
                 cumulative = safe_float(safe_get_value(row, "3월실적"))
                 
-                # 주차별 값
                 weekly_values = [
                     safe_float(safe_get_value(row, "1주차")),
                     safe_float(safe_get_value(row, "2주차")),
@@ -322,24 +297,20 @@ if search_clicked:
                     safe_float(safe_get_value(row, "5주차")),
                 ]
                 
-                # 브릿지
                 bridge_progress = safe_float(safe_get_value(row, "브릿지 실적"))
                 bridge_target = safe_float(safe_get_value(row, "브릿지 도전구간"))
                 bridge_shortage = safe_float(safe_get_value(row, "브릿지 부족"))
                 
-                # MC+
-                mc_challenge = safe_float(safe_get_value(row, "MC+구간"))      # T열: 도전구간
-                mc_achievement = safe_float(safe_get_value(row, "3월실적"))    # L열: 실적
-                mc_shortage = safe_float(safe_get_value(row, "MC부족"))        # V열: 부족금액
+                mc_challenge = safe_float(safe_get_value(row, "MC+구간"))
+                mc_achievement = safe_float(safe_get_value(row, "3월실적"))
+                mc_shortage = safe_float(safe_get_value(row, "MC부족"))
                 
                 current_week = get_current_week()
                 
-                # ===== 왼쪽 컬럼 =====
                 col_left, col_right = st.columns([1, 1])
                 
                 with col_left:
-                    # 기본 정보
-                    st.markdown('<div class="section-header">📋 기본 정보</div>', unsafe_allow_html=True)
+                    st.markdown('<div class="section-header">기본 정보</div>', unsafe_allow_html=True)
                     st.markdown(f"""
                     <div class="info-box">
                         <strong>설계사:</strong> {agent_name}<br>
@@ -348,8 +319,7 @@ if search_clicked:
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # 누계 실적
-                    st.markdown('<div class="section-header">📊 누계 실적</div>', unsafe_allow_html=True)
+                    st.markdown('<div class="section-header">누계 실적</div>', unsafe_allow_html=True)
                     st.markdown(f"""
                     <div class="cumulative-box">
                         <div class="cumulative-label">누계</div>
@@ -357,8 +327,7 @@ if search_clicked:
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # 주차별 실적
-                    st.markdown('<div class="section-header">📈 주차별 실적</div>', unsafe_allow_html=True)
+                    st.markdown('<div class="section-header">주차별 실적</div>', unsafe_allow_html=True)
                     for week_num in range(1, 6):
                         week_value = weekly_values[week_num - 1]
                         is_current = (week_num == current_week)
@@ -370,8 +339,7 @@ if search_clicked:
                         </div>
                         """, unsafe_allow_html=True)
                     
-                    # 브릿지 실적
-                    st.markdown('<div class="section-header">🌉 브릿지 실적</div>', unsafe_allow_html=True)
+                    st.markdown('<div class="section-header">브릿지 실적</div>', unsafe_allow_html=True)
                     st.markdown(f"""
                     <div class="bridge-box">
                         <div class="bridge-label">목표</div>
@@ -389,8 +357,7 @@ if search_clicked:
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # MC+ 상태
-                    st.markdown('<div class="section-header">⭐ MC+ 상태</div>', unsafe_allow_html=True)
+                    st.markdown('<div class="section-header">MC+ 상태</div>', unsafe_allow_html=True)
                     st.markdown(f"""
                     <div class="mc-box">
                         <div class="mc-label">도전구간</div>
@@ -408,26 +375,44 @@ if search_clicked:
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # ===== 오른쪽 컬럼 (안내장) =====
                 with col_right:
-                    st.markdown('<div class="section-header">📄 안내장 템플릿</div>', unsafe_allow_html=True)
+                    st.markdown('<div class="section-header">안내장 템플릿</div>', unsafe_allow_html=True)
                     agency_name_str = str(agency_name).strip()
                     image_id = get_image_id_by_agency_name(agency_name_str)
                     
                     if image_id:
-                        with st.spinner(f"🔄 {agency_name_str} 안내장 로드 중..."):
+                        with st.spinner(f"{agency_name_str} 안내장 로드 중..."):
                             leaflet_img = load_leaflet_template_from_drive(image_id)
                         
                         if leaflet_img:
                             st.image(leaflet_img, use_container_width=True)
                             
-                            # 다운로드 버튼
                             img_byte_arr = io.BytesIO()
                             leaflet_img.save(img_byte_arr, format='JPEG')
                             img_byte_arr.seek(0)
                             st.download_button(
-                                label="📥 JPG 다운로드",
+                                label="JPG 다운로드",
                                 data=img_byte_arr,
                                 file_name=f"{agency_name_str}_leaflet.jpg",
                                 mime="image/jpeg",
-                                use<span class="cursor">█</span>
+                                use_container_width=True
+                            )
+                        else:
+                            st.warning(f"이미지를 로드할 수 없습니다. 대리점: {agency_name_str}")
+                    else:
+                        st.info(f"대리점명: {agency_name_str} - 이 대리점의 이미지가 설정되지 않았습니다.")
+                
+                st.markdown("---")
+                
+                col_print, col_reset = st.columns(2)
+                with col_print:
+                    st.button("인쇄", use_container_width=True)
+                with col_reset:
+                    if st.button("초기화", use_container_width=True):
+                        st.rerun()
+        
+        except Exception as e:
+            st.error(f"오류 발생: {e}")
+
+st.markdown("---")
+st.caption("팁: 매니저명과 설계사 코드를 입력하고 검색 버튼을 클릭하세요.")
