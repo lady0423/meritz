@@ -18,12 +18,10 @@ LEAFLET_TEMPLATE_IDS = {
     "지금융": "19lR3nBPV6guyEIAk9xw_6GwDPO1N_wbw",
     "엠금융": "1BBJvzGqHrDWw-lFewIsBdEgk0WTVsfKq",
     "스카이블루": "1DEFjI5-pnUJM1d7uJUzmoBZLHZ4z7YPf",
-    "스카이블루에셋": "1DEFjI5-pnUJM1d7uJUzmoBZLHZ4z7YPf",
     "유퍼스트": "1DPUTq6hU_M21dpliYkwSa5HQdY2J9fB3",
     "케이지에이에셋": "1E24X08TpagWpuU0AeiQK1uh57Pf7hV9G",
     "피플라이프": "1LNJw-eB_fRXLGTm7F5N7ndXx8S_wMISP",
     "더금융": "1Nj05DgH3oatnEiCGbGHQU2K1dRsVEQHh",
-    "더좋은보험금융": "1Px8WawPHjME-oYAXd4TTkhIjQCFVDISc",
     "더좋은보험": "1Px8WawPHjME-oYAXd4TTkhIjQCFVDISc",
     "프라임에셋": "1UniyB7NEUEPhRHuqormlWrS3v_rFaYy1",
     "에이플러스": "1Z_7FNhOQJngRPiuICIwdmvJqJQw1qFwc",
@@ -137,40 +135,42 @@ body {
 }
 
 .bridge-label {
-    font-size: 12px;
+    font-size: 14px;
     color: rgba(255,255,255,0.8);
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    font-weight: 600;
 }
 
 .bridge-value {
     font-size: 32px;
     font-weight: 900;
     color: #ffffff;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .bridge-section {
     background: rgba(0,0,0,0.2);
-    padding: 10px;
+    padding: 12px;
     border-radius: 4px;
-    font-size: 13px;
     display: flex;
     justify-content: space-between;
+    gap: 15px;
 }
 
 .bridge-info-item {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 6px;
 }
 
 .bridge-section-label {
-    font-size: 12px;
+    font-size: 13px;
     color: rgba(255,255,255,0.7);
 }
 
 .bridge-section-value {
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 900;
     color: #ffffff;
 }
@@ -184,39 +184,41 @@ body {
 }
 
 .mc-label {
-    font-size: 12px;
+    font-size: 14px;
     color: rgba(255,255,255,0.8);
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    font-weight: 600;
 }
 
 .mc-value {
     font-size: 32px;
     font-weight: 900;
     color: #ffffff;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .mc-info {
     background: rgba(0,0,0,0.15);
-    padding: 10px;
+    padding: 12px;
     border-radius: 4px;
     display: flex;
     justify-content: space-between;
-    font-size: 13px;
 }
 
 .mc-info-item {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 6px;
 }
 
 .mc-info-label {
     color: rgba(255,255,255,0.7);
+    font-size: 13px;
 }
 
 .mc-info-value {
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 900;
     color: #ffffff;
 }
@@ -229,16 +231,6 @@ body {
     text-align: center;
     color: #8b949e;
     font-size: 14px;
-}
-
-.debug-info {
-    background: #161b22;
-    border: 1px solid #30363d;
-    padding: 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    color: #8b949e;
-    margin-top: 10px;
 }
 
 </style>
@@ -275,21 +267,44 @@ def format_currency(value):
         return "₩0"
 
 def get_current_week():
-    """현재 주차 반환 (3월=1주차, 4월=2주차, ...)"""
+    """현재 주차 반환 (월별 자동 계산)"""
     now = datetime.now()
     month = now.month
+    day = now.day
+    
+    # 월별 주차 매핑 (첫 주는 1-7일, 두 번째 주는 8-14일 등)
+    week = (day - 1) // 7 + 1
+    
+    # 월별 시작 주차
     if month == 3:
-        return 1
+        return week  # 3월 1-7일 = 1주차
     elif month == 4:
-        return 2
+        return week  # 4월 1-7일 = 1주차
     elif month == 5:
-        return 3
+        return week  # 5월 1-7일 = 1주차
     elif month == 6:
-        return 4
+        return week  # 6월 1-7일 = 1주차
     elif month == 7:
-        return 5
+        return week  # 7월 1-7일 = 1주차
     else:
         return 0
+
+def get_image_id_by_agency_name(agency_name_full):
+    """
+    대리점명에서 키워드를 찾아서 이미지 ID 반환
+    예: "토스인슈어런스 주식회사" → "토스" 포함 → 토스 이미지 ID 반환
+    """
+    agency_name_full = str(agency_name_full).strip().lower()
+    
+    # LEAFLET_TEMPLATE_IDS의 키들을 확인
+    for keyword, image_id in LEAFLET_TEMPLATE_IDS.items():
+        keyword_lower = keyword.lower()
+        # 대리점명에 키워드가 포함되어 있는지 확인
+        if keyword_lower in agency_name_full:
+            return image_id
+    
+    # 일치하는 키워드가 없으면 None 반환
+    return None
 
 # ============ 데이터 로드 ============
 
@@ -413,9 +428,9 @@ if search_button:
             week5 = safe_float(safe_get_value(row, 16))
             
             # 브릿지: H열(실적), I열(목표), J열(부족금액)
-            bridge_progress = safe_float(safe_get_value(row, 7))   # H열
-            bridge_target = safe_float(safe_get_value(row, 8))     # I열
-            bridge_shortage = safe_float(safe_get_value(row, 9))   # J열
+            bridge_progress = safe_float(safe_get_value(row, 7))
+            bridge_target = safe_float(safe_get_value(row, 8))
+            bridge_shortage = safe_float(safe_get_value(row, 9))
             
             mc_challenge = safe_get_value(row, 19)
             mc_shortage = safe_float(safe_get_value(row, 21))
@@ -499,7 +514,8 @@ if search_button:
                 st.markdown('<div class="section-header">📄 안내장 템플릿</div>', unsafe_allow_html=True)
                 
                 agency_name_str = str(agency_name).strip()
-                image_id = LEAFLET_TEMPLATE_IDS.get(agency_name_str, None)
+                # 자동 매칭 함수 사용 (대리점명에 포함된 키워드로 검색)
+                image_id = get_image_id_by_agency_name(agency_name_str)
                 
                 if image_id:
                     with st.spinner(f"🔄 {agency_name_str} 안내장 로드 중..."):
@@ -523,19 +539,9 @@ if search_button:
                         st.markdown(f"""
                         <div class="leaflet-placeholder">
                             ⚠️ 이미지를 로드할 수 없습니다.<br><br>
-                            <strong>대리점:</strong> {agency_name_str}<br>
-                            <strong>이미지 ID:</strong> {image_id}
-                            <div class="debug-info">
-                            Google Drive 파일 접근 권한을 확인하세요.
-                            </div>
+                            <strong>대리점:</strong> {agency_name_str}
                         </div>
                         """, unsafe_allow_html=True)
-                    
-                    # 디버그 정보 (개발용)
-                    with st.expander("🔍 디버그 정보"):
-                        st.write(f"**대리점명:** {agency_name_str}")
-                        st.write(f"**이미지 ID:** {image_id}")
-                        st.write(f"**다운로드 URL:** `https://drive.google.com/uc?id={image_id}`")
                 else:
                     st.markdown(f"""
                     <div class="leaflet-placeholder">
