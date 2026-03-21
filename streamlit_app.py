@@ -237,7 +237,7 @@ input::placeholder {
 """, unsafe_allow_html=True)
 
 def safe_float(value):
-    """숫자 또는 "만원" 형식을 float로 변환"""
+    """숫자를 float로 변환"""
     if pd.isna(value):
         return 0.0
     if value == "" or value is None:
@@ -246,38 +246,32 @@ def safe_float(value):
         v = str(value).strip()
         if v == "":
             return 0.0
-        # "만원" 있으면 제거하고 × 10000
-        if "만원" in v:
-            v_num = v.replace("만원", "").replace(",", "").strip()
-            return float(v_num) * 10000
-        else:
-            # 순수 숫자
-            return float(v.replace(",", ""))
+        return float(v.replace(",", ""))
     except:
         return 0.0
 
-def format_currency(value):
-    """금액을 "₩XXX만원" 형식으로 포맷"""
-    value = safe_float(value)
-    if value == 0:
-        return "₩0"
-    if value >= 10000:
-        return f"₩{value/10000:.0f}만원"
-    return f"₩{value:,.0f}"
+def format_number(value):
+    """숫자는 그대로 1,000,000 원으로 표시"""
+    try:
+        num = safe_float(value)
+        if num == 0:
+            return "₩0"
+        return f"₩{num:,.0f}"
+    except:
+        return str(value)
 
-def format_value_as_is(value):
-    """원본 값 그대로 출력 (텍스트인 경우)"""
+def format_display(value):
+    """원본 값 그대로 표시 (숫자면 포맷, 문자면 그대로)"""
     v = str(value).strip()
     if v == "" or v == "nan":
         return "₩0"
-    # 텍스트면 그대로, 숫자면 포맷
+    
+    # 숫자인지 확인
     try:
-        num_val = safe_float(v)
-        if num_val == 0 and v != "0":
-            return v  # 텍스트 (최종달성 등)
-        else:
-            return format_currency(num_val)
+        num = float(v.replace(",", ""))
+        return f"₩{num:,.0f}"
     except:
+        # 문자 (80만원, 최종달성 등)
         return v
 
 def get_current_week():
@@ -340,19 +334,20 @@ def load_logo():
         return Image.open("meritz.png")
     return None
 
-def render_mc_box(mc_challenge, mc_shortage_raw, is_mc_plus=False):
-    mc_challenge_val = safe_float(mc_challenge)
-    mc_shortage_val = safe_float(mc_shortage_raw)
+def render_mc_box(mc_challenge, mc_shortage, is_mc_plus=False):
+    mc_challenge_display = format_display(mc_challenge)
+    mc_shortage_display = format_display(mc_shortage)
     
-    mc_display_shortage = format_value_as_is(mc_shortage_raw)
+    mc_shortage_val = safe_float(mc_shortage)
     
-    if "최종달성" in str(mc_shortage_raw):
+    # 상태 결정
+    if "최종달성" in str(mc_shortage):
         mc_display_status = "✅ 시상금확보"
         mc_shortage_color = "#66ff66"
-    elif "다음기회에" in str(mc_shortage_raw) or "재도전" in str(mc_shortage_raw):
+    elif "다음기회에" in str(mc_shortage) or "재도전" in str(mc_shortage):
         mc_display_status = "⚪ 대상아님"
         mc_shortage_color = "#999999"
-    elif "대상아님" in str(mc_shortage_raw):
+    elif "대상아님" in str(mc_shortage):
         mc_display_status = "⚪ 대상아님"
         mc_shortage_color = "#999999"
     elif mc_shortage_val < 0:
@@ -373,8 +368,8 @@ def render_mc_box(mc_challenge, mc_shortage_raw, is_mc_plus=False):
     st.markdown(f"""
     <div class='{box_class}'>
     <h3 style='color: {title_color}; font-size: 18px; margin: 0 0 10px 0;'>{title_emoji}</h3>
-    <strong>도전구간:</strong> {format_currency(mc_challenge_val)}<br>
-    <strong>부족금액:</strong> <span style='color: {mc_shortage_color}; font-weight: 700;'>{mc_display_shortage}</span><br>
+    <strong>도전구간:</strong> {mc_challenge_display}<br>
+    <strong>부족금액:</strong> <span style='color: {mc_shortage_color}; font-weight: 700;'>{mc_shortage_display}</span><br>
     <strong>상태:</strong> <span style='color: {status_color}; font-weight: 700;'>{mc_display_status}</span>
     </div>
     """, unsafe_allow_html=True)
@@ -411,25 +406,19 @@ if search_clicked:
     if not manager_name or not agent_code:
         st.error("⚠️ 매니저명과 설계사 코드를 모두 입력해주세요.")
     else:
-        # 컬럼 위치 기반 필터링
-        # A: 현재대리점설계사조직코드, D: 매니저
-        col_a = df.columns[0]  # A열
-        col_d = df.columns[3]  # D열
-        
-        filtered = df[(df[col_d].astype(str).str.strip() == manager_name.strip()) &
-                      (df[col_a].astype(str).str.strip() == agent_code.strip())]
+        filtered = df[(df["매니저"].astype(str).str.strip() == manager_name.strip()) &
+                      (df["현재대리점설계사조직코드"].astype(str).str.strip() == agent_code.strip())]
         
         if len(filtered) == 0:
             st.error(f"❌ 데이터를 찾을 수 없습니다: {manager_name} / {agent_code}")
         else:
             row = filtered.iloc[0]
             
-            # 컬럼 위치로 값 가져오기
-            # G: 설계사명, F: 지사명, W: 대리점, Y: 어센틱구분
-            agent_name = str(row.iloc[6]).strip()  # G (7번째)
-            branch = str(row.iloc[5]).strip()      # F (6번째)
-            agency_name = str(row.iloc[22]).strip() # W (23번째)
-            is_authentic = safe_float(row.iloc[24]) == 1  # Y (25번째)
+            agent_name = str(row["설계사명"]).strip()
+            branch = str(row["지사명"]).strip()
+            agency_name = str(row["대리점"]).strip()
+            
+            is_authentic = safe_float(row["어센틱구분"]) == 1
             is_partner_channel = "파트너채널" in branch
             
             col_left, col_right = st.columns([1.5, 1])
@@ -443,94 +432,79 @@ if search_clicked:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # L: 3월실적 (12번째)
-                cumulative = safe_float(row.iloc[11])
+                cumulative = row["누계실적"]
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class='cumulative-box'>
-                {format_currency(cumulative)}
+                {format_display(cumulative)}
                 </div>
                 """, unsafe_allow_html=True)
                 
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
                 
-                # M~Q: 1~5주차 (12~16번째, 인덱스 12~16)
-                week_indices = [12, 13, 14, 15, 16]
-                week_names = ["1주차", "2주차", "3주차", "4주차", "5주차"]
-                
-                for idx, week_name in zip(week_indices, week_names):
-                    week_value = safe_float(row.iloc[idx])
-                    week_num = week_names.index(week_name) + 1
-                    is_current = (week_num == current_week)
+                week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
+                for idx, week_col in enumerate(week_columns, 1):
+                    week_value = row[week_col]
+                    is_current = (idx == current_week)
                     
                     if is_current:
                         st.markdown(f"""
                         <div class='weekly-row current'>
-                        <strong>{week_name}</strong> <span style='color: #ffcc00; font-size: 20px;'>⭐</span> <strong style='color: #ffcc00;'>{format_currency(week_value)}</strong>
+                        <strong>{week_col}</strong> <span style='color: #ffcc00; font-size: 20px;'>⭐</span> <strong style='color: #ffcc00;'>{format_display(week_value)}</strong>
                         </div>
                         """, unsafe_allow_html=True)
                     else:
                         st.markdown(f"""
                         <div class='weekly-row'>
-                        <strong>{week_name}</strong> <strong style='color: #66cc66;'>{format_currency(week_value)}</strong>
+                        <strong>{week_col}</strong> <strong style='color: #66cc66;'>{format_display(week_value)}</strong>
                         </div>
                         """, unsafe_allow_html=True)
                 
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
                 
-                # ===== 정확한 컬럼 위치 매핑 =====
-                if is_authentic and not is_partner_channel:
-                    # 어센틱: AD (29번째, 인덱스 29), AF (31번째, 인덱스 31)
-                    weekly_target = row.iloc[29]
-                    weekly_shortage = row.iloc[31]
+                # ===== 컬럼명으로 직접 접근 =====
+                if is_authentic:
+                    # 어센틱구분 = 1
+                    weekly_target = row["어센틱주차목표"]
+                    weekly_shortage = row["어센틱주차부족최종"]
                 else:
-                    # 비어센틱: R (17번째, 인덱스 17), S (18번째, 인덱스 18)
-                    weekly_target = row.iloc[17]
-                    weekly_shortage = row.iloc[18]
-                
-                target_display = format_value_as_is(weekly_target)
-                shortage_display = format_value_as_is(weekly_shortage)
+                    # 어센틱구분 = 0
+                    weekly_target = row["주차목표"]
+                    weekly_shortage = row["주차부족최종"]
                 
                 st.markdown(f"""
                 <div class='target-box'>
-                <strong>목표:</strong> {target_display}<br>
-                <strong>부족금액:</strong> {shortage_display}
+                <strong>목표:</strong> {format_display(weekly_target)}<br>
+                <strong>부족금액:</strong> {format_display(weekly_shortage)}
                 </div>
                 """, unsafe_allow_html=True)
                 
                 # ===== 브릿지 성과 (비어센틱만 표시) =====
                 if not is_authentic:
                     st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
-                    # H (7), I (8), J (9) - 인덱스로는 7, 8, 9
-                    bridge_achievement = safe_float(row.iloc[7])
-                    bridge_target = safe_float(row.iloc[8])
-                    bridge_shortage = safe_float(row.iloc[9])
+                    bridge_target = row["브릿지 도전구간"]
+                    bridge_shortage = row["브릿지부족최종"]
                     
                     st.markdown(f"""
                     <div class='bridge-box'>
-                    <strong>진척:</strong> {format_currency(bridge_achievement)}<br>
-                    <strong>목표:</strong> {format_currency(bridge_target)}<br>
-                    <strong>부족금액:</strong> {format_currency(bridge_shortage)}
+                    <strong>목표:</strong> {format_display(bridge_target)}<br>
+                    <strong>부족금액:</strong> {format_display(bridge_shortage)}
                     </div>
                     """, unsafe_allow_html=True)
                 
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>💰 성과</h3>", unsafe_allow_html=True)
                 
                 # ===== MC / MC+ 성과 =====
-                if is_authentic and not is_partner_channel:
-                    # 어센틱: AA (26), AC (28) - 인덱스 26, 28, T (19), V (21)
-                    mc_challenge = row.iloc[26]
-                    mc_shortage = row.iloc[28]
+                if is_authentic:
+                    # MC (어센틱만)
+                    mc_challenge = row["MC도전구간"]
+                    mc_shortage = row["MC부족최종"]
                     render_mc_box(mc_challenge, mc_shortage, is_mc_plus=False)
-                    
-                    mc_plus_challenge = row.iloc[19]
-                    mc_plus_shortage = row.iloc[21]
-                    render_mc_box(mc_plus_challenge, mc_plus_shortage, is_mc_plus=True)
-                else:
-                    # 비어센틱: T (19), V (21) - 인덱스 19, 21
-                    mc_plus_challenge = row.iloc[19]
-                    mc_plus_shortage = row.iloc[21]
-                    render_mc_box(mc_plus_challenge, mc_plus_shortage, is_mc_plus=True)
+                
+                # MC+ (모두)
+                mc_plus_challenge = row["MC+구간"]
+                mc_plus_shortage = row["MC+부족최종"]
+                render_mc_box(mc_plus_challenge, mc_plus_shortage, is_mc_plus=True)
             
             with col_right:
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
