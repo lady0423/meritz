@@ -266,30 +266,24 @@ def get_current_week():
     day = today.day
     
     if today.month == 3:
-        if day <= 1:  # 3/1은 주차 시작 전
+        if day <= 1:
             return 0
-        elif day <= 8:  # 3/2~3/8
+        elif day <= 8:
             return 1
-        elif day <= 15:  # 3/9~3/15
+        elif day <= 15:
             return 2
-        elif day <= 22:  # 3/16~3/22
+        elif day <= 22:
             return 3
-        elif day <= 29:  # 3/23~3/29
+        elif day <= 29:
             return 4
-        else:  # 3/30~3/31
+        else:
             return 5
     return 1
 
 def get_image_id_by_agency_name(agency_name, branch_name, is_authentic_not_partner):
-    """
-    리플렛 이미지 ID를 결정하는 함수
-    - is_authentic_not_partner=True → 어센틱 리플렛
-    - 그 외 → 기존 로직 또는 none
-    """
     if is_authentic_not_partner:
         return LEAFLET_TEMPLATE_IDS.get("어센틱")
     else:
-        # 기존 방식: 대리점명으로 매칭
         agency_name_lower = str(agency_name).strip().lower()
         for keyword, image_id in LEAFLET_TEMPLATE_IDS.items():
             if keyword.lower() in agency_name_lower:
@@ -321,6 +315,63 @@ def load_logo():
     if os.path.exists("meritz.png"):
         return Image.open("meritz.png")
     return None
+
+def render_mc_box(mc_challenge, mc_shortage_raw, mc_status_raw, is_mc_plus=False):
+    """MC 또는 MC+ 박스를 렌더링하는 함수"""
+    if mc_status_raw and mc_status_raw.strip():
+        mc_display_shortage = mc_status_raw
+        
+        if "최종달성" in mc_status_raw:
+            mc_display_status = "✅ 시상금확보"
+            mc_shortage_color = "#66ff66"
+        elif "다음기회에" in mc_status_raw or "재도전" in mc_status_raw:
+            mc_display_status = "⚪ 대상아님"
+            mc_shortage_color = "#999999"
+        elif "대상아님" in mc_status_raw:
+            mc_display_status = "⚪ 대상아님"
+            mc_shortage_color = "#999999"
+        else:
+            try:
+                shortage_num = safe_float(mc_status_raw)
+                mc_display_shortage = format_currency(shortage_num)
+                mc_display_status = "🟡 도전중"
+                mc_shortage_color = "#ffb366"
+            except:
+                mc_display_status = mc_status_raw
+                mc_shortage_color = "#ff6b6b"
+    else:
+        try:
+            shortage_num = safe_float(mc_shortage_raw)
+            if shortage_num < 0:
+                mc_display_shortage = "✅ 시상금확보"
+                mc_display_status = "✅ 시상금확보"
+                mc_shortage_color = "#66ff66"
+            elif shortage_num == 0:
+                mc_display_shortage = "✅ 시상금확보"
+                mc_display_status = "✅ 시상금확보"
+                mc_shortage_color = "#66ff66"
+            else:
+                mc_display_shortage = format_currency(shortage_num)
+                mc_display_status = "🟡 도전중"
+                mc_shortage_color = "#ffb366"
+        except:
+            mc_display_shortage = mc_shortage_raw
+            mc_display_status = "진행중"
+            mc_shortage_color = "#ff6b6b"
+    
+    box_class = "mc-plus-box" if is_mc_plus else "mc-box"
+    title_color = "#9d66ff" if is_mc_plus else "#ff8a99"
+    title_emoji = "⭐⭐ MC+ 성과" if is_mc_plus else "⭐ MC 성과"
+    status_color = "#9d66ff" if is_mc_plus else "#ffb366"
+    
+    st.markdown(f"""
+    <div class='{box_class}'>
+    <h3 style='color: {title_color}; font-size: 18px; margin: 0 0 10px 0;'>{title_emoji}</h3>
+    <strong>도전구간:</strong> {format_currency(safe_float(mc_challenge))}<br>
+    <strong>부족금액:</strong> <span style='color: {mc_shortage_color}; font-weight: 700;'>{mc_display_shortage}</span><br>
+    <strong>상태:</strong> <span style='color: {status_color}; font-weight: 700;'>{mc_display_status}</span>
+    </div>
+    """, unsafe_allow_html=True)
 
 col_logo, col_title = st.columns([1, 4])
 with col_logo:
@@ -367,7 +418,7 @@ if search_clicked:
             agency_name = safe_get_value(row, "대리점")
             is_authentic = safe_float(safe_get_value(row, "어센틱구분")) == 1
             
-            # 파트너채널 확인: 지사명에 "파트너채널" 포함하면 파트너채널로 간주
+            # 파트너채널 확인
             is_partner_channel = "파트너채널" in branch
             is_authentic_not_partner = is_authentic and not is_partner_channel
             
@@ -394,9 +445,8 @@ if search_clicked:
                 
                 # 어센틱(파트너채널 제외)일 때와 기타일 때 구분
                 if is_authentic_not_partner:
-                    # 어센틱(파트너채널 제외): 어센틱주차목표, 어센틱주차부족 사용
                     week_target = safe_float(safe_get_value(row, "어센틱주차목표"))
-                    week_shortage = safe_float(safe_get_value(row, "어센틱주차부족"))
+                    week_shortage = safe_float(safe_get_value(row, "어센틱주차부족최종"))
                     week_value = week_target - week_shortage if week_target > 0 else 0
                     
                     st.markdown(f"""
@@ -405,7 +455,6 @@ if search_clicked:
                     </div>
                     """, unsafe_allow_html=True)
                 else:
-                    # 기존 방식 또는 파트너채널: 5주차 데이터 표시
                     week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
                     for idx, week_col in enumerate(week_columns, 1):
                         week_value = safe_float(safe_get_value(row, week_col))
@@ -427,7 +476,7 @@ if search_clicked:
                 # 현재주차 목표
                 if is_authentic_not_partner:
                     weekly_target = safe_float(safe_get_value(row, "어센틱주차목표"))
-                    weekly_shortage = safe_float(safe_get_value(row, "어센틱주차부족"))
+                    weekly_shortage = safe_float(safe_get_value(row, "어센틱주차부족최종"))
                 else:
                     weekly_target = safe_float(safe_get_value(row, "주차목표"))
                     weekly_shortage = safe_float(safe_get_value(row, "주차부족"))
@@ -456,169 +505,25 @@ if search_clicked:
                 # MC와 MC+ 표시 로직
                 if is_authentic_not_partner:
                     # 어센틱(파트너채널 제외): MC + MC+ 둘 다 표시
-                    st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>⭐ MC 성과</h3>", unsafe_allow_html=True)
                     mc_challenge = safe_get_value(row, "MC도전구간")
                     mc_shortage_raw = safe_get_value(row, "MC부족")
                     mc_status_raw = safe_get_value(row, "MC부족최종")
                     
-                    if mc_status_raw and mc_status_raw.strip():
-                        mc_display_shortage = mc_status_raw
-                        
-                        if "최종달성" in mc_status_raw:
-                            mc_display_status = "✅ 시상금확보"
-                            mc_shortage_color = "#66ff66"
-                        elif "다음기회에" in mc_status_raw or "재도전" in mc_status_raw:
-                            mc_display_status = "⚪ 대상아님"
-                            mc_shortage_color = "#999999"
-                        elif "대상아님" in mc_status_raw:
-                            mc_display_status = "⚪ 대상아님"
-                            mc_shortage_color = "#999999"
-                        else:
-                            try:
-                                shortage_num = safe_float(mc_status_raw)
-                                mc_display_shortage = format_currency(shortage_num)
-                                mc_display_status = "🟡 도전중"
-                                mc_shortage_color = "#ffb366"
-                            except:
-                                mc_display_status = mc_status_raw
-                                mc_shortage_color = "#ff6b6b"
-                    else:
-                        try:
-                            shortage_num = safe_float(mc_shortage_raw)
-                            if shortage_num < 0:
-                                mc_display_shortage = "✅ 시상금확보"
-                                mc_display_status = "✅ 시상금확보"
-                                mc_shortage_color = "#66ff66"
-                            elif shortage_num == 0:
-                                mc_display_shortage = "✅ 시상금확보"
-                                mc_display_status = "✅ 시상금확보"
-                                mc_shortage_color = "#66ff66"
-                            else:
-                                mc_display_shortage = format_currency(shortage_num)
-                                mc_display_status = "🟡 도전중"
-                                mc_shortage_color = "#ffb366"
-                        except:
-                            mc_display_shortage = mc_shortage_raw
-                            mc_display_status = "진행중"
-                            mc_shortage_color = "#ff6b6b"
-                    
-                    st.markdown(f"""
-                    <div class='mc-box'>
-                    <strong>도전구간:</strong> {format_currency(safe_float(mc_challenge))}<br>
-                    <strong>부족금액:</strong> <span style='color: {mc_shortage_color}; font-weight: 700;'>{mc_display_shortage}</span><br>
-                    <strong>상태:</strong> <span style='color: #ffb366; font-weight: 700;'>{mc_display_status}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    render_mc_box(mc_challenge, mc_shortage_raw, mc_status_raw, is_mc_plus=False)
                     
                     # MC+ 추가 표시
-                    st.markdown("<h3 style='color: #9d66ff; font-size: 18px;'>⭐⭐ MC+ 성과</h3>", unsafe_allow_html=True)
                     mc_plus_challenge = safe_get_value(row, "MC+구간")
                     mc_plus_shortage_raw = safe_get_value(row, "MC+부족")
                     mc_plus_status_raw = safe_get_value(row, "MC+부족최종")
                     
-                    if mc_plus_status_raw and mc_plus_status_raw.strip():
-                        mc_plus_display_shortage = mc_plus_status_raw
-                        
-                        if "최종달성" in mc_plus_status_raw:
-                            mc_plus_display_status = "✅ 시상금확보"
-                            mc_plus_shortage_color = "#66ff66"
-                        elif "다음기회에" in mc_plus_status_raw or "재도전" in mc_plus_status_raw:
-                            mc_plus_display_status = "⚪ 대상아님"
-                            mc_plus_shortage_color = "#999999"
-                        elif "대상아님" in mc_plus_status_raw:
-                            mc_plus_display_status = "⚪ 대상아님"
-                            mc_plus_shortage_color = "#999999"
-                        else:
-                            try:
-                                shortage_num = safe_float(mc_plus_status_raw)
-                                mc_plus_display_shortage = format_currency(shortage_num)
-                                mc_plus_display_status = "🟡 도전중"
-                                mc_plus_shortage_color = "#ffb366"
-                            except:
-                                mc_plus_display_status = mc_plus_status_raw
-                                mc_plus_shortage_color = "#ff6b6b"
-                    else:
-                        try:
-                            shortage_num = safe_float(mc_plus_shortage_raw)
-                            if shortage_num < 0:
-                                mc_plus_display_shortage = "✅ 시상금확보"
-                                mc_plus_display_status = "✅ 시상금확보"
-                                mc_plus_shortage_color = "#66ff66"
-                            elif shortage_num == 0:
-                                mc_plus_display_shortage = "✅ 시상금확보"
-                                mc_plus_display_status = "✅ 시상금확보"
-                                mc_plus_shortage_color = "#66ff66"
-                            else:
-                                mc_plus_display_shortage = format_currency(shortage_num)
-                                mc_plus_display_status = "🟡 도전중"
-                                mc_plus_shortage_color = "#ffb366"
-                        except:
-                            mc_plus_display_shortage = mc_plus_shortage_raw
-                            mc_plus_display_status = "진행중"
-                            mc_plus_shortage_color = "#ff6b6b"
-                    
-                    st.markdown(f"""
-                    <div class='mc-plus-box'>
-                    <strong>도전구간:</strong> {format_currency(safe_float(mc_plus_challenge))}<br>
-                    <strong>부족금액:</strong> <span style='color: {mc_plus_shortage_color}; font-weight: 700;'>{mc_plus_display_shortage}</span><br>
-                    <strong>상태:</strong> <span style='color: #9d66ff; font-weight: 700;'>{mc_plus_display_status}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    render_mc_box(mc_plus_challenge, mc_plus_shortage_raw, mc_plus_status_raw, is_mc_plus=True)
                 else:
                     # 기존 방식 또는 파트너채널: MC+ 만 표시
-                    st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>💎 MC+ 성과</h3>", unsafe_allow_html=True)
                     mc_challenge = safe_get_value(row, "MC+구간")
                     mc_shortage_raw = safe_get_value(row, "MC+부족")
                     mc_status_raw = safe_get_value(row, "MC+부족최종")
                     
-                    if mc_status_raw and mc_status_raw.strip():
-                        mc_display_shortage = mc_status_raw
-                        
-                        if "최종달성" in mc_status_raw:
-                            mc_display_status = "✅ 시상금확보"
-                            mc_shortage_color = "#66ff66"
-                        elif "다음기회에" in mc_status_raw or "재도전" in mc_status_raw:
-                            mc_display_status = "⚪ 대상아님"
-                            mc_shortage_color = "#999999"
-                        elif "대상아님" in mc_status_raw:
-                            mc_display_status = "⚪ 대상아님"
-                            mc_shortage_color = "#999999"
-                        else:
-                            try:
-                                shortage_num = safe_float(mc_status_raw)
-                                mc_display_shortage = format_currency(shortage_num)
-                                mc_display_status = "🟡 도전중"
-                                mc_shortage_color = "#ffb366"
-                            except:
-                                mc_display_status = mc_status_raw
-                                mc_shortage_color = "#ff6b6b"
-                    else:
-                        try:
-                            shortage_num = safe_float(mc_shortage_raw)
-                            if shortage_num < 0:
-                                mc_display_shortage = "✅ 시상금확보"
-                                mc_display_status = "✅ 시상금확보"
-                                mc_shortage_color = "#66ff66"
-                            elif shortage_num == 0:
-                                mc_display_shortage = "✅ 시상금확보"
-                                mc_display_status = "✅ 시상금확보"
-                                mc_shortage_color = "#66ff66"
-                            else:
-                                mc_display_shortage = format_currency(shortage_num)
-                                mc_display_status = "🟡 도전중"
-                                mc_shortage_color = "#ffb366"
-                        except:
-                            mc_display_shortage = mc_shortage_raw
-                            mc_display_status = "진행중"
-                            mc_shortage_color = "#ff6b6b"
-                    
-                    st.markdown(f"""
-                    <div class='mc-box'>
-                    <strong>도전구간:</strong> {format_currency(safe_float(mc_challenge))}<br>
-                    <strong>부족금액:</strong> <span style='color: {mc_shortage_color}; font-weight: 700;'>{mc_display_shortage}</span><br>
-                    <strong>상태:</strong> <span style='color: #ffb366; font-weight: 700;'>{mc_display_status}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    render_mc_box(mc_challenge, mc_shortage_raw, mc_status_raw, is_mc_plus=False)
             
             with col_right:
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
