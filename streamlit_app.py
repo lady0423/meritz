@@ -94,8 +94,8 @@ input::-webkit-autofill {
     padding: 18px;
     border-radius: 10px;
     margin: 12px 0;
-    font-size: 15px;
-    line-height: 1.8;
+    font-size: 17px;
+    line-height: 2;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     font-weight: 500;
 }
@@ -106,7 +106,7 @@ input::-webkit-autofill {
     padding: 25px;
     border-radius: 10px;
     margin: 15px 0;
-    font-size: 22px;
+    font-size: 26px;
     font-weight: 700;
     color: #ff8a99;
     text-align: center;
@@ -120,7 +120,7 @@ input::-webkit-autofill {
     padding: 16px;
     border-radius: 8px;
     margin: 10px 0;
-    font-size: 15px;
+    font-size: 18px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -146,8 +146,8 @@ input::-webkit-autofill {
     padding: 18px;
     border-radius: 10px;
     margin: 15px 0;
-    font-size: 15px;
-    line-height: 2;
+    font-size: 17px;
+    line-height: 2.2;
     box-shadow: 0 4px 12px rgba(196, 30, 58, 0.2);
     font-weight: 600;
 }
@@ -158,7 +158,7 @@ input::-webkit-autofill {
     padding: 18px;
     border-radius: 10px;
     margin: 15px 0;
-    font-size: 15px;
+    font-size: 17px;
     line-height: 2.2;
     box-shadow: 0 4px 12px rgba(196, 30, 58, 0.2);
     font-weight: 600;
@@ -171,8 +171,8 @@ input::-webkit-autofill {
     padding: 18px;
     border-radius: 10px;
     margin: 15px 0;
-    font-size: 15px;
-    line-height: 2;
+    font-size: 17px;
+    line-height: 2.2;
     box-shadow: 0 4px 12px rgba(196, 30, 58, 0.15);
     font-weight: 600;
 }
@@ -316,7 +316,7 @@ if df is None:
 
 current_week = get_current_week()
 
-st.markdown("<h3 style='color: #ffffff; margin-top: 20px;'>🔍 검색 정보 입력</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='color: #ffffff; margin-top: 20px; font-size: 18px;'>🔍 검색 정보 입력</h3>", unsafe_allow_html=True)
 col1, col2, col3 = st.columns([2, 2, 1])
 with col1:
     manager_name = st.text_input("매니저명", placeholder="예: 박메리", label_visibility="collapsed", key="manager", autocomplete="off")
@@ -344,7 +344,7 @@ if search_clicked:
             col_left, col_right = st.columns([1.5, 1])
             
             with col_left:
-                st.markdown("<h3 style='color: #ff8a99;'>📋 기본 정보</h3>", unsafe_allow_html=True)
+                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📋 기본 정보</h3>", unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class='info-box'>
                 <strong>설계사명:</strong> {agent_name}<br>
@@ -354,14 +354,14 @@ if search_clicked:
                 """, unsafe_allow_html=True)
                 
                 cumulative = safe_float(safe_get_value(row, "3월실적"))
-                st.markdown("<h3 style='color: #ff8a99;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
+                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class='cumulative-box'>
                 {format_currency(cumulative)}
                 </div>
                 """, unsafe_allow_html=True)
                 
-                st.markdown("<h3 style='color: #ff8a99;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
+                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
                 week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
                 for idx, week_col in enumerate(week_columns, 1):
                     week_value = safe_float(safe_get_value(row, week_col))
@@ -370,7 +370,7 @@ if search_clicked:
                     if is_current:
                         st.markdown(f"""
                         <div class='weekly-row current'>
-                        <strong>{week_col}</strong> <span style='color: #ffcc00; font-size: 18px;'>⭐</span> <strong style='color: #ffcc00;'>{format_currency(week_value)}</strong>
+                        <strong>{week_col}</strong> <span style='color: #ffcc00; font-size: 20px;'>⭐</span> <strong style='color: #ffcc00;'>{format_currency(week_value)}</strong>
                         </div>
                         """, unsafe_allow_html=True)
                     else:
@@ -382,7 +382,7 @@ if search_clicked:
                 
                 weekly_target = safe_float(safe_get_value(row, "주차목표"))
                 weekly_shortage = safe_float(safe_get_value(row, "주차부족"))
-                st.markdown("<h3 style='color: #ff8a99;'>🎯 현재주차 목표</h3>", unsafe_allow_html=True)
+                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎯 현재주차 목표</h3>", unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class='target-box'>
                 <strong>목표:</strong> {format_currency(weekly_target)}<br>
@@ -390,7 +390,7 @@ if search_clicked:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                st.markdown("<h3 style='color: #ff8a99;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
+                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
                 bridge_achievement = safe_float(safe_get_value(row, "브릿지 실적"))
                 bridge_target = safe_float(safe_get_value(row, "브릿지 도전구간"))
                 bridge_shortage = safe_float(safe_get_value(row, "브릿지 부족"))
@@ -403,13 +403,11 @@ if search_clicked:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # ===== MC+ 성과 (완전 수정) =====
-                st.markdown("<h3 style='color: #ff8a99;'>💎 MC+ 성과</h3>", unsafe_allow_html=True)
+                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>💎 MC+ 성과</h3>", unsafe_allow_html=True)
                 mc_challenge = safe_get_value(row, "MC+구간")
                 mc_shortage_raw = safe_get_value(row, "MC부족")
                 mc_status_raw = safe_get_value(row, "MC부족최종")
                 
-                # MC+ 상태 판단 로직
                 if mc_status_raw and mc_status_raw.strip():
                     mc_display_shortage = mc_status_raw
                     
@@ -458,7 +456,7 @@ if search_clicked:
                 """, unsafe_allow_html=True)
             
             with col_right:
-                st.markdown("<h3 style='color: #ff8a99;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
+                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
                 image_id = get_image_id_by_agency_name(agency_name)
                 image = load_leaflet_template_from_drive(image_id)
                 
