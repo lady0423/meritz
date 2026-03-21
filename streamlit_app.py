@@ -36,13 +36,15 @@ LEAFLET_TEMPLATE_IDS = {
 
 st.set_page_config(page_title="메리츠 실적현황", layout="wide")
 
-# 다크 테마 & Noto Sans KR 폰트
+# 다크 테마 & Noto Sans KR 폰트 + 자동완성 비활성화
 st.markdown("""
 <link href='https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap' rel='stylesheet'>
 <style>
 * { font-family: 'Noto Sans KR', sans-serif !important; }
 html, body { background: #0f0f0f; color: #e0e0e0; }
 .stApp { background: #0f0f0f; }
+input { autocomplete: off !important; }
+input:-webkit-autofill { -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important; -webkit-text-fill-color: #e0e0e0 !important; }
 .stTextInput input, .stNumberInput input { background: #1a1a1a; color: #e0e0e0; border: 2px solid #c41e3a !important; }
 .stButton > button { background: #c41e3a; color: white; border: none; font-weight: 700; padding: 10px 20px; border-radius: 5px; }
 .stButton > button:hover { background: #ff6b7a; }
@@ -135,9 +137,9 @@ st.divider()
 # 검색 섹션
 col1, col2, col3 = st.columns([2, 2, 1])
 with col1:
-    manager_name = st.text_input("📌 매니저명", key="manager", placeholder="매니저 이름 입력")
+    manager_name = st.text_input("📌 매니저명", key="manager", placeholder="매니저 이름 입력", autocomplete="off")
 with col2:
-    agent_code = st.text_input("📌 설계사코드", key="agent_code", placeholder="설계사 코드 입력")
+    agent_code = st.text_input("📌 설계사코드", key="agent_code", placeholder="설계사 코드 입력", autocomplete="off")
 with col3:
     search_btn = st.button("🔍 검색", use_container_width=True)
 
@@ -149,14 +151,14 @@ if search_btn:
     if not manager_name or not agent_code:
         st.warning("⚠️ 매니저명과 설계사코드를 모두 입력해주세요.")
     else:
-        # 필터링
+        # 필터링 (A열 설계사코드, B열 매니저명으로 검색)
         filtered = df[
-            (df.iloc[:, 1].astype(str).str.contains(manager_name, case=False, na=False)) &
-            (df.iloc[:, 0].astype(str) == agent_code)
+            (df.iloc[:, 1].astype(str).str.strip().str.contains(manager_name.strip(), case=False, na=False)) &
+            (df.iloc[:, 0].astype(str).str.strip() == agent_code.strip())
         ]
         
         if filtered.empty:
-            st.error("❌ 검색 결과가 없습니다.")
+            st.error(f"❌ 검색 결과가 없습니다. (매니저: {manager_name}, 설계사코드: {agent_code})")
         else:
             row = filtered.iloc[0]
             
