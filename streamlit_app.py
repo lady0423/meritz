@@ -1,13 +1,13 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+import datetime
 import pytz
 from PIL import Image
-import io
 import gdown
 import tempfile
 import os
 
+# ===== 설정 =====
 GOOGLE_SHEET_ID = "1NSm_gy0a_QbWXquI2efdM93BjBuHn_sYLpU0NybL5_8"
 
 LEAFLET_TEMPLATE_IDS = {
@@ -33,385 +33,326 @@ LEAFLET_TEMPLATE_IDS = {
     "none": "1xGX9WTFcAtnzIa2kgMPOuG73V56ypbaf",
 }
 
-st.set_page_config(
-    page_title="실적 안내장 조회",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
+# ===== 페이지 설정 =====
+st.set_page_config(page_title="메리츠 설계사 성과 조회", layout="wide")
 
+# ===== CSS 스타일 =====
 st.markdown("""
 <style>
-    * {
-        font-family: 'Noto Sans KR', sans-serif;
-    }
-    body {
-        background-color: #0f1419;
-        color: #e0e0e0;
-    }
-    .main {
-        background-color: #0f1419;
-    }
-    .section-header {
-        font-size: 18px;
-        font-weight: 600;
-        color: #ffffff;
-        margin-bottom: 12px;
-        padding: 8px 0;
-        border-bottom: 2px solid #4a90e2;
-    }
-    .info-box {
-        background: linear-gradient(135deg, #1a2634 0%, #0f1f2e 100%);
-        border-left: 4px solid #4a90e2;
-        padding: 12px 16px;
-        border-radius: 6px;
-        margin-bottom: 12px;
-        font-size: 14px;
-    }
-    .cumulative-box {
-        background: linear-gradient(135deg, #1a2634 0%, #0f1f2e 100%);
-        border: 1px solid #3a5a7a;
-        border-radius: 8px;
-        padding: 16px;
-        text-align: center;
-        margin-bottom: 16px;
-    }
-    .cumulative-label {
-        font-size: 12px;
-        color: #a0a0a0;
-        margin-bottom: 4px;
-    }
-    .cumulative-value {
-        font-size: 28px;
-        font-weight: 700;
-        color: #ffffff;
-    }
-    .weekly-row {
-        background: linear-gradient(135deg, #1a2634 0%, #0f1f2e 100%);
-        border: 1px solid #3a5a7a;
-        border-radius: 6px;
-        padding: 12px 16px;
-        margin-bottom: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .weekly-row.highlight {
-        background: linear-gradient(135deg, #cc3333 0%, #bb2222 100%);
-        border: 1px solid #ff6666;
-    }
-    .weekly-label {
-        font-size: 13px;
-        color: #b0b0b0;
-        font-weight: 500;
-    }
-    .weekly-value {
-        font-size: 16px;
-        color: #ffffff;
-        font-weight: 600;
-    }
-    .bridge-box {
-        background: linear-gradient(135deg, #2d5a3d 0%, #3d7a4f 100%);
-        border: 1px solid #5a9a6f;
-        border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 16px;
-    }
-    .bridge-label {
-        font-size: 12px;
-        color: #b0d9c0;
-        margin-bottom: 6px;
-    }
-    .bridge-target {
-        font-size: 20px;
-        font-weight: 700;
-        color: #ffffff;
-        margin-bottom: 12px;
-    }
-    .bridge-bottom {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-    }
-    .bridge-item {
-        flex: 1;
-        text-align: center;
-    }
-    .bridge-item-label {
-        font-size: 11px;
-        color: #b0d9c0;
-        margin-bottom: 4px;
-    }
-    .bridge-item-value {
-        font-size: 18px;
-        font-weight: 700;
-        color: #ffffff;
-    }
-    .mc-box {
-        background: linear-gradient(135deg, #1a4d6d 0%, #2570a0 100%);
-        border: 1px solid #4a8ab8;
-        border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 16px;
-    }
-    .mc-label {
-        font-size: 12px;
-        color: #a0d4f0;
-        margin-bottom: 6px;
-    }
-    .mc-challenge {
-        font-size: 20px;
-        font-weight: 700;
-        color: #ffffff;
-        margin-bottom: 12px;
-    }
-    .mc-bottom {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-    }
-    .mc-item {
-        flex: 1;
-        text-align: center;
-    }
-    .mc-item-label {
-        font-size: 11px;
-        color: #a0d4f0;
-        margin-bottom: 4px;
-    }
-    .mc-item-value {
-        font-size: 18px;
-        font-weight: 700;
-        color: #ffffff;
-    }
-    input[type="text"] {
-        background-color: #1a2634 !important;
-        color: #ffffff !important;
-    }
+body {
+    background-color: #1a1a1a;
+    color: #ffffff;
+}
+
+.info-box {
+    background: linear-gradient(135deg, #2d2d2d 0%, #1f1f1f 100%);
+    border-left: 4px solid #0066cc;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+.cumulative-box {
+    background: linear-gradient(135deg, #1a3a52 0%, #0f2233 100%);
+    border-left: 4px solid #00ccff;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 10px 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.weekly-row {
+    background: linear-gradient(135deg, #2d3a2d 0%, #1f261f 100%);
+    border-left: 4px solid #66cc66;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 8px 0;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.weekly-row.current {
+    background: linear-gradient(135deg, #3d5a3d 0%, #2f4a2f 100%);
+    border-left: 4px solid #ffcc00;
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
+}
+
+.bridge-box {
+    background: linear-gradient(135deg, #4a2d2d 0%, #331f1f 100%);
+    border-left: 4px solid #ff6666;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+.mc-box {
+    background: linear-gradient(135deg, #3d2d4a 0%, #2a1f33 100%);
+    border-left: 4px solid #cc66ff;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+.target-box {
+    background: linear-gradient(135deg, #4a4a2d 0%, #33331f 100%);
+    border-left: 4px solid #ffcc66;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+input, select {
+    background-color: #2d2d2d;
+    color: #ffffff;
+    border: 1px solid #0066cc;
+    border-radius: 4px;
+    padding: 8px;
+}
+
+button {
+    background-color: #0066cc;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: #0052a3;
+}
 </style>
 """, unsafe_allow_html=True)
 
+# ===== 유틸리티 함수 =====
 def safe_float(value):
+    """문자열을 float로 안전하게 변환"""
+    if pd.isna(value):
+        return 0.0
     try:
-        return float(value) if value not in [None, "", "nan"] else 0.0
+        if isinstance(value, str):
+            return float(value.replace(",", ""))
+        return float(value)
     except:
         return 0.0
 
-def safe_get_value(row, col_name):
+def safe_get_value(row, column_name):
+    """행에서 값을 안전하게 추출"""
     try:
-        val = row[col_name] if col_name in row.index else None
-        return val if val not in [None, "", "nan"] else 0
+        return row.get(column_name, "")
     except:
-        return 0
+        return ""
 
-def format_currency(amount):
-    amount = safe_float(amount)
-    return f"₩{amount:,.0f}"
+def format_currency(value):
+    """숫자를 한국 원화로 포맷"""
+    value = safe_float(value)
+    return f"₩{value:,.0f}"
 
 def get_current_week():
+    """현재 주차 계산 (1~5주)"""
     kst = pytz.timezone('Asia/Seoul')
-    today = datetime.now(kst).date()
-    day = today.day
-    return (day - 1) // 7 + 1
+    today = datetime.datetime.now(kst).date()
+    year, month, day = today.year, today.month, today.day
+    
+    if month == 3:
+        if day <= 7:
+            return 1
+        elif day <= 14:
+            return 2
+        elif day <= 21:
+            return 3
+        elif day <= 28:
+            return 4
+        else:
+            return 5
+    return 1
 
-def get_image_id_by_agency_name(agency_name_full):
-    agency_name_full = str(agency_name_full).strip().lower()
+def get_image_id_by_agency_name(agency_name):
+    """대리점명으로 이미지 ID 매칭"""
+    agency_name_lower = str(agency_name).strip().lower()
     for keyword, image_id in LEAFLET_TEMPLATE_IDS.items():
-        if keyword.lower() in agency_name_full:
+        if keyword.lower() in agency_name_lower:
             return image_id
-    return None
+    return LEAFLET_TEMPLATE_IDS.get("none")
 
+# ===== 데이터 로딩 함수 =====
 @st.cache_data(ttl=300)
-def load_data_from_google_sheets(sheet_id):
-    url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=0"
-    df = pd.read_csv(url)
-    return df
+def load_data_from_google_sheets():
+    """Google Sheets에서 데이터 로드"""
+    url = f"https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/export?format=csv&gid=0"
+    try:
+        df = pd.read_csv(url)
+        return df
+    except Exception as e:
+        st.error(f"데이터 로드 실패: {e}")
+        return None
 
 def load_leaflet_template_from_drive(file_id):
-    temp_path = os.path.join(tempfile.gettempdir(), f"leaflet_{file_id}.jpg")
+    """Google Drive에서 이미지 로드"""
     try:
-        gdown.download(f"https://drive.google.com/uc?id={file_id}", temp_path, quiet=True)
-        if os.path.exists(temp_path):
-            return Image.open(temp_path)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = os.path.join(temp_dir, "template.jpg")
+            gdown.download(f"https://drive.google.com/uc?id={file_id}", output_path, quiet=True)
+            if os.path.exists(output_path):
+                return Image.open(output_path)
     except:
         pass
     return None
 
-col_logo, col_title = st.columns([1, 9])
-with col_logo:
-    try:
-        logo = Image.open("meritz.png")
-        st.image(logo, width=60)
-    except:
-        st.write("Logo")
+# ===== UI 메인 =====
+st.title("📊 메리츠 설계사 성과 조회")
 
-with col_title:
-    st.markdown('<div class="section-header">실적 안내장 조회</div>', unsafe_allow_html=True)
+# 데이터 로드
+df = load_data_from_google_sheets()
+if df is None:
+    st.error("데이터를 로드할 수 없습니다.")
+    st.stop()
 
-kst = pytz.timezone('Asia/Seoul')
-last_update = datetime.now(kst).strftime("%Y-%m-%d %H:%M:%S")
-st.caption(f"최신 업데이트: {last_update} (KST)")
+current_week = get_current_week()
 
-st.markdown("---")
+# 입력 섹션
+col1, col2, col3 = st.columns([2, 2, 1])
+with col1:
+    manager_name = st.text_input("매니저명", placeholder="예: 김대길")
+with col2:
+    agent_code = st.text_input("설계사 코드", placeholder="예: 724043483")
+with col3:
+    search_clicked = st.button("🔍 검색", use_container_width=True)
 
-col_manager, col_agent, col_search = st.columns([3, 3, 1])
-
-with col_manager:
-    manager_name = st.text_input("매니저명", key="manager_input", autocomplete="off")
-
-with col_agent:
-    agent_code = st.text_input("설계사 코드", key="agent_input", autocomplete="off")
-
-with col_search:
-    search_clicked = st.button("검색", use_container_width=True)
-
-st.markdown("---")
-
+# 검색 로직
 if search_clicked:
     if not manager_name or not agent_code:
-        st.error("매니저명과 설계사 코드를 모두 입력해주세요.")
+        st.error("⚠️ 매니저명과 설계사 코드를 모두 입력해주세요.")
     else:
-        try:
-            df = load_data_from_google_sheets(GOOGLE_SHEET_ID)
+        # 데이터 필터링
+        filtered = df[(df["매니저"].astype(str).str.strip() == manager_name.strip()) &
+                      (df["현재대리점설계사조직코드"].astype(str).str.strip() == agent_code.strip())]
+        
+        if len(filtered) == 0:
+            st.error(f"❌ 데이터를 찾을 수 없습니다: {manager_name} / {agent_code}")
+        else:
+            row = filtered.iloc[0]
             
-            filtered = df[(df["매니저"].astype(str).str.strip() == manager_name.strip()) &
-                         (df["현재대리점설계사조직코드"].astype(str).str.strip() == agent_code.strip())]
+            # ===== 기본 정보 =====
+            agent_name = safe_get_value(row, "설계사명")
+            branch = safe_get_value(row, "지사명")
+            agency_name = safe_get_value(row, "대리점")
             
-            if filtered.empty:
-                st.warning("해당하는 데이터가 없습니다.")
-            else:
-                row = filtered.iloc[0]
+            col_left, col_right = st.columns([1.5, 1])
+            
+            with col_left:
+                st.markdown("### 📋 기본 정보")
+                st.markdown(f"""
+                <div class='info-box'>
+                <strong>설계사명:</strong> {agent_name}<br>
+                <strong>지사:</strong> {branch}<br>
+                <strong>대리점:</strong> {agency_name}
+                </div>
+                """, unsafe_allow_html=True)
                 
-                agent_code_display = safe_get_value(row, "현재대리점설계사조직코드")
-                agent_name = safe_get_value(row, "설계사명")
-                branch = safe_get_value(row, "지사명")
-                manager = safe_get_value(row, "매니저")
-                agency_name = safe_get_value(row, "대리점")
+                # ===== 누계 실적 =====
                 cumulative = safe_float(safe_get_value(row, "3월실적"))
+                st.markdown("### 📈 3월 누계 실적")
+                st.markdown(f"""
+                <div class='cumulative-box'>
+                {format_currency(cumulative)}
+                </div>
+                """, unsafe_allow_html=True)
                 
-                weekly_values = [
-                    safe_float(safe_get_value(row, "1주차")),
-                    safe_float(safe_get_value(row, "2주차")),
-                    safe_float(safe_get_value(row, "3주차")),
-                    safe_float(safe_get_value(row, "4주차")),
-                    safe_float(safe_get_value(row, "5주차")),
-                ]
+                # ===== 주차별 실적 =====
+                st.markdown("### 📅 주차별 실적")
+                week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
+                for idx, week_col in enumerate(week_columns, 1):
+                    week_value = safe_float(safe_get_value(row, week_col))
+                    is_current = (idx == current_week)
+                    
+                    if is_current:
+                        st.markdown(f"""
+                        <div class='weekly-row current'>
+                        <strong>{week_col}</strong> <span style='color: #ffcc00;'>⭐</span> {format_currency(week_value)}
+                        </div>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"""
+                        <div class='weekly-row'>
+                        <strong>{week_col}</strong> {format_currency(week_value)}
+                        </div>
+                        """, unsafe_allow_html=True)
                 
-                bridge_progress = safe_float(safe_get_value(row, "브릿지 실적"))
+                # ===== 주차 목표 =====
+                weekly_target = safe_float(safe_get_value(row, "주차목표"))
+                st.markdown("### 🎯 현재주차 목표")
+                st.markdown(f"""
+                <div class='target-box'>
+                <strong>1주차 목표:</strong> {format_currency(weekly_target)}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # ===== 브릿지 성과 =====
+                st.markdown("### 🌉 브릿지 성과")
+                bridge_achievement = safe_float(safe_get_value(row, "브릿지 실적"))
                 bridge_target = safe_float(safe_get_value(row, "브릿지 도전구간"))
                 bridge_shortage = safe_float(safe_get_value(row, "브릿지 부족"))
                 
+                st.markdown(f"""
+                <div class='bridge-box'>
+                <strong>진척:</strong> {format_currency(bridge_achievement)}<br>
+                <strong>목표:</strong> {format_currency(bridge_target)}<br>
+                <strong>부족금액:</strong> {format_currency(bridge_shortage)}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # ===== MC+ 성과 =====
+                st.markdown("### 💎 MC+ 성과")
                 mc_challenge = safe_float(safe_get_value(row, "MC+구간"))
-                mc_progress = safe_float(safe_get_value(row, "3월실적"))
-                mc_shortage = safe_float(safe_get_value(row, "MC부족"))
+                mc_achievement = safe_float(safe_get_value(row, "3월실적"))  # L열 = 3월실적과 동일
+                mc_shortage = safe_float(safe_get_value(row, "MC부족최종"))  # V열
                 
-                current_week = get_current_week()
+                st.markdown(f"""
+                <div class='mc-box'>
+                <strong>도전구간:</strong> {format_currency(mc_challenge)}<br>
+                <strong>실적:</strong> {format_currency(mc_achievement)}<br>
+                <strong>부족금액:</strong> {format_currency(mc_shortage)}
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col_right:
+                st.markdown("### 🎁 대리점 리플렛")
+                image_id = get_image_id_by_agency_name(agency_name)
+                image = load_leaflet_template_from_drive(image_id)
                 
-                col_left, col_right = st.columns([1, 1])
-                
-                with col_left:
-                    st.markdown('<div class="section-header">기본 정보</div>', unsafe_allow_html=True)
-                    st.markdown(f"""
-                    <div class="info-box">
-                        <strong>설계사:</strong> {agent_name}<br>
-                        <strong>지사:</strong> {branch}<br>
-                        <strong>코드:</strong> {agent_code_display}
-                    </div>
-                    """, unsafe_allow_html=True)
+                if image:
+                    st.image(image, use_container_width=True)
                     
-                    st.markdown('<div class="section-header">누계 실적</div>', unsafe_allow_html=True)
-                    st.markdown(f"""
-                    <div class="cumulative-box">
-                        <div class="cumulative-label">누계</div>
-                        <div class="cumulative-value">{format_currency(cumulative)}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown('<div class="section-header">주차별 실적</div>', unsafe_allow_html=True)
-                    for week_num in range(1, 6):
-                        week_value = weekly_values[week_num - 1]
-                        is_current = (week_num == current_week)
-                        highlight_class = "highlight" if is_current else ""
-                        st.markdown(f"""
-                        <div class="weekly-row {highlight_class}">
-                            <span class="weekly-label">{week_num}주차</span>
-                            <span class="weekly-value">{format_currency(week_value)}</span>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    st.markdown('<div class="section-header">브릿지 실적</div>', unsafe_allow_html=True)
-                    st.markdown(f"""
-                    <div class="bridge-box">
-                        <div class="bridge-label">목표</div>
-                        <div class="bridge-target">{format_currency(bridge_target)}</div>
-                        <div class="bridge-bottom">
-                            <div class="bridge-item">
-                                <div class="bridge-item-label">진척</div>
-                                <div class="bridge-item-value">{format_currency(bridge_progress)}</div>
-                            </div>
-                            <div class="bridge-item">
-                                <div class="bridge-item-label">부족</div>
-                                <div class="bridge-item-value">{format_currency(bridge_shortage)}</div>
-                            </div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown('<div class="section-header">MC+ 상태</div>', unsafe_allow_html=True)
-                    st.markdown(f"""
-                    <div class="mc-box">
-                        <div class="mc-label">도전구간</div>
-                        <div class="mc-challenge">{format_currency(mc_challenge)}</div>
-                        <div class="mc-bottom">
-                            <div class="mc-item">
-                                <div class="mc-item-label">진척</div>
-                                <div class="mc-item-value">{format_currency(mc_progress)}</div>
-                            </div>
-                            <div class="mc-item">
-                                <div class="mc-item-label">부족</div>
-                                <div class="mc-item-value">{format_currency(mc_shortage)}</div>
-                            </div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col_right:
-                    st.markdown('<div class="section-header">안내장 템플릿</div>', unsafe_allow_html=True)
-                    agency_name_str = str(agency_name).strip()
-                    image_id = get_image_id_by_agency_name(agency_name_str)
-                    
-                    if image_id:
-                        with st.spinner(f"{agency_name_str} 안내장 로드 중..."):
-                            leaflet_img = load_leaflet_template_from_drive(image_id)
-                        
-                        if leaflet_img:
-                            st.image(leaflet_img, use_container_width=True)
-                            
-                            img_byte_arr = io.BytesIO()
-                            leaflet_img.save(img_byte_arr, format='JPEG')
-                            img_byte_arr.seek(0)
+                    # 다운로드 버튼
+                    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
+                        image.save(tmp_file.name, "JPEG")
+                        with open(tmp_file.name, "rb") as f:
                             st.download_button(
-                                label="JPG 다운로드",
-                                data=img_byte_arr,
-                                file_name=f"{agency_name_str}_leaflet.jpg",
+                                label="📥 리플렛 다운로드",
+                                data=f.read(),
+                                file_name=f"{agency_name}_leaflet.jpg",
                                 mime="image/jpeg",
                                 use_container_width=True
                             )
-                        else:
-                            st.warning(f"이미지를 로드할 수 없습니다. 대리점: {agency_name_str}")
-                    else:
-                        st.info(f"대리점명: {agency_name_str} - 이 대리점의 이미지가 설정되지 않았습니다.")
-                
-                st.markdown("---")
-                
-                col_print, col_reset = st.columns(2)
-                with col_print:
-                    st.button("인쇄", use_container_width=True)
-                with col_reset:
-                    if st.button("초기화", use_container_width=True):
-                        st.rerun()
-        
-        except Exception as e:
-            st.error(f"오류 발생: {e}")
+                else:
+                    st.info(f"⚠️ 리플렛 이미지를 불러올 수 없습니다.\n(대리점: {agency_name})")
+            
+            # ===== 하단 버튼 =====
+            col_print, col_reset = st.columns(2)
+            with col_print:
+                if st.button("🖨️ 인쇄", use_container_width=True):
+                    st.info("브라우저의 인쇄 기능을 사용해주세요 (Ctrl+P 또는 Cmd+P)")
+            with col_reset:
+                if st.button("🔄 초기화", use_container_width=True):
+                    st.rerun()
 
-st.markdown("---")
-st.caption("팁: 매니저명과 설계사 코드를 입력하고 검색 버튼을 클릭하세요.")
+# 팁
+st.caption("💡 매니저명과 설계사 코드를 입력하고 검색 버튼을 클릭하세요.")
