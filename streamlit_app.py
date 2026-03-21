@@ -487,9 +487,10 @@ if search_clicked:
                 # 브릿지는 어센틱이 아닐 때만 표시
                 if not is_authentic:
                     st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
-                    bridge_achievement = safe_float(safe_get_value(row, "브릿지 실적"))
+                    # H열 브릿지 도전구간 + J열 브릿지 부족
                     bridge_target = safe_float(safe_get_value(row, "브릿지 도전구간"))
                     bridge_shortage = safe_float(safe_get_value(row, "브릿지 부족"))
+                    bridge_achievement = bridge_target - bridge_shortage if bridge_target > 0 else 0
                     
                     st.markdown(f"""
                     <div class='bridge-box'>
