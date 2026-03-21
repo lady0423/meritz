@@ -421,34 +421,36 @@ if search_clicked:
                         mc_shortage_color = "#999999"
                     else:
                         try:
-                            float(mc_status_raw.replace(",", ""))
+                            shortage_num = safe_float(mc_status_raw)
+                            mc_display_shortage = format_currency(shortage_num)
                             mc_display_status = "🟡 도전중"
                             mc_shortage_color = "#ffb366"
                         except:
                             mc_display_status = mc_status_raw
                             mc_shortage_color = "#ff6b6b"
                 else:
-                    mc_display_shortage = mc_shortage_raw
-                    
                     try:
                         shortage_num = safe_float(mc_shortage_raw)
                         if shortage_num < 0:
+                            mc_display_shortage = "✅ 시상금확보"
                             mc_display_status = "✅ 시상금확보"
                             mc_shortage_color = "#66ff66"
                         elif shortage_num == 0:
+                            mc_display_shortage = "✅ 시상금확보"
                             mc_display_status = "✅ 시상금확보"
                             mc_shortage_color = "#66ff66"
                         else:
-                            mc_display_status = "🟡 도전중"
                             mc_display_shortage = format_currency(shortage_num)
+                            mc_display_status = "🟡 도전중"
                             mc_shortage_color = "#ffb366"
                     except:
+                        mc_display_shortage = mc_shortage_raw
                         mc_display_status = "진행중"
                         mc_shortage_color = "#ff6b6b"
                 
                 st.markdown(f"""
                 <div class='mc-box'>
-                <strong>도전구간:</strong> {mc_challenge}<br>
+                <strong>도전구간:</strong> {format_currency(safe_float(mc_challenge))}<br>
                 <strong>부족금액:</strong> <span style='color: {mc_shortage_color}; font-weight: 700;'>{mc_display_shortage}</span><br>
                 <strong>상태:</strong> <span style='color: #ffb366; font-weight: 700;'>{mc_display_status}</span>
                 </div>
