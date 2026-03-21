@@ -38,7 +38,7 @@ LEAFLET_TEMPLATE_IDS = {
 # 페이지 설정
 st.set_page_config(page_title="실적 안내장 조회", layout="wide", initial_sidebar_state="collapsed")
 
-# CSS 스타일링 (예시 이미지 스타일 반영)
+# CSS 스타일링
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
@@ -74,7 +74,7 @@ body {
     border-radius: 6px;
     margin: 5px 0;
     font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.8;
 }
 
 .cumulative-box {
@@ -92,19 +92,15 @@ body {
     color: #79c0ff;
 }
 
-.week-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 10px 0;
-}
-
 .week-row {
     background: #161b22;
     border: 1px solid #30363d;
     display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin: 6px 0;
     border-radius: 6px;
-    overflow: hidden;
+    padding: 12px 15px;
 }
 
 .week-row-current {
@@ -114,54 +110,19 @@ body {
 }
 
 .week-label {
-    width: 40%;
-    padding: 12px 15px;
     font-size: 16px;
     font-weight: 700;
-    display: flex;
-    align-items: center;
-}
-
-.week-row-current .week-label {
-    color: #ffffff;
 }
 
 .week-amount {
-    width: 60%;
-    padding: 12px 15px;
     font-size: 20px;
     font-weight: 900;
-    text-align: right;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
     color: #79c0ff;
 }
 
 .week-row-current .week-amount {
     color: #ffffff;
     font-size: 24px;
-}
-
-.target-box {
-    background: #161b22;
-    border-left: 4px solid #1f6feb;
-    padding: 12px 15px;
-    border-radius: 4px;
-    margin: 8px 0;
-    font-size: 14px;
-}
-
-.target-label {
-    color: #8b949e;
-    font-size: 12px;
-    margin-bottom: 4px;
-}
-
-.target-value {
-    font-size: 20px;
-    font-weight: 700;
-    color: #79c0ff;
 }
 
 .bridge-box {
@@ -182,16 +143,21 @@ body {
     font-size: 32px;
     font-weight: 900;
     color: #ffffff;
+    margin-bottom: 10px;
 }
 
 .bridge-info {
     background: rgba(0,0,0,0.2);
     padding: 10px;
     border-radius: 4px;
-    margin-top: 8px;
     font-size: 13px;
     display: flex;
     justify-content: space-between;
+}
+
+.bridge-info-item {
+    display: flex;
+    gap: 5px;
 }
 
 .mc-box {
@@ -207,17 +173,6 @@ body {
     color: #79c0ff;
     font-weight: 700;
     margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.mc-status-green::before {
-    content: "🟢";
-}
-
-.mc-status-red::before {
-    content: "🔴";
 }
 
 .mc-info-row {
@@ -251,17 +206,6 @@ def safe_float(value):
         return float(value)
     except:
         return 0.0
-
-def safe_int(value):
-    """안전한 int 변환"""
-    try:
-        if pd.isna(value) or value == "":
-            return 0
-        if isinstance(value, str):
-            value = value.replace(",", "").strip()
-        return int(float(value))
-    except:
-        return 0
 
 def safe_get_value(row, col_index):
     """행에서 값 추출 (안전)"""
@@ -407,9 +351,8 @@ if search_button:
             # 데이터 추출
             agent_code = safe_get_value(row, 0)
             agent_name = safe_get_value(row, 6)
-            branch = safe_get_value(row, 5)
+            branch = safe_get_value(row, 5)  # 지사
             manager_name = safe_get_value(row, 3)
-            agency_name = safe_get_value(row, 22)
             
             cumulative = safe_float(safe_get_value(row, 11))
             week1 = safe_float(safe_get_value(row, 12))
@@ -418,14 +361,18 @@ if search_button:
             week4 = safe_float(safe_get_value(row, 15))
             week5 = safe_float(safe_get_value(row, 16))
             
-            bridge_target = safe_float(safe_get_value(row, 18))  # S열 (브릿지 목표)
-            bridge_performance = safe_float(safe_get_value(row, 17))  # R열 (브릿지 실적)
+            # 브릿지: S열(목표), R열(실적)
+            bridge_target = safe_float(safe_get_value(row, 18))  # S열
+            bridge_performance = safe_float(safe_get_value(row, 17))  # R열
             bridge_shortage = bridge_target - bridge_performance if bridge_target > 0 else 0
             
             mc_challenge = safe_get_value(row, 19)  # T열 (MC+도전구간)
             mc_shortage = safe_float(safe_get_value(row, 21))  # V열 (MC+부족금액)
             
             current_week = get_current_week()
+            
+            # 대리점명 (안내장 이미지 로드용)
+            agency_name = safe_get_value(row, 22)  # W열
             
             st.write("---")
             st.success("✅ 검색 완료!")
@@ -434,19 +381,18 @@ if search_button:
             col_left, col_right = st.columns([1, 1])
             
             with col_left:
-                # 기본 정보
+                # 기본 정보 (대리점명 제거, 지사로 변경)
                 st.markdown('<div class="section-header">📋 기본 정보</div>', unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class="basic-info-box">
                 <strong>설계사 코드:</strong> {agent_code}<br>
                 <strong>설계사명:</strong> {agent_name}<br>
-                <strong>지점:</strong> {branch}<br>
-                <strong>매니저:</strong> {manager_name}<br>
-                <strong>대리점:</strong> {agency_name}
+                <strong>지사:</strong> {branch}<br>
+                <strong>매니저:</strong> {manager_name}
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # 누계 실적 (더 작게)
+                # 누계 실적
                 st.markdown('<div class="section-header">💰 누계 실적</div>', unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class="cumulative-box">
@@ -454,7 +400,7 @@ if search_button:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # 주차별 실적 (더 간결하게)
+                # 주차별 실적
                 st.markdown('<div class="section-header">📈 주차별 실적</div>', unsafe_allow_html=True)
                 weeks = [week1, week2, week3, week4, week5]
                 for i, week in enumerate(weeks, 1):
@@ -467,27 +413,31 @@ if search_button:
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # 브릿지 실적
+                # 브릿지 실적 (목표와 부족액 정확하게 표기)
                 st.markdown('<div class="section-header">🌉 브릿지 실적</div>', unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class="bridge-box">
                     <div class="bridge-label">실적</div>
                     <div class="bridge-value">{format_currency(bridge_performance)}</div>
                     <div class="bridge-info">
-                        <div><strong>목표:</strong> {format_currency(bridge_target)}</div>
-                        <div><strong>부족:</strong> {format_currency(bridge_shortage)}</div>
+                        <div class="bridge-info-item">
+                            <strong>목표:</strong> {format_currency(bridge_target)}
+                        </div>
+                        <div class="bridge-info-item">
+                            <strong>부족:</strong> {format_currency(bridge_shortage)}
+                        </div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
                 
                 # MC+ 상태
                 st.markdown('<div class="section-header">📊 MC+ 상태</div>', unsafe_allow_html=True)
-                mc_status_class = "mc-status-green" if mc_challenge and mc_challenge != "" else "mc-status-red"
-                mc_status_text = str(mc_challenge) if mc_challenge and mc_challenge != "" else "미달성"
+                mc_status_indicator = "🟢" if (mc_challenge and str(mc_challenge).strip() != "") else "🔴"
+                mc_status_text = str(mc_challenge) if (mc_challenge and str(mc_challenge).strip() != "") else "미달성"
                 
                 st.markdown(f"""
                 <div class="mc-box">
-                    <div class="mc-status-text {mc_status_class}">상태: {mc_status_text}</div>
+                    <div class="mc-status-text">{mc_status_indicator} {mc_status_text}</div>
                     <div class="mc-info-row">
                         <span class="info-label">부족금액:</span>
                         <span class="info-value">{format_currency(mc_shortage)}</span>
@@ -498,9 +448,10 @@ if search_button:
             with col_right:
                 st.markdown('<div class="section-header">📄 안내장 템플릿</div>', unsafe_allow_html=True)
                 
+                # 대리점명으로 이미지 ID 조회
                 image_id = LEAFLET_TEMPLATE_IDS.get(str(agency_name).strip(), None)
                 
-                if image_id and not image_id.startswith("1YOUR_"):
+                if image_id:
                     leaflet_img = load_leaflet_template_from_drive(image_id)
                     if leaflet_img:
                         st.image(leaflet_img, use_container_width=True)
@@ -517,7 +468,7 @@ if search_button:
                             use_container_width=True
                         )
                     else:
-                        st.warning(f"⚠️ 이미지를 로드할 수 없습니다.")
+                        st.warning(f"⚠️ 이미지를 로드할 수 없습니다. (대리점: {agency_name})")
                 else:
                     st.info(f"📌 대리점명: {agency_name}\n이미지 ID가 설정되지 않았습니다.")
             
