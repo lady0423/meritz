@@ -303,39 +303,47 @@ if search_clicked:
         try:
             df = load_data_from_google_drive(GOOGLE_DRIVE_FILE_ID)
             
-            # 원래 구조: A열=매니저명, B열=설계사코드
-            filtered = df[(df.iloc[:, 0].astype(str).str.strip() == manager_name.strip()) &
-                         (df.iloc[:, 1].astype(str).str.strip() == agent_code.strip())]
+            # 새로운 구조: A열(인덱스 0)=설계사코드, C열(인덱스 2)=매니저명
+            filtered = df[(df.iloc[:, 2].astype(str).str.strip() == manager_name.strip()) &
+                         (df.iloc[:, 0].astype(str).str.strip() == agent_code.strip())]
             
             if filtered.empty:
                 st.warning("해당하는 데이터가 없습니다.")
             else:
                 row = filtered.iloc[0]
                 
-                # 필드 추출 (원래 열 인덱스)
-                manager = safe_get_value(row, 0)             # A열: 매니저명
-                agent_code_display = safe_get_value(row, 1)  # B열: 설계사 코드
-                agent_name = safe_get_value(row, 2)          # C열: 설계사명
-                branch = safe_get_value(row, 3)              # D열: 지사
-                cumulative = safe_float(safe_get_value(row, 4))  # E열: 누계
+                # 필드 추출 (새로운 열 인덱스)
+                agent_code_display = safe_get_value(row, 0)   # A열: 설계사코드
+                branch_name = safe_get_value(row, 1)          # B열: 지점명
+                manager = safe_get_value(row, 2)              # C열: 매니저명
+                branch = safe_get_value(row, 5)               # F열: 대리점 지사명
+                agent_name = safe_get_value(row, 6)           # G열: 설계사명
                 
-                # 주차별 값 (F-J: 1-5주차)
+                # 브릿지 실적
+                bridge_progress = safe_float(safe_get_value(row, 7))   # H열: 브릿지 실적
+                bridge_target = safe_float(safe_get_value(row, 8))     # I열: 브릿지 목표
+                bridge_shortage = safe_float(safe_get_value(row, 9))   # J열: 브릿지 부족금액
+                
+                # 누계 실적
+                cumulative = safe_float(safe_get_value(row, 11))  # L열: 3월 누계 실적
+                
+                # 주차별 값 (M-Q: 1-5주차)
                 weekly_values = [
-                    safe_float(safe_get_value(row, 5)),   # F열: 1주차
-                    safe_float(safe_get_value(row, 6)),   # G열: 2주차
-                    safe_float(safe_get_value(row, 7)),   # H열: 3주차
-                    safe_float(safe_get_value(row, 8)),   # I열: 4주차
-                    safe_float(safe_get_value(row, 9)),   # J열: 5주차
+                    safe_float(safe_get_value(row, 12)),  # M열: 1주차 실적
+                    safe_float(safe_get_value(row, 13)),  # N열: 2주차 실적
+                    safe_float(safe_get_value(row, 14)),  # O열: 3주차 실적
+                    safe_float(safe_get_value(row, 15)),  # P열: 4주차 실적
+                    safe_float(safe_get_value(row, 16)),  # Q열: 5주차 실적
                 ]
                 
-                # 브릿지: H=진척, I=목표, J=부족
-                bridge_progress = safe_float(safe_get_value(row, 7))   # H열
-                bridge_target = safe_float(safe_get_value(row, 8))     # I열
-                bridge_shortage = safe_float(safe_get_value(row, 9))   # J열
+                # 현재 주차 목표 및 부족금액
+                current_week_target = safe_float(safe_get_value(row, 17))  # R열: 현재 주차 목표
+                current_week_shortage = safe_float(safe_get_value(row, 18))  # S열: 현재 주차 부족금액
                 
-                # MC+: T=도전구간, V=부족금액
-                mc_challenge = safe_float(safe_get_value(row, 19))  # T열
-                mc_shortage = safe_float(safe_get_value(row, 21))   # V열
+                # MC+
+                mc_challenge = safe_float(safe_get_value(row, 19))  # T열: MC+ 도전구간
+                mc_achievement = safe_float(safe_get_value(row, 11))  # L열: MC+ 달성실적 (3월 누계실적과 동일)
+                mc_shortage = safe_float(safe_get_value(row, 21))   # V열: MC+ 부족금액
                 
                 # 대리점명
                 agency_name = safe_get_value(row, 22)  # W열: 대리점명
