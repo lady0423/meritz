@@ -245,12 +245,16 @@ def safe_float(value):
         v = str(value).strip()
         if v == "":
             return 0.0
-        return float(v.replace(",", ""))
+        # "만원" 제거
+        v = v.replace("만원", "").replace(",", "")
+        return float(v) * 10000 if "만" in str(value) else float(v)
     except:
         return 0.0
 
 def format_currency(value):
     value = safe_float(value)
+    if value >= 10000:
+        return f"₩{value/10000:.0f}만원"
     return f"₩{value:,.0f}"
 
 def get_current_week():
@@ -458,16 +462,18 @@ if search_clicked:
                 if is_authentic and not is_partner_channel:
                     # 어센틱 (Y=1): AD, AF 사용
                     weekly_target = safe_float(row["어센틱주차목표"])
-                    weekly_shortage = safe_float(row["어센틱주차부족최종"])
+                    weekly_shortage_raw = row["어센틱주차부족최종"]
+                    weekly_shortage = safe_float(weekly_shortage_raw)
                 else:
                     # 비어센틱 (Y=0): R, S 사용
                     weekly_target = safe_float(row["주차목표"])
-                    weekly_shortage = safe_float(row["주차부족"])
+                    weekly_shortage_raw = row["주차부족"]
+                    weekly_shortage = safe_float(weekly_shortage_raw)
                 
                 st.markdown(f"""
                 <div class='target-box'>
                 <strong>목표:</strong> {format_currency(weekly_target)}<br>
-                <strong>부족금액:</strong> {format_currency(weekly_shortage)}
+                <strong>부족금액:</strong> {weekly_shortage_raw if isinstance(weekly_shortage_raw, str) and any(c.isalpha() for c in str(weekly_shortage_raw)) else format_currency(weekly_shortage)}
                 </div>
                 """, unsafe_allow_html=True)
                 
@@ -488,21 +494,21 @@ if search_clicked:
                 
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>💰 성과</h3>", unsafe_allow_html=True)
                 
-                # ===== MC / MC+ 성과 (정확한 컬럼 매핑) =====
+                # ===== MC / MC+ 성과 =====
                 if is_authentic and not is_partner_channel:
                     # 어센틱 (Y=1): MC (AA, AC) + MC+ (T, V)
                     mc_challenge = safe_float(row["MC도전구간"])
-                    mc_shortage = safe_float(row["MC부족최종"])
-                    render_mc_box(mc_challenge, mc_shortage, mc_shortage, is_mc_plus=False)
+                    mc_shortage_raw = row["MC부족최종"]
+                    render_mc_box(mc_challenge, mc_shortage_raw, mc_shortage_raw, is_mc_plus=False)
                     
                     mc_plus_challenge = safe_float(row["MC+구간"])
-                    mc_plus_shortage = safe_float(row["MC+부족최종"])
-                    render_mc_box(mc_plus_challenge, mc_plus_shortage, mc_plus_shortage, is_mc_plus=True)
+                    mc_plus_shortage_raw = row["MC+부족최종"]
+                    render_mc_box(mc_plus_challenge, mc_plus_shortage_raw, mc_plus_shortage_raw, is_mc_plus=True)
                 else:
                     # 비어센틱 (Y=0): MC+ (T, V)만
                     mc_plus_challenge = safe_float(row["MC+구간"])
-                    mc_plus_shortage = safe_float(row["MC+부족최종"])
-                    render_mc_box(mc_plus_challenge, mc_plus_shortage, mc_plus_shortage, is_mc_plus=True)
+                    mc_plus_shortage_raw = row["MC+부족최종"]
+                    render_mc_box(mc_plus_challenge, mc_plus_shortage_raw, mc_plus_shortage_raw, is_mc_plus=True)
             
             with col_right:
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
