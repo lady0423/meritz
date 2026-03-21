@@ -478,13 +478,52 @@ if search_clicked:
                     st.info(f"⚠️ 리플렛 이미지를 불러올 수 없습니다.\n(대리점: {agency_name})")
             
             st.markdown("<hr style='border: 1px solid #c41e3a; margin: 30px 0;'>", unsafe_allow_html=True)
-            col_print, col_reset = st.columns(2)
+            
+            st.markdown("""
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+            <script>
+            function downloadScreenshot() {
+                const timestamp = new Date().toISOString().slice(0,10);
+                html2canvas(document.body, {
+                    backgroundColor: '#0f0f0f',
+                    scale: 2,
+                    logging: false,
+                    useCORS: true
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.href = canvas.toDataURL('image/png');
+                    link.download = '메리츠_실적현황_' + timestamp + '.png';
+                    link.click();
+                }).catch(err => {
+                    alert('다운로드 실패: ' + err);
+                });
+            }
+            </script>
+            """, unsafe_allow_html=True)
+            
+            col_print, col_download, col_reset = st.columns(3)
+            
             with col_print:
                 if st.button("🖨️ 인쇄", use_container_width=True):
-                    st.info("💡 브라우저의 인쇄 기능을 사용해주세요 (Ctrl+P 또는 Cmd+P)")
+                    st.markdown("""
+                    <script>
+                    window.print();
+                    </script>
+                    """, unsafe_allow_html=True)
+            
+            with col_download:
+                if st.button("📥 화면 다운로드 (PNG)", use_container_width=True):
+                    st.markdown("""
+                    <script>
+                    downloadScreenshot();
+                    </script>
+                    """, unsafe_allow_html=True)
+                    st.success("💾 화면이 PNG로 다운로드됩니다!")
+            
             with col_reset:
                 if st.button("🔄 초기화", use_container_width=True):
                     st.rerun()
+
 else:
     st.markdown("""
     <div style='text-align: center; margin-top: 60px; padding: 40px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #c41e3a;'>
