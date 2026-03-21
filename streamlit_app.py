@@ -96,6 +96,31 @@ def safe_get_value(row, index, default=0):
     except:
         return default
 
+def format_currency(value):
+    """금액을 천원단위로 포매팅"""
+    return f"₩{value:,}"
+
+def get_current_week():
+    """현재 주차 계산 (3월 = 1주차, 4월 = 2주차 등)"""
+    now = datetime.now(pytz.timezone('Asia/Seoul'))
+    month = now.month
+    day = now.day
+    
+    # 3월 시작을 기준으로 계산
+    if month < 3:
+        return 0  # 아직 시즌 시작 전
+    elif month == 3:
+        if day <= 31:
+            return 1
+    elif month == 4:
+        return 2
+    elif month == 5:
+        return 3
+    elif month == 6:
+        return 4
+    else:
+        return 5
+
 # ============ 데이터 로드 함수 ============
 @st.cache_data(ttl=3600)
 def load_data_from_google_drive(file_id):
@@ -191,7 +216,7 @@ if search_button:
             manager_name = safe_get_value(agent_row, 3, "")
             agent_name = safe_get_value(agent_row, 6, "")
             branch = safe_get_value(agent_row, 5, "")
-            agency_name = str(safe_get_value(agent_row, 22, "")).strip()
+            agency_name = str(safe_get_value(agent_row, 22, "")).strip()  # W열 (컬럼 22)
             
             # 실적 데이터
             cumulative = safe_int(safe_get_value(agent_row, 11, 0))
@@ -210,6 +235,9 @@ if search_button:
             
             mc_target = safe_int(safe_get_value(agent_row, 19, 0))
             mc_shortage = safe_int(safe_get_value(agent_row, 21, 0))
+            
+            # 현재 주차
+            current_week = get_current_week()
             
             # ============ 결과 표시 ============
             st.write("---")
@@ -235,7 +263,7 @@ if search_button:
                 st.subheader("📊 누계 실적")
                 st.markdown(f"""
                 <div class="info-card">
-                <h3 style="color: #ffeb3b; margin: 0;">₩ {cumulative:,}</h3>
+                <h3 style="color: #ffeb3b; margin: 0;">{format_currency(cumulative)}</h3>
                 </div>
                 """, unsafe_allow_html=True)
                 
@@ -245,23 +273,23 @@ if search_button:
                 weeks = [week1, week2, week3, week4, week5]
                 for i, (col, week) in enumerate(zip(cols, weeks)):
                     with col:
-                        st.metric(f"주차 {i+1}", f"₩{week:,}")
+                        st.metric(f"주차 {i+1}", format_currency(week))
                 
-                # 목표/부족
-                st.subheader("🎯 주차 목표 / 부족")
+                # 목표/부족 (현재 주차 표시)
+                st.subheader(f"🎯 {current_week}주차 목표 / 부족")
                 col_target, col_shortage = st.columns(2)
                 with col_target:
-                    st.metric("목표", f"₩{week_target:,}", delta=None)
+                    st.metric("목표", format_currency(week_target), delta=None)
                 with col_shortage:
-                    st.metric("부족", f"₩{week_shortage:,}", delta=None)
+                    st.metric("부족", format_currency(week_shortage), delta=None)
                 
-                # 브릿지
+                # 브릿지 (금액 포매팅)
                 st.subheader("🌉 브릿지 실적")
                 st.markdown(f"""
                 <div class="info-card">
-                <strong>실적:</strong> {bridge_result} | 
-                <strong>목표:</strong> {bridge_target} | 
-                <strong>부족:</strong> {bridge_shortage}
+                <strong>실적:</strong> {format_currency(bridge_result)}<br>
+                <strong>목표:</strong> {format_currency(bridge_target)}<br>
+                <strong>부족:</strong> {format_currency(bridge_shortage)}
                 </div>
                 """, unsafe_allow_html=True)
                 
@@ -269,7 +297,7 @@ if search_button:
                 st.subheader("⭐ MC+ 상태")
                 st.markdown(f"""
                 <div class="info-card">
-                <strong>목표:</strong> {mc_target} | 
+                <strong>목표:</strong> {mc_target}<br>
                 <strong>부족:</strong> {mc_shortage}
                 </div>
                 """, unsafe_allow_html=True)
@@ -278,7 +306,7 @@ if search_button:
             with right_col:
                 st.subheader("📄 실적 안내장")
                 
-                # 템플릿 선택
+                # 템플릿 선택 (W열 대리점명으로 매칭)
                 template_id = LEAFLET_TEMPLATE_IDS.get(agency_name, LEAFLET_TEMPLATE_IDS["none"])
                 
                 with st.spinner(f"🖼️ {agency_name} 템플릿 로드 중..."):
@@ -299,7 +327,7 @@ if search_button:
                         mime="image/jpeg"
                     )
                 else:
-                    st.warning("⚠️ 리플렛 템플릿을 로드할 수 없습니다.")
+                    st.warning(f"⚠️ '{agency_name}' 리플렛 템플릿을 찾을 수 없습니다.")
             
             # ============ 하단 기능 ============
             st.write("---")
