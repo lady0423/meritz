@@ -145,7 +145,7 @@ h1, h2, h3 {
     border-radius: 10px;
     margin: 15px 0;
     font-size: 15px;
-    line-height: 2;
+    line-height: 2.2;
     box-shadow: 0 4px 12px rgba(204, 102, 255, 0.2);
     font-weight: 600;
     color: #ffffff;
@@ -197,7 +197,7 @@ def safe_float(value):
         return 0.0
     try:
         if isinstance(value, str):
-            return float(value.replace(",", "").replace("최종달성", "").replace("다음기회에", "").strip())
+            return float(value.replace(",", "").strip())
         return float(value)
     except:
         return 0.0
@@ -206,7 +206,6 @@ def safe_get_value(row, column_name):
     """행에서 값을 안전하게 추출"""
     try:
         value = row.get(column_name, "")
-        # 값을 문자열로 반환 (None 체크)
         if pd.isna(value):
             return ""
         return str(value).strip()
@@ -291,7 +290,7 @@ with col2:
 with col3:
     search_clicked = st.button("🔍 검색", use_container_width=True)
 
-# ===== 핵심 변경: 검색 후에만 결과 표시 =====
+# ===== 검색 후에만 결과 표시 =====
 if search_clicked:
     if not manager_name or not agent_code:
         st.error("⚠️ 매니저명과 설계사 코드를 모두 입력해주세요.")
@@ -378,13 +377,15 @@ if search_clicked:
                 
                 # ===== MC+ 성과 (수정됨) =====
                 st.markdown("<h3 style='color: #ffffff;'>💎 MC+ 성과</h3>", unsafe_allow_html=True)
-                mc_challenge = safe_get_value(row, "MC+구간")  # U열 - 문자열 (예: "20만")
-                mc_shortage_status = safe_get_value(row, "MC부족최종")  # V열 - 상태 (예: "최종달성")
+                mc_challenge = safe_get_value(row, "MC+구간")  # T열 - 도전구간 (예: "20만", "40만")
+                mc_shortage_amount = safe_get_value(row, "MC부족")  # U열 - 숫자 금액 (예: "-260070")
+                mc_status = safe_get_value(row, "MC부족최종")  # V열 - 상태 (예: "최종달성")
                 
                 st.markdown(f"""
                 <div class='mc-box'>
                 <strong>도전구간:</strong> {mc_challenge}<br>
-                <strong>부족금액:</strong> <span style='color: #cc66ff; font-weight: 700;'>{mc_shortage_status}</span>
+                <strong>부족금액:</strong> {mc_shortage_amount}<br>
+                <strong>상태:</strong> <span style='color: #ffcc66; font-weight: 700;'>{mc_status}</span>
                 </div>
                 """, unsafe_allow_html=True)
             
