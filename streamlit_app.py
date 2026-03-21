@@ -447,7 +447,7 @@ if search_clicked:
                 
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
                 
-                # 어센틱이든 기타든 M~Q 컬럼에서 1~5주차 데이터 가져오기
+                # 모든 경우 M~Q 컬럼에서 1~5주차 데이터 가져오기
                 week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
                 for idx, week_col in enumerate(week_columns, 1):
                     week_value = safe_float(safe_get_value(row, week_col))
@@ -466,11 +466,13 @@ if search_clicked:
                         </div>
                         """, unsafe_allow_html=True)
                 
-                # 현재주차 목표
+                # 현재주차 목표 - 어센틱과 기타 구분
                 if is_authentic and not is_partner_channel:
+                    # 어센틱: AD열 어센틱주차목표 + AF열 어센틱주차부족최종
                     weekly_target = safe_float(safe_get_value(row, "어센틱주차목표"))
                     weekly_shortage = safe_float(safe_get_value(row, "어센틱주차부족최종"))
                 else:
+                    # 기타: R열 주차목표 + S열 주차부족
                     weekly_target = safe_float(safe_get_value(row, "주차목표"))
                     weekly_shortage = safe_float(safe_get_value(row, "주차부족"))
                 
@@ -500,23 +502,24 @@ if search_clicked:
                 # MC와 MC+ 표시 로직
                 if is_authentic and not is_partner_channel:
                     # 어센틱(파트너채널 제외): MC + MC+ 둘 다 표시
-                    # MC: AA열(도전구간) + AC열(부족최종)
+                    # MC: AA열 MC도전구간 + AC열 MC부족최종
                     mc_challenge = safe_get_value(row, "MC도전구간")
-                    mc_shortage_raw = safe_get_value(row, "MC부족")
+                    mc_shortage_raw = safe_get_value(row, "MC부족최종")
                     mc_status_raw = safe_get_value(row, "MC부족최종")
                     
                     render_mc_box(mc_challenge, mc_shortage_raw, mc_status_raw, is_mc_plus=False)
                     
-                    # MC+ 추가 표시: 기존대로
+                    # MC+: T열 MC+구간 + V열 MC+부족최종
                     mc_plus_challenge = safe_get_value(row, "MC+구간")
-                    mc_plus_shortage_raw = safe_get_value(row, "MC+부족")
+                    mc_plus_shortage_raw = safe_get_value(row, "MC+부족최종")
                     mc_plus_status_raw = safe_get_value(row, "MC+부족최종")
                     
                     render_mc_box(mc_plus_challenge, mc_plus_shortage_raw, mc_plus_status_raw, is_mc_plus=True)
                 else:
-                    # 기존 방식 또는 파트너채널: MC+ 만 표시
+                    # 기타 또는 파트너채널: MC+ 만 표시
+                    # MC+: T열 MC+구간 + V열 MC+부족최종
                     mc_challenge = safe_get_value(row, "MC+구간")
-                    mc_shortage_raw = safe_get_value(row, "MC+부족")
+                    mc_shortage_raw = safe_get_value(row, "MC+부족최종")
                     mc_status_raw = safe_get_value(row, "MC+부족최종")
                     
                     render_mc_box(mc_challenge, mc_shortage_raw, mc_status_raw, is_mc_plus=False)
