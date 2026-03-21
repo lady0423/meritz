@@ -148,6 +148,9 @@ h1, h2, h3 {
     line-height: 2;
     box-shadow: 0 4px 12px rgba(204, 102, 255, 0.2);
     font-weight: 600;
+    color: #ffffff;
+    word-wrap: break-word;
+    white-space: normal;
 }
 
 .target-box {
@@ -202,7 +205,11 @@ def safe_float(value):
 def safe_get_value(row, column_name):
     """행에서 값을 안전하게 추출"""
     try:
-        return row.get(column_name, "")
+        value = row.get(column_name, "")
+        # 값을 문자열로 반환 (None 체크)
+        if pd.isna(value):
+            return ""
+        return str(value).strip()
     except:
         return ""
 
@@ -284,7 +291,7 @@ with col2:
 with col3:
     search_clicked = st.button("🔍 검색", use_container_width=True)
 
-# 검색 로직
+# ===== 핵심 변경: 검색 후에만 결과 표시 =====
 if search_clicked:
     if not manager_name or not agent_code:
         st.error("⚠️ 매니저명과 설계사 코드를 모두 입력해주세요.")
@@ -369,15 +376,15 @@ if search_clicked:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # ===== MC+ 성과 =====
+                # ===== MC+ 성과 (수정됨) =====
                 st.markdown("<h3 style='color: #ffffff;'>💎 MC+ 성과</h3>", unsafe_allow_html=True)
-                mc_challenge = safe_get_value(row, "MC+구간")  # U열 - 문자열 그대로 (예: "20만")
-                mc_shortage_text = safe_get_value(row, "MC부족최종")  # V열 - 상태 (예: "최종달성")
+                mc_challenge = safe_get_value(row, "MC+구간")  # U열 - 문자열 (예: "20만")
+                mc_shortage_status = safe_get_value(row, "MC부족최종")  # V열 - 상태 (예: "최종달성")
                 
                 st.markdown(f"""
                 <div class='mc-box'>
                 <strong>도전구간:</strong> {mc_challenge}<br>
-                <strong>부족금액:</strong> {mc_shortage_text}
+                <strong>부족금액:</strong> <span style='color: #cc66ff; font-weight: 700;'>{mc_shortage_status}</span>
                 </div>
                 """, unsafe_allow_html=True)
             
@@ -412,10 +419,11 @@ if search_clicked:
             with col_reset:
                 if st.button("🔄 초기화", use_container_width=True):
                     st.rerun()
-
-# 팁
-st.markdown("""
-<div style='text-align: center; margin-top: 40px; padding: 20px; background: linear-gradient(135deg, #1f2937 0%, #111827 100%); border-radius: 10px; border-left: 5px solid #0066cc;'>
-<p style='color: #00d4ff; font-weight: 600; font-size: 14px;'>💡 매니저명과 설계사 코드를 입력하고 검색 버튼을 클릭하세요.</p>
-</div>
-""", unsafe_allow_html=True)
+else:
+    # ===== 검색 전: 안내 메시지만 표시 (보안) =====
+    st.markdown("""
+    <div style='text-align: center; margin-top: 60px; padding: 40px; background: linear-gradient(135deg, #1f2937 0%, #111827 100%); border-radius: 10px; border-left: 5px solid #0066cc;'>
+    <p style='color: #00d4ff; font-weight: 600; font-size: 16px;'>🔒 매니저명과 설계사 코드를 입력하고 검색 버튼을 클릭하세요.</p>
+    <p style='color: #888888; font-weight: 400; font-size: 14px; margin-top: 10px;'>개인정보 보호를 위해 검색 후에만 데이터가 표시됩니다.</p>
+    </div>
+    """, unsafe_allow_html=True)
