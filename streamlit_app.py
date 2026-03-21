@@ -6,7 +6,6 @@ from PIL import Image
 import gdown
 import tempfile
 import os
-from html2image import HtmlImageConverter
 
 # ===== 설정 =====
 GOOGLE_SHEET_ID = "1NSm_gy0a_QbWXquI2efdM93BjBuHn_sYLpU0NybL5_8"
@@ -479,165 +478,13 @@ if search_clicked:
                     st.info(f"⚠️ 리플렛 이미지를 불러올 수 없습니다.\n(대리점: {agency_name})")
             
             st.markdown("<hr style='border: 1px solid #c41e3a; margin: 30px 0;'>", unsafe_allow_html=True)
-            col_print, col_screenshot, col_reset = st.columns(3)
-            
+            col_print, col_reset = st.columns(2)
             with col_print:
                 if st.button("🖨️ 인쇄", use_container_width=True):
                     st.info("💡 브라우저의 인쇄 기능을 사용해주세요 (Ctrl+P 또는 Cmd+P)")
-            
-            with col_screenshot:
-                if st.button("📸 화면 캡처 (JPG)", use_container_width=True):
-                    try:
-                        # 현재 데이터를 HTML로 변환
-                        week_rows_html = ""
-                        for idx, week_col in enumerate(week_columns, 1):
-                            week_value = safe_float(safe_get_value(row, week_col))
-                            week_rows_html += f"<div style='background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-left: 5px solid #66cc66; padding: 16px; border-radius: 8px; margin: 10px 0; font-size: 18px; font-weight: 600;'><strong>{week_col}</strong>: {format_currency(week_value)}</div>"
-                        
-                        html_content = f"""
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <meta charset="utf-8">
-                            <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
-                            <style>
-                                * {{ font-family: 'Noto Sans KR', sans-serif; }}
-                                body {{ background: #0f0f0f; color: #e0e0e0; padding: 30px; margin: 0; }}
-                                h1 {{ color: #ff8a99; font-size: 28px; text-align: center; margin-bottom: 30px; font-weight: 700; }}
-                                h3 {{ color: #ff8a99; font-size: 18px; margin-top: 20px; margin-bottom: 15px; font-weight: 700; }}
-                                .info-box {{
-                                    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
-                                    border-left: 5px solid #c41e3a;
-                                    padding: 18px;
-                                    border-radius: 10px;
-                                    margin: 12px 0;
-                                    font-size: 17px;
-                                    line-height: 2;
-                                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-                                }}
-                                .cumulative-box {{
-                                    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
-                                    border-left: 5px solid #ff6b7a;
-                                    padding: 25px;
-                                    border-radius: 10px;
-                                    margin: 15px 0;
-                                    font-size: 26px;
-                                    font-weight: 700;
-                                    color: #ff8a99;
-                                    text-align: center;
-                                    box-shadow: 0 4px 20px rgba(196, 30, 58, 0.3);
-                                    letter-spacing: 1px;
-                                }}
-                                .target-box {{
-                                    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
-                                    border-left: 5px solid #ffb366;
-                                    padding: 18px;
-                                    border-radius: 10px;
-                                    margin: 15px 0;
-                                    font-size: 17px;
-                                    line-height: 2.2;
-                                }}
-                                .bridge-box {{
-                                    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
-                                    border-left: 5px solid #ff8a99;
-                                    padding: 18px;
-                                    border-radius: 10px;
-                                    margin: 15px 0;
-                                    font-size: 17px;
-                                    line-height: 2.2;
-                                }}
-                                .mc-box {{
-                                    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
-                                    border-left: 5px solid #ff6b7a;
-                                    padding: 18px;
-                                    border-radius: 10px;
-                                    margin: 15px 0;
-                                    font-size: 17px;
-                                    line-height: 2.2;
-                                }}
-                                strong {{ color: #ffffff; }}
-                            </style>
-                        </head>
-                        <body>
-                            <h1>메리츠 실적현황</h1>
-                            
-                            <h3>📋 기본 정보</h3>
-                            <div class='info-box'>
-                                <strong>설계사명:</strong> {agent_name}<br>
-                                <strong>지사:</strong> {branch}
-                            </div>
-                            
-                            <h3>📈 3월 누계 실적</h3>
-                            <div class='cumulative-box'>
-                                {format_currency(cumulative)}
-                            </div>
-                            
-                            <h3>📅 주차별 실적</h3>
-                            {week_rows_html}
-                            
-                            <h3>🎯 현재주차 목표</h3>
-                            <div class='target-box'>
-                                <strong>목표:</strong> {format_currency(weekly_target)}<br>
-                                <strong>부족금액:</strong> {format_currency(weekly_shortage)}
-                            </div>
-                            
-                            <h3>🌉 브릿지 성과</h3>
-                            <div class='bridge-box'>
-                                <strong>진척:</strong> {format_currency(bridge_achievement)}<br>
-                                <strong>목표:</strong> {format_currency(bridge_target)}<br>
-                                <strong>부족금액:</strong> {format_currency(bridge_shortage)}
-                            </div>
-                            
-                            <h3>💎 MC+ 성과</h3>
-                            <div class='mc-box'>
-                                <strong>도전구간:</strong> {format_currency(safe_float(mc_challenge))}<br>
-                                <strong>부족금액:</strong> {mc_display_shortage}<br>
-                                <strong>상태:</strong> {mc_display_status}
-                            </div>
-                        </body>
-                        </html>
-                        """
-                        
-                        # 임시 HTML 파일 생성
-                        with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False, encoding='utf-8') as f:
-                            f.write(html_content)
-                            html_file = f.name
-                        
-                        # HTML을 이미지로 변환
-                        hti = HtmlImageConverter(custom_objects={'enable_local_file_access': True})
-                        
-                        with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as img_file:
-                            img_path = img_file.name
-                        
-                        hti.convert_single_file(html_file, img_path)
-                        
-                        # 이미지 표시 및 다운로드
-                        screenshot_image = Image.open(img_path)
-                        st.image(screenshot_image, caption="📸 캡처된 화면", use_container_width=True)
-                        
-                        with open(img_path, "rb") as f:
-                            st.download_button(
-                                label="📥 JPG 다운로드",
-                                data=f.read(),
-                                file_name=f"{agent_name}_성과현황_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg",
-                                mime="image/jpeg",
-                                use_container_width=True
-                            )
-                        
-                        # 임시 파일 정리
-                        try:
-                            os.remove(html_file)
-                            os.remove(img_path)
-                        except:
-                            pass
-                        
-                    except Exception as e:
-                        st.error(f"❌ 캡처 실패: {str(e)}\n\n화면 캡처 기능을 사용하려면 Chrome 또는 Firefox 브라우저를 권장합니다.")
-            
             with col_reset:
                 if st.button("🔄 초기화", use_container_width=True):
                     st.rerun()
-
 else:
     st.markdown("""
     <div style='text-align: center; margin-top: 60px; padding: 40px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #c41e3a;'>
