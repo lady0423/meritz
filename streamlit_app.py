@@ -249,12 +249,16 @@ def safe_float(value):
 
 def safe_get_value(row, column_name):
     try:
-        value = row.get(column_name, "")
-        if pd.isna(value):
-            return ""
-        return str(value).strip()
+        # 정확한 컬럼명으로 직접 접근
+        if column_name in row.index:
+            value = row[column_name]
+            if pd.isna(value):
+                return 0.0
+            return safe_float(value)
+        else:
+            return 0.0
     except:
-        return ""
+        return 0.0
 
 def format_currency(value):
     value = safe_float(value)
@@ -321,16 +325,19 @@ def load_logo():
 
 def render_mc_box(mc_challenge, mc_shortage_raw, mc_status_raw, is_mc_plus=False):
     """MC 또는 MC+ 박스를 렌더링하는 함수"""
-    if mc_status_raw and mc_status_raw.strip():
-        mc_display_shortage = mc_status_raw
+    mc_challenge = safe_float(mc_challenge)
+    mc_shortage_raw = safe_float(mc_shortage_raw)
+    
+    if mc_status_raw and str(mc_status_raw).strip():
+        mc_display_shortage = str(mc_status_raw)
         
-        if "최종달성" in mc_status_raw:
+        if "최종달성" in str(mc_status_raw):
             mc_display_status = "✅ 시상금확보"
             mc_shortage_color = "#66ff66"
-        elif "다음기회에" in mc_status_raw or "재도전" in mc_status_raw:
+        elif "다음기회에" in str(mc_status_raw) or "재도전" in str(mc_status_raw):
             mc_display_status = "⚪ 대상아님"
             mc_shortage_color = "#999999"
-        elif "대상아님" in mc_status_raw:
+        elif "대상아님" in str(mc_status_raw):
             mc_display_status = "⚪ 대상아님"
             mc_shortage_color = "#999999"
         else:
@@ -340,27 +347,21 @@ def render_mc_box(mc_challenge, mc_shortage_raw, mc_status_raw, is_mc_plus=False
                 mc_display_status = "🟡 도전중"
                 mc_shortage_color = "#ffb366"
             except:
-                mc_display_status = mc_status_raw
+                mc_display_status = str(mc_status_raw)
                 mc_shortage_color = "#ff6b6b"
     else:
-        try:
-            shortage_num = safe_float(mc_shortage_raw)
-            if shortage_num < 0:
-                mc_display_shortage = "✅ 시상금확보"
-                mc_display_status = "✅ 시상금확보"
-                mc_shortage_color = "#66ff66"
-            elif shortage_num == 0:
-                mc_display_shortage = "✅ 시상금확보"
-                mc_display_status = "✅ 시상금확보"
-                mc_shortage_color = "#66ff66"
-            else:
-                mc_display_shortage = format_currency(shortage_num)
-                mc_display_status = "🟡 도전중"
-                mc_shortage_color = "#ffb366"
-        except:
-            mc_display_shortage = mc_shortage_raw
-            mc_display_status = "진행중"
-            mc_shortage_color = "#ff6b6b"
+        if mc_shortage_raw < 0:
+            mc_display_shortage = "✅ 시상금확보"
+            mc_display_status = "✅ 시상금확보"
+            mc_shortage_color = "#66ff66"
+        elif mc_shortage_raw == 0:
+            mc_display_shortage = "✅ 시상금확보"
+            mc_display_status = "✅ 시상금확보"
+            mc_shortage_color = "#66ff66"
+        else:
+            mc_display_shortage = format_currency(mc_shortage_raw)
+            mc_display_status = "🟡 도전중"
+            mc_shortage_color = "#ffb366"
     
     box_class = "mc-plus-box" if is_mc_plus else "mc-box"
     title_color = "#9d66ff" if is_mc_plus else "#ff8a99"
@@ -370,7 +371,7 @@ def render_mc_box(mc_challenge, mc_shortage_raw, mc_status_raw, is_mc_plus=False
     st.markdown(f"""
     <div class='{box_class}'>
     <h3 style='color: {title_color}; font-size: 18px; margin: 0 0 10px 0;'>{title_emoji}</h3>
-    <strong>도전구간:</strong> {format_currency(safe_float(mc_challenge))}<br>
+    <strong>도전구간:</strong> {format_currency(mc_challenge)}<br>
     <strong>부족금액:</strong> <span style='color: {mc_shortage_color}; font-weight: 700;'>{mc_display_shortage}</span><br>
     <strong>상태:</strong> <span style='color: {status_color}; font-weight: 700;'>{mc_display_status}</span>
     </div>
@@ -416,12 +417,12 @@ if search_clicked:
         else:
             row = filtered.iloc[0]
             
-            agent_name = safe_get_value(row, "설계사명")
-            branch = safe_get_value(row, "지사명")
-            agency_name = safe_get_value(row, "대리점")
+            agent_name = str(row.get("설계사명", "")).strip()
+            branch = str(row.get("지사명", "")).strip()
+            agency_name = str(row.get("대리점", "")).strip()
             
-            # Y열 어센틱구분 확인 (정확한 컬럼명)
-            is_authentic = safe_float(safe_get_value(row, "어센틱구분")) == 1
+            # Y열 어센틱구분 확인
+            is_authentic = safe_float(row.get("어센틱구분", 0)) == 1
             
             # 파트너채널 확인
             is_partner_channel = "파트너채널" in branch
@@ -437,7 +438,7 @@ if search_clicked:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                cumulative = safe_float(safe_get_value(row, "3월실적"))
+                cumulative = safe_float(row.get("3월실적", 0))
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class='cumulative-box'>
@@ -447,10 +448,10 @@ if search_clicked:
                 
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
                 
-                # 모든 경우 1~5주차 데이터 가져오기 (정확한 컬럼명)
+                # 모든 경우 1~5주차 데이터 가져오기
                 week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
                 for idx, week_col in enumerate(week_columns, 1):
-                    week_value = safe_float(safe_get_value(row, week_col))
+                    week_value = safe_float(row.get(week_col, 0))
                     is_current = (idx == current_week)
                     
                     if is_current:
@@ -466,19 +467,17 @@ if search_clicked:
                         </div>
                         """, unsafe_allow_html=True)
                 
-                # ============ 수정된 부분 (정확한 컬럼명 사용) ============
+                # ============ 핵심 수정 부분 ============
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎯 현재주차 목표</h3>", unsafe_allow_html=True)
                 
                 if is_authentic and not is_partner_channel:
                     # Y=1 (어센틱, 파트너채널 제외)
-                    # AD열: 어센틱주차목표, AF열: 어센틱주차부족최종
-                    weekly_target = safe_float(safe_get_value(row, "어센틱주차목표"))
-                    weekly_shortage = safe_float(safe_get_value(row, "어센틱주차부족최종"))
+                    weekly_target = safe_float(row.get("어센틱주차목표", 0))
+                    weekly_shortage = safe_float(row.get("어센틱주차부족최종", 0))
                 else:
                     # Y=0 (기타)
-                    # R열: 주차목표, S열: 주차부족
-                    weekly_target = safe_float(safe_get_value(row, "주차목표"))
-                    weekly_shortage = safe_float(safe_get_value(row, "주차부족"))
+                    weekly_target = safe_float(row.get("주차목표", 0))
+                    weekly_shortage = safe_float(row.get("주차부족", 0))
                 
                 st.markdown(f"""
                 <div class='target-box'>
@@ -490,9 +489,9 @@ if search_clicked:
                 # 브릿지는 Y=0일 때만 표시
                 if not is_authentic:
                     st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
-                    bridge_achievement = safe_float(safe_get_value(row, "브릿지 실적"))
-                    bridge_target = safe_float(safe_get_value(row, "브릿지 도전구간"))  # I열
-                    bridge_shortage = safe_float(safe_get_value(row, "브릿지 부족"))  # J열
+                    bridge_achievement = safe_float(row.get("브릿지 실적", 0))
+                    bridge_target = safe_float(row.get("브릿지 도전구간", 0))
+                    bridge_shortage = safe_float(row.get("브릿지 부족", 0))
                     
                     st.markdown(f"""
                     <div class='bridge-box'>
@@ -509,28 +508,28 @@ if search_clicked:
                     # Y=1 (어센틱, 파트너채널 제외): MC + MC+ 둘 다 표시
                     
                     # MC: AA열(MC도전구간) + AC열(MC부족최종)
-                    mc_challenge = safe_get_value(row, "MC도전구간")
-                    mc_shortage_raw = safe_get_value(row, "MC부족")
-                    mc_status_raw = safe_get_value(row, "MC부족최종")
+                    mc_challenge = safe_float(row.get("MC도전구간", 0))
+                    mc_shortage_raw = safe_float(row.get("MC부족", 0))
+                    mc_status_raw = safe_float(row.get("MC부족최종", 0))
                     
                     render_mc_box(mc_challenge, mc_shortage_raw, mc_status_raw, is_mc_plus=False)
                     
                     # MC+: T열(MC+구간) + V열(MC+부족최종)
-                    mc_plus_challenge = safe_get_value(row, "MC+구간")
-                    mc_plus_shortage_raw = safe_get_value(row, "MC+부족")
-                    mc_plus_status_raw = safe_get_value(row, "MC+부족최종")
+                    mc_plus_challenge = safe_float(row.get("MC+구간", 0))
+                    mc_plus_shortage_raw = safe_float(row.get("MC+부족", 0))
+                    mc_plus_status_raw = safe_float(row.get("MC+부족최종", 0))
                     
                     render_mc_box(mc_plus_challenge, mc_plus_shortage_raw, mc_plus_status_raw, is_mc_plus=True)
                 else:
                     # Y=0 (기타): MC+ 만 표시
                     # T열(MC+구간) + V열(MC+부족최종)
-                    mc_plus_challenge = safe_get_value(row, "MC+구간")
-                    mc_plus_shortage_raw = safe_get_value(row, "MC+부족")
-                    mc_plus_status_raw = safe_get_value(row, "MC+부족최종")
+                    mc_plus_challenge = safe_float(row.get("MC+구간", 0))
+                    mc_plus_shortage_raw = safe_float(row.get("MC+부족", 0))
+                    mc_plus_status_raw = safe_float(row.get("MC+부족최종", 0))
                     
                     render_mc_box(mc_plus_challenge, mc_plus_shortage_raw, mc_plus_status_raw, is_mc_plus=True)
                 
-                # ============ 수정된 부분 끝 ============
+                # ============ 수정 부분 끝 ============
             
             with col_right:
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
