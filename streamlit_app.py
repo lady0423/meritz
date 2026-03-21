@@ -36,7 +36,7 @@ LEAFLET_TEMPLATE_IDS = {
 # ===== 페이지 설정 =====
 st.set_page_config(page_title="메리츠 설계사 성과 조회", layout="wide")
 
-# ===== 고급 CSS 스타일 (메리츠 빨강색 적용) =====
+# ===== 고급 CSS 스타일 (메리츠 빨강색 + 세련된 검은색) =====
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 
@@ -45,9 +45,14 @@ st.markdown("""
     font-family: 'Noto Sans KR', sans-serif !important;
 }
 
-html, body, [data-testid="stAppViewContainer"] {
-    background: linear-gradient(135deg, #1a0f0f 0%, #2d1515 100%);
+/* 세련된 검은색 배경 */
+html, body, [data-testid="stAppViewContainer"], .main, [data-testid="stDecoration"] {
+    background: #0f0f0f !important;
     color: #e0e0e0;
+}
+
+[data-testid="stHeader"] {
+    background: rgba(0, 0, 0, 0.3) !important;
 }
 
 h1, h2, h3 {
@@ -61,8 +66,8 @@ input::-webkit-autofill,
 input::-webkit-autofill:hover,
 input::-webkit-autofill:focus,
 input::-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px #1f2937 inset !important;
-    box-shadow: 0 0 0 30px #1f2937 inset !important;
+    -webkit-box-shadow: 0 0 0 30px #1a1a1a inset !important;
+    box-shadow: 0 0 0 30px #1a1a1a inset !important;
 }
 
 input::-webkit-autofill {
@@ -88,19 +93,19 @@ input::-webkit-autofill {
 }
 
 .info-box {
-    background: linear-gradient(135deg, #2d1515 0%, #1f0f0f 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
     border-left: 5px solid #c41e3a;
     padding: 18px;
     border-radius: 10px;
     margin: 12px 0;
     font-size: 15px;
     line-height: 1.8;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     font-weight: 500;
 }
 
 .cumulative-box {
-    background: linear-gradient(135deg, #4a2525 0%, #2d1515 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
     border-left: 5px solid #ff6b7a;
     padding: 25px;
     border-radius: 10px;
@@ -114,7 +119,7 @@ input::-webkit-autofill {
 }
 
 .weekly-row {
-    background: linear-gradient(135deg, #1f2515 0%, #131609 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
     border-left: 5px solid #66cc66;
     padding: 16px;
     border-radius: 8px;
@@ -123,24 +128,24 @@ input::-webkit-autofill {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
     font-weight: 600;
 }
 
 .weekly-row.current {
-    background: linear-gradient(135deg, #3d4a3d 0%, #2f4a2f 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
     border-left: 5px solid #ffcc00;
-    box-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
     animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); }
-    50% { box-shadow: 0 0 25px rgba(255, 204, 0, 0.6); }
+    0%, 100% { box-shadow: 0 0 15px rgba(255, 204, 0, 0.3); }
+    50% { box-shadow: 0 0 25px rgba(255, 204, 0, 0.5); }
 }
 
 .bridge-box {
-    background: linear-gradient(135deg, #3a1f1f 0%, #251414 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
     border-left: 5px solid #ff8a99;
     padding: 18px;
     border-radius: 10px;
@@ -152,7 +157,7 @@ input::-webkit-autofill {
 }
 
 .mc-box {
-    background: linear-gradient(135deg, #3d1f2d 0%, #2a1220 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
     border-left: 5px solid #ff6b7a;
     padding: 18px;
     border-radius: 10px;
@@ -165,7 +170,7 @@ input::-webkit-autofill {
 }
 
 .target-box {
-    background: linear-gradient(135deg, #3a2a1f 0%, #251814 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
     border-left: 5px solid #ffb366;
     padding: 18px;
     border-radius: 10px;
@@ -177,7 +182,7 @@ input::-webkit-autofill {
 }
 
 input, select {
-    background-color: #2d1515 !important;
+    background-color: #1a1a1a !important;
     color: #ffffff !important;
     border: 2px solid #c41e3a !important;
     border-radius: 8px !important;
@@ -193,13 +198,31 @@ input:focus, select:focus {
 }
 
 input::placeholder {
-    color: #888888 !important;
+    color: #666666 !important;
 }
 
 .stTextInput > label, .stSelectbox > label {
     font-weight: 600;
     color: #ffffff;
     font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* 스크롤바 스타일 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0f0f0f;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c41e3a;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ff6b7a;
 }
 
 </style>
@@ -284,7 +307,7 @@ def load_leaflet_template_from_drive(file_id):
     return None
 
 # ===== UI =====
-st.markdown("<h1 style='text-align: center; color: #ff6b7a; font-size: 32px;'>📊 메리츠 설계사 성과 조회</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #ff8a99; font-size: 32px;'>📊 메리츠 설계사 성과 조회</h1>", unsafe_allow_html=True)
 st.markdown("<hr style='border: 1px solid #c41e3a;'>", unsafe_allow_html=True)
 
 df = load_data_from_google_sheets()
@@ -446,7 +469,7 @@ if search_clicked:
                     st.rerun()
 else:
     st.markdown("""
-    <div style='text-align: center; margin-top: 60px; padding: 40px; background: linear-gradient(135deg, #2d1515 0%, #1f0f0f 100%); border-radius: 10px; border-left: 5px solid #c41e3a;'>
+    <div style='text-align: center; margin-top: 60px; padding: 40px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #c41e3a;'>
     <p style='color: #ff8a99; font-weight: 600; font-size: 16px;'>🔒 매니저명과 설계사 코드를 입력하고 검색 버튼을 클릭하세요.</p>
     <p style='color: #888888; font-weight: 400; font-size: 14px; margin-top: 10px;'>개인정보 보호를 위해 검색 후에만 데이터가 표시됩니다.</p>
     </div>
