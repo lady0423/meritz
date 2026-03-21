@@ -30,6 +30,7 @@ LEAFLET_TEMPLATE_IDS = {
     "아너스": "1rJ7SoZJyno5b6tAurjTpkkEmissGKntj",
     "굿리치": "1vNoopxTYV5cK1zlOPlNvSGseK_dbXkXl",
     "신한금융": "1z3Ayg6mJsUeeHdebaOrWyOK4lz1-ROB_",
+    "어센틱": "1pCtQjJQ_Vb_FWxhaicGBT0GWHwiVJJ1-",
     "none": "1xGX9WTFcAtnzIa2kgMPOuG73V56ypbaf",
 }
 
@@ -264,12 +265,26 @@ def get_current_week():
             return 5
     return 1
 
-def get_image_id_by_agency_name(agency_name):
-    agency_name_lower = str(agency_name).strip().lower()
-    for keyword, image_id in LEAFLET_TEMPLATE_IDS.items():
-        if keyword.lower() in agency_name_lower:
-            return image_id
-    return LEAFLET_TEMPLATE_IDS.get("none")
+def get_image_id_by_agency_name(agency_name, branch_name, is_authentic):
+    """
+    리플렛 이미지 ID를 결정하는 함수
+    - is_authentic=True이고 branch_name이 "파트너채널"로 시작하지 않으면 → 어센틱
+    - 그 외 → 기존 로직 또는 none
+    """
+    if is_authentic:
+        # 어센틱이고 파트너채널이 아니면 어센틱 리플렛 사용
+        if not str(branch_name).startswith("파트너채널"):
+            return LEAFLET_TEMPLATE_IDS.get("어센틱")
+        else:
+            # 파트너채널은 none 사용
+            return LEAFLET_TEMPLATE_IDS.get("none")
+    else:
+        # 기존 방식: 대리점명으로 매칭
+        agency_name_lower = str(agency_name).strip().lower()
+        for keyword, image_id in LEAFLET_TEMPLATE_IDS.items():
+            if keyword.lower() in agency_name_lower:
+                return image_id
+        return LEAFLET_TEMPLATE_IDS.get("none")
 
 @st.cache_data(ttl=300)
 def load_data_from_google_sheets():
@@ -340,6 +355,7 @@ if search_clicked:
             agent_name = safe_get_value(row, "설계사명")
             branch = safe_get_value(row, "지사명")
             agency_name = safe_get_value(row, "대리점")
+            is_authentic = safe_float(safe_get_value(row, "어센틱구분")) == 1
             
             col_left, col_right = st.columns([1.5, 1])
             
@@ -361,26 +377,47 @@ if search_clicked:
                 """, unsafe_allow_html=True)
                 
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
-                week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
-                for idx, week_col in enumerate(week_columns, 1):
-                    week_value = safe_float(safe_get_value(row, week_col))
-                    is_current = (idx == current_week)
-                    
-                    if is_current:
-                        st.markdown(f"""
-                        <div class='weekly-row current'>
-                        <strong>{week_col}</strong> <span style='color: #ffcc00; font-size: 20px;'>⭐</span> <strong style='color: #ffcc00;'>{format_currency(week_value)}</strong>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    else:
-                        st.markdown(f"""
-                        <div class='weekly-row'>
-                        <strong>{week_col}</strong> <strong style='color: #66cc66;'>{format_currency(week_value)}</strong>
-                        </div>
-                        """, unsafe_allow_html=True)
                 
-                weekly_target = safe_float(safe_get_value(row, "주차목표"))
-                weekly_shortage = safe_float(safe_get_value(row, "주차부족"))
+                # 어센틱 여부에 따라 다른 주차 데이터 표시
+                if is_authentic:
+                    # 어센틱: 어센틱주차부족만 사용
+                    week_target = safe_float(safe_get_value(row, "어센틱주차목표"))
+                    week_shortage = safe_float(safe_get_value(row, "어센틱주차부족"))
+                    week_value = week_target - week_shortage if week_target > 0 else 0
+                    
+                    st.markdown(f"""
+                    <div class='weekly-row current'>
+                    <strong>3주차(16~22일)</strong> <span style='color: #ffcc00; font-size: 20px;'>⭐</span> <strong style='color: #ffcc00;'>{format_currency(week_value)}</strong>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    # 기존 방식: 5주차 데이터 표시
+                    week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
+                    for idx, week_col in enumerate(week_columns, 1):
+                        week_value = safe_float(safe_get_value(row, week_col))
+                        is_current = (idx == current_week)
+                        
+                        if is_current:
+                            st.markdown(f"""
+                            <div class='weekly-row current'>
+                            <strong>{week_col}</strong> <span style='color: #ffcc00; font-size: 20px;'>⭐</span> <strong style='color: #ffcc00;'>{format_currency(week_value)}</strong>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        else:
+                            st.markdown(f"""
+                            <div class='weekly-row'>
+                            <strong>{week_col}</strong> <strong style='color: #66cc66;'>{format_currency(week_value)}</strong>
+                            </div>
+                            """, unsafe_allow_html=True)
+                
+                # 현재주차 목표
+                if is_authentic:
+                    weekly_target = safe_float(safe_get_value(row, "어센틱주차목표"))
+                    weekly_shortage = safe_float(safe_get_value(row, "어센틱주차부족"))
+                else:
+                    weekly_target = safe_float(safe_get_value(row, "주차목표"))
+                    weekly_shortage = safe_float(safe_get_value(row, "주차부족"))
+                
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎯 현재주차 목표</h3>", unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class='target-box'>
@@ -402,10 +439,17 @@ if search_clicked:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>💎 MC+ 성과</h3>", unsafe_allow_html=True)
-                mc_challenge = safe_get_value(row, "MC+구간")
-                mc_shortage_raw = safe_get_value(row, "MC부족")
-                mc_status_raw = safe_get_value(row, "MC부족최종")
+                # MC 또는 MC+ 표시 (어센틱 여부에 따라)
+                if is_authentic:
+                    st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>⭐ MC 성과</h3>", unsafe_allow_html=True)
+                    mc_challenge = safe_get_value(row, "MC도전구간")
+                    mc_shortage_raw = safe_get_value(row, "MC부족")
+                    mc_status_raw = safe_get_value(row, "MC부족최종")
+                else:
+                    st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>💎 MC+ 성과</h3>", unsafe_allow_html=True)
+                    mc_challenge = safe_get_value(row, "MC+구간")
+                    mc_shortage_raw = safe_get_value(row, "MC+부족")
+                    mc_status_raw = safe_get_value(row, "MC+부족최종")
                 
                 if mc_status_raw and mc_status_raw.strip():
                     mc_display_shortage = mc_status_raw
@@ -458,7 +502,7 @@ if search_clicked:
             
             with col_right:
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
-                image_id = get_image_id_by_agency_name(agency_name)
+                image_id = get_image_id_by_agency_name(agency_name, branch, is_authentic)
                 image = load_leaflet_template_from_drive(image_id)
                 
                 if image:
