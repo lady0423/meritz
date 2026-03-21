@@ -254,12 +254,12 @@ def format_display(value):
     """원본 값 그대로 표시 (숫자면 포맷, 문자면 그대로)"""
     v = str(value).strip()
     if v == "" or v == "nan":
-        return "₩0"
+        return "₩ 0"
     
     # 숫자인지 확인
     try:
         num = float(v.replace(",", ""))
-        return f"₩{num:,.0f}"
+        return f"₩ {num:,.0f}"
     except:
         # 문자 (80만원, 최종달성 등)
         return v
@@ -330,14 +330,19 @@ def render_mc_box(mc_challenge, mc_shortage, is_mc_plus=False):
     
     mc_shortage_val = safe_float(mc_shortage)
     
-    # 상태 결정
-    if "최종달성" in str(mc_shortage):
+    # 상태 결정 - 미달성 여부 확인
+    shortage_str = str(mc_shortage).strip()
+    
+    if "최종달성" in shortage_str:
         mc_display_status = "✅ 시상금확보"
         mc_shortage_color = "#66ff66"
-    elif "다음기회에" in str(mc_shortage) or "재도전" in str(mc_shortage):
+    elif "다음기회에" in shortage_str or "재도전" in shortage_str:
         mc_display_status = "⚪ 대상아님"
         mc_shortage_color = "#999999"
-    elif "대상아님" in str(mc_shortage):
+    elif "대상아님" in shortage_str:
+        mc_display_status = "⚪ 대상아님"
+        mc_shortage_color = "#999999"
+    elif "미달성" in shortage_str:
         mc_display_status = "⚪ 대상아님"
         mc_shortage_color = "#999999"
     elif mc_shortage_val < 0:
@@ -355,9 +360,9 @@ def render_mc_box(mc_challenge, mc_shortage, is_mc_plus=False):
     
     st.markdown(f"""
     <div class='{box_class}'>
-    <strong>도전구간:</strong> {mc_challenge_display}<br>
-    <strong>부족금액:</strong> <span style='color: {mc_shortage_color}; font-weight: 700;'>{mc_shortage_display}</span><br>
-    <strong>상태:</strong> <span style='color: {status_color}; font-weight: 700;'>{mc_display_status}</span>
+    <strong>도전구간 →</strong> {mc_challenge_display}<br>
+    <strong>부족금액 →</strong> <span style='color: {mc_shortage_color}; font-weight: 700;'>{mc_shortage_display}</span><br>
+    <strong>상태 →</strong> <span style='color: {status_color}; font-weight: 700;'>{mc_display_status}</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -461,8 +466,8 @@ if search_clicked:
                 
                 st.markdown(f"""
                 <div class='target-box'>
-                <strong>목표:</strong> {format_display(weekly_target)}<br>
-                <strong>부족금액:</strong> {format_display(weekly_shortage)}
+                <strong>목표 →</strong> {format_display(weekly_target)}<br>
+                <strong>부족금액 →</strong> {format_display(weekly_shortage)}
                 </div>
                 """, unsafe_allow_html=True)
                 
@@ -474,8 +479,8 @@ if search_clicked:
                     
                     st.markdown(f"""
                     <div class='bridge-box'>
-                    <strong>목표:</strong> {format_display(bridge_target)}<br>
-                    <strong>부족금액:</strong> {format_display(bridge_shortage)}
+                    <strong>목표 →</strong> {format_display(bridge_target)}<br>
+                    <strong>부족금액 →</strong> {format_display(bridge_shortage)}
                     </div>
                     """, unsafe_allow_html=True)
                 
