@@ -454,7 +454,7 @@ if search_clicked:
                 
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
                 
-                # ===== 컬럼 매핑 (Y=1 어센틱 vs Y=0 비어센틱) =====
+                # ===== 정확한 컬럼 매핑 =====
                 if is_authentic and not is_partner_channel:
                     # 어센틱 (Y=1): AD, AF 사용
                     weekly_target = safe_float(row["어센틱주차목표"])
@@ -488,7 +488,7 @@ if search_clicked:
                 
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>💰 성과</h3>", unsafe_allow_html=True)
                 
-                # ===== MC / MC+ 성과 (Y=1 어센틱 vs Y=0 비어센틱) =====
+                # ===== MC / MC+ 성과 (정확한 컬럼 매핑) =====
                 if is_authentic and not is_partner_channel:
                     # 어센틱 (Y=1): MC (AA, AC) + MC+ (T, V)
                     mc_challenge = safe_float(row["MC도전구간"])
