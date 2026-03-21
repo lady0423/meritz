@@ -36,19 +36,32 @@ LEAFLET_TEMPLATE_IDS = {
 # ============ 페이지 설정 ============
 st.set_page_config(page_title="실적 안내장 조회", layout="wide", initial_sidebar_state="collapsed")
 
-# 다크 테마 CSS
+# 다크 테마 CSS + 글씨체 변경
 st.markdown("""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+    
+    * {
+        font-family: 'Noto Sans KR', sans-serif;
+    }
+    
     body {
         background-color: #1a1a1a;
         color: #ffffff;
     }
+    
+    h1, h2, h3 {
+        font-family: 'Noto Sans KR', sans-serif;
+        font-weight: 700;
+    }
+    
     .stButton>button {
         background-color: #ff6b6b;
         color: white;
         border-radius: 8px;
         padding: 10px 20px;
         font-weight: bold;
+        font-family: 'Noto Sans KR', sans-serif;
     }
     .stButton>button:hover {
         background-color: #ff5252;
@@ -59,18 +72,22 @@ st.markdown("""
         border-radius: 10px;
         border-left: 4px solid #ff6b6b;
         margin: 10px 0;
+        font-family: 'Noto Sans KR', sans-serif;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# ============ 헤더 ============
-col1, col2 = st.columns([1, 4])
-with col1:
-    if os.path.exists("metiz.png"):
-        st.image("metiz.png", width=80)
+# ============ 헤더 (로고 + 제목) ============
+header_col1, header_col2 = st.columns([0.8, 3])
 
-with col2:
-    st.title("📊 실적 안내장 조회")
+with header_col1:
+    if os.path.exists("metiz.png"):
+        st.image("metiz.png", width=100)
+    else:
+        st.warning("⚠️ metiz.png 파일이 없습니다.")
+
+with header_col2:
+    st.markdown("<h1 style='margin-top: 20px;'>📊 실적 안내장 조회</h1>", unsafe_allow_html=True)
 
 # 마지막 업데이트 시간 표시
 seoul_tz = pytz.timezone('Asia/Seoul')
@@ -101,25 +118,23 @@ def format_currency(value):
     return f"₩{value:,}"
 
 def get_current_week():
-    """현재 주차 계산 (3월 = 1주차, 4월 = 2주차 등)"""
+    """현재 주차 계산"""
     now = datetime.now(pytz.timezone('Asia/Seoul'))
     month = now.month
-    day = now.day
     
-    # 3월 시작을 기준으로 계산
-    if month < 3:
-        return 0  # 아직 시즌 시작 전
-    elif month == 3:
-        if day <= 31:
-            return 1
+    # 3월 = 1주차, 4월 = 2주차, 5월 = 3주차, 6월 = 4주차, 7월 = 5주차
+    if month == 3:
+        return 1
     elif month == 4:
         return 2
     elif month == 5:
         return 3
     elif month == 6:
         return 4
-    else:
+    elif month == 7:
         return 5
+    else:
+        return 0  # 시즌 외
 
 # ============ 데이터 로드 함수 ============
 @st.cache_data(ttl=3600)
@@ -144,8 +159,8 @@ def load_data_from_google_drive(file_id):
         return df
     return None
 
-@st.cache_data(ttl=3600)
 def load_leaflet_template_from_drive(file_id):
+    """캐시 제거해서 매번 새로 로드"""
     try:
         from PIL import Image
         temp_dir = tempfile.gettempdir()
@@ -236,7 +251,7 @@ if search_button:
             mc_target = safe_int(safe_get_value(agent_row, 19, 0))
             mc_shortage = safe_int(safe_get_value(agent_row, 21, 0))
             
-            # 현재 주차
+            # 현재 주차 (정확한 계산)
             current_week = get_current_week()
             
             # ============ 결과 표시 ============
@@ -267,15 +282,13 @@ if search_button:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # 주차별 실적
+                # 주차별 실적 (세로 표시)
                 st.subheader("📈 주차별 실적")
-                cols = st.columns(5)
                 weeks = [week1, week2, week3, week4, week5]
-                for i, (col, week) in enumerate(zip(cols, weeks)):
-                    with col:
-                        st.metric(f"주차 {i+1}", format_currency(week))
+                for i, week in enumerate(weeks):
+                    st.metric(f"{i+1}주차", format_currency(week))
                 
-                # 목표/부족 (현재 주차 표시)
+                # 목표/부족 (현재 주차 정확하게 표시)
                 st.subheader(f"🎯 {current_week}주차 목표 / 부족")
                 col_target, col_shortage = st.columns(2)
                 with col_target:
