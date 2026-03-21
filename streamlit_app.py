@@ -6,7 +6,6 @@ from PIL import Image
 import gdown
 import tempfile
 import os
-import io
 
 # ===== 설정 =====
 GOOGLE_SHEET_ID = "1NSm_gy0a_QbWXquI2efdM93BjBuHn_sYLpU0NybL5_8"
@@ -14,7 +13,7 @@ GOOGLE_SHEET_ID = "1NSm_gy0a_QbWXquI2efdM93BjBuHn_sYLpU0NybL5_8"
 LEAFLET_TEMPLATE_IDS = {
     "메가": "16l4rB2dRYkmEARfP7shI_N5L_HKio9wO",
     "토스": "17b27Cq0sN52ifJ5NvCsnr87KbaUcsqsr",
-    "지금융": "19lR3nBPV6guyEIAk9xw_6GwDPO1N_wbw",
+    "지문융": "19lR3nBPV6guyEIAk9xw_6GwDPO1N_wbw",
     "엠금융": "1BBJvzGqHrDWw-lFewIsBdEgk0WTVsfKq",
     "스카이블루": "1DEFjI5-pnUJM1d7uJUzmoBZLHZ4z7YPf",
     "유퍼스트": "1DPUTq6hU_M21dpliYkwSa5HQdY2J9fB3",
@@ -479,20 +478,8 @@ if search_clicked:
                     st.info(f"⚠️ 리플렛 이미지를 불러올 수 없습니다.\n(대리점: {agency_name})")
             
             st.markdown("<hr style='border: 1px solid #c41e3a; margin: 30px 0;'>", unsafe_allow_html=True)
-            col_print, col_screenshot, col_reset = st.columns(3)
             
-            with col_print:
-                if st.button("🖨️ 인쇄", use_container_width=True):
-                    st.info("💡 Ctrl+P (또는 Cmd+P)로 인쇄하세요")
-            
-            with col_screenshot:
-                st.markdown("""
-                <div style='text-align: center; padding: 12px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 8px; border: 2px solid #c41e3a;'>
-                <p style='color: #ff8a99; font-weight: 600; margin: 0;'>📱 휴대폰에서 현재 화면을 그대로 캡처하세요!</p>
-                <p style='color: #888888; font-size: 14px; margin: 8px 0 0 0;'>iOS: 볼륨 다운 + 전원 / Android: 전원 + 음량 감소</p>
-                </div>
-                """, unsafe_allow_html=True)
-            
+            col_reset = st.columns(1)[0]
             with col_reset:
                 if st.button("🔄 초기화", use_container_width=True):
                     st.rerun()
