@@ -237,6 +237,7 @@ input::placeholder {
 """, unsafe_allow_html=True)
 
 def safe_float(value):
+    """숫자 또는 "만원" 형식을 float로 변환"""
     if pd.isna(value):
         return 0.0
     if value == "" or value is None:
@@ -245,17 +246,39 @@ def safe_float(value):
         v = str(value).strip()
         if v == "":
             return 0.0
-        # "만원" 제거
-        v = v.replace("만원", "").replace(",", "")
-        return float(v) * 10000 if "만" in str(value) else float(v)
+        # "만원" 있으면 제거하고 × 10000
+        if "만원" in v:
+            v_num = v.replace("만원", "").replace(",", "").strip()
+            return float(v_num) * 10000
+        else:
+            # 순수 숫자
+            return float(v.replace(",", ""))
     except:
         return 0.0
 
 def format_currency(value):
+    """금액을 "₩XXX만원" 형식으로 포맷"""
     value = safe_float(value)
+    if value == 0:
+        return "₩0"
     if value >= 10000:
         return f"₩{value/10000:.0f}만원"
     return f"₩{value:,.0f}"
+
+def format_value_as_is(value):
+    """원본 값 그대로 출력 (텍스트인 경우)"""
+    v = str(value).strip()
+    if v == "" or v == "nan":
+        return "₩0"
+    # 텍스트면 그대로, 숫자면 포맷
+    try:
+        num_val = safe_float(v)
+        if num_val == 0 and v != "0":
+            return v  # 텍스트 (최종달성 등)
+        else:
+            return format_currency(num_val)
+    except:
+        return v
 
 def get_current_week():
     kst = pytz.timezone('Asia/Seoul')
@@ -317,44 +340,30 @@ def load_logo():
         return Image.open("meritz.png")
     return None
 
-def render_mc_box(mc_challenge, mc_shortage_raw, mc_status_raw, is_mc_plus=False):
+def render_mc_box(mc_challenge, mc_shortage_raw, is_mc_plus=False):
     mc_challenge_val = safe_float(mc_challenge)
     mc_shortage_val = safe_float(mc_shortage_raw)
     
-    if mc_status_raw and str(mc_status_raw).strip() and str(mc_status_raw).strip() != "nan":
-        mc_display_shortage = str(mc_status_raw).strip()
-        
-        if "최종달성" in str(mc_status_raw):
-            mc_display_status = "✅ 시상금확보"
-            mc_shortage_color = "#66ff66"
-        elif "다음기회에" in str(mc_status_raw) or "재도전" in str(mc_status_raw):
-            mc_display_status = "⚪ 대상아님"
-            mc_shortage_color = "#999999"
-        elif "대상아님" in str(mc_status_raw):
-            mc_display_status = "⚪ 대상아님"
-            mc_shortage_color = "#999999"
-        else:
-            try:
-                shortage_num = safe_float(mc_status_raw)
-                mc_display_shortage = format_currency(shortage_num)
-                mc_display_status = "🟡 도전중"
-                mc_shortage_color = "#ffb366"
-            except:
-                mc_display_status = str(mc_status_raw)
-                mc_shortage_color = "#ff6b6b"
+    mc_display_shortage = format_value_as_is(mc_shortage_raw)
+    
+    if "최종달성" in str(mc_shortage_raw):
+        mc_display_status = "✅ 시상금확보"
+        mc_shortage_color = "#66ff66"
+    elif "다음기회에" in str(mc_shortage_raw) or "재도전" in str(mc_shortage_raw):
+        mc_display_status = "⚪ 대상아님"
+        mc_shortage_color = "#999999"
+    elif "대상아님" in str(mc_shortage_raw):
+        mc_display_status = "⚪ 대상아님"
+        mc_shortage_color = "#999999"
+    elif mc_shortage_val < 0:
+        mc_display_status = "✅ 시상금확보"
+        mc_shortage_color = "#66ff66"
+    elif mc_shortage_val == 0:
+        mc_display_status = "✅ 시상금확보"
+        mc_shortage_color = "#66ff66"
     else:
-        if mc_shortage_val < 0:
-            mc_display_shortage = "✅ 시상금확보"
-            mc_display_status = "✅ 시상금확보"
-            mc_shortage_color = "#66ff66"
-        elif mc_shortage_val == 0:
-            mc_display_shortage = "✅ 시상금확보"
-            mc_display_status = "✅ 시상금확보"
-            mc_shortage_color = "#66ff66"
-        else:
-            mc_display_shortage = format_currency(mc_shortage_val)
-            mc_display_status = "🟡 도전중"
-            mc_shortage_color = "#ffb366"
+        mc_display_status = "🟡 도전중"
+        mc_shortage_color = "#ffb366"
     
     box_class = "mc-plus-box" if is_mc_plus else "mc-box"
     title_color = "#9d66ff" if is_mc_plus else "#ff8a99"
@@ -461,19 +470,20 @@ if search_clicked:
                 # ===== 정확한 컬럼 매핑 =====
                 if is_authentic and not is_partner_channel:
                     # 어센틱 (Y=1): AD, AF 사용
-                    weekly_target = safe_float(row["어센틱주차목표"])
-                    weekly_shortage_raw = row["어센틱주차부족최종"]
-                    weekly_shortage = safe_float(weekly_shortage_raw)
+                    weekly_target = row["어센틱주차목표"]
+                    weekly_shortage = row["어센틱주차부족최종"]
                 else:
                     # 비어센틱 (Y=0): R, S 사용
-                    weekly_target = safe_float(row["주차목표"])
-                    weekly_shortage_raw = row["주차부족"]
-                    weekly_shortage = safe_float(weekly_shortage_raw)
+                    weekly_target = row["주차목표"]
+                    weekly_shortage = row["주차부족"]
+                
+                target_display = format_value_as_is(weekly_target)
+                shortage_display = format_value_as_is(weekly_shortage)
                 
                 st.markdown(f"""
                 <div class='target-box'>
-                <strong>목표:</strong> {format_currency(weekly_target)}<br>
-                <strong>부족금액:</strong> {weekly_shortage_raw if isinstance(weekly_shortage_raw, str) and any(c.isalpha() for c in str(weekly_shortage_raw)) else format_currency(weekly_shortage)}
+                <strong>목표:</strong> {target_display}<br>
+                <strong>부족금액:</strong> {shortage_display}
                 </div>
                 """, unsafe_allow_html=True)
                 
@@ -497,18 +507,18 @@ if search_clicked:
                 # ===== MC / MC+ 성과 =====
                 if is_authentic and not is_partner_channel:
                     # 어센틱 (Y=1): MC (AA, AC) + MC+ (T, V)
-                    mc_challenge = safe_float(row["MC도전구간"])
-                    mc_shortage_raw = row["MC부족최종"]
-                    render_mc_box(mc_challenge, mc_shortage_raw, mc_shortage_raw, is_mc_plus=False)
+                    mc_challenge = row["MC도전구간"]
+                    mc_shortage = row["MC부족최종"]
+                    render_mc_box(mc_challenge, mc_shortage, is_mc_plus=False)
                     
-                    mc_plus_challenge = safe_float(row["MC+구간"])
-                    mc_plus_shortage_raw = row["MC+부족최종"]
-                    render_mc_box(mc_plus_challenge, mc_plus_shortage_raw, mc_plus_shortage_raw, is_mc_plus=True)
+                    mc_plus_challenge = row["MC+구간"]
+                    mc_plus_shortage = row["MC+부족최종"]
+                    render_mc_box(mc_plus_challenge, mc_plus_shortage, is_mc_plus=True)
                 else:
                     # 비어센틱 (Y=0): MC+ (T, V)만
-                    mc_plus_challenge = safe_float(row["MC+구간"])
-                    mc_plus_shortage_raw = row["MC+부족최종"]
-                    render_mc_box(mc_plus_challenge, mc_plus_shortage_raw, mc_plus_shortage_raw, is_mc_plus=True)
+                    mc_plus_challenge = row["MC+구간"]
+                    mc_plus_shortage = row["MC+부족최종"]
+                    render_mc_box(mc_plus_challenge, mc_plus_shortage, is_mc_plus=True)
             
             with col_right:
                 st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
