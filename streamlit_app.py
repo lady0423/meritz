@@ -58,7 +58,7 @@ st.markdown("""
         color: #ffffff;
     }
     
-    /* 입력 필드 스타일 - 자동완성 완벽 제거 */
+    /* 입력 필드 스타일 */
     .stTextInput > div > div > input,
     .stSelectbox > div > div > select {
         background-color: #1a1a1a !important;
@@ -73,7 +73,7 @@ st.markdown("""
         color: #888888 !important;
     }
     
-    /* 자동완성 완벽 제거 */
+    /* 자동완성 제거 */
     input {
         autocomplete: "off" !important;
     }
@@ -81,16 +81,9 @@ st.markdown("""
     input:-webkit-autofill {
         -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
         -webkit-text-fill-color: #ffffff !important;
-        -webkit-transition: background-color 5000s ease-in-out 0s !important;
-        transition: background-color 5000s ease-in-out 0s !important;
     }
     
-    input:-webkit-autofill:focus {
-        -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
-        -webkit-text-fill-color: #ffffff !important;
-    }
-    
-    /* 버튼 스타일 - 어두운 색상 */
+    /* 버튼 스타일 */
     .stButton > button {
         background: linear-gradient(135deg, #4a4a4a 0%, #2a2a2a 100%) !important;
         color: #ffffff !important;
@@ -238,16 +231,6 @@ st.markdown("""
         line-height: 1.6;
     }
     
-    /* 동명이인 선택 버튼 - 어둡게 */
-    .duplicate-selector {
-        background-color: #1a1a1a !important;
-        border: 1px solid #444444 !important;
-        border-radius: 8px !important;
-        padding: 12px !important;
-        margin: 8px 0 !important;
-        color: #ffffff !important;
-    }
-    
     /* 스크롤바 스타일 */
     ::-webkit-scrollbar {
         width: 8px;
@@ -374,7 +357,7 @@ def render_mc_box(status, shortage, shortage_final):
     shortage_final_val = format_display(shortage_final)
     
     return f"""
-    <div style='background: {bg}; border-left: 5px solid {color}; border-radius: 8px; padding: 12px; margin: 8px 0; font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;'>
+    <div style='background: {bg}; border-left: 5px solid {color}; border-radius: 8px; padding: 12px; margin: 8px 0;'>
         <p style='color: {color}; font-weight: 600; margin: 5px 0; font-size: 14px;'>상태: {status_str}</p>
         <p style='color: #ffffff; margin: 5px 0; font-size: 14px;'>도전구간: {shortage_val}</p>
         <p style='color: #ffdc00; margin: 5px 0; font-size: 14px;'>부족최종: {shortage_final_val}</p>
@@ -382,10 +365,10 @@ def render_mc_box(status, shortage, shortage_final):
     """
 
 def display_result(row):
-    """조회 결과 표시"""
+    """조회 결과 표시 - 원래 완벽한 코드 그대로"""
     # 팁 문구 - 조회 후에만 표시
     st.markdown("""
-    <div style='text-align: center; padding: 15px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #ffb366; margin-bottom: 20px; font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;'>
+    <div style='text-align: center; padding: 15px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #ffb366; margin-bottom: 20px;'>
     <p style='color: #ffb366; font-weight: 600; font-size: 15px; margin: 0;'>💡 아래 시상안을 보고 달성 시상금을 확인하세요</p>
     </div>
     """, unsafe_allow_html=True)
@@ -407,13 +390,13 @@ def display_result(row):
         cumulative = format_display(row.get('3월실적', 0))
         st.markdown(f"""
         <div class='cumulative-box'>
-            <h4 style='color: #ffdc00; margin: 0; font-size: 16px;'>💰 3월 누계 실적</h4>
+            <h4 style='color: #ffdc00; margin: 0;'>💰 3월 누계 실적</h4>
             <p style='font-size: 24px; font-weight: 700; color: #ffdc00; margin: 10px 0;'>{cumulative}</p>
         </div>
         """, unsafe_allow_html=True)
         
         # 주차별 성과
-        st.markdown("<h4 style='color: #ffffff; font-size: 16px;'>📊 주차별 성과</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color: #ffffff;'>📊 주차별 성과</h4>", unsafe_allow_html=True)
         current_week = get_current_week()
         
         for week in range(1, 6):
@@ -434,7 +417,7 @@ def display_result(row):
         
         st.markdown(f"""
         <div class='target-box'>
-            <h4 style='color: #ffffff; margin: 0; font-size: 16px;'>🎯 당주 목표</h4>
+            <h4 style='color: #ffffff; margin: 0;'>🎯 당주 목표</h4>
             <p style='color: #ffffff; margin: 5px 0; font-size: 14px;'>목표: <strong>{target}</strong></p>
             <p style='color: #ffdc00; margin: 5px 0; font-size: 14px;'>부족: <strong>{shortage}</strong></p>
         </div>
@@ -443,7 +426,7 @@ def display_result(row):
         # 브릿지 (인증 아닌 경우만)
         authentic = str(row.get('어센틱구분', '0')).strip()
         if authentic != "1":
-            st.markdown("<h4 style='color: #ffffff; font-size: 16px;'>🌉 브릿지 성과</h4>", unsafe_allow_html=True)
+            st.markdown("<h4 style='color: #ffffff;'>🌉 브릿지 성과</h4>", unsafe_allow_html=True)
             bridge_status = str(row.get('브릿지 달성구간', '')).strip()
             bridge_shortage = format_display(row.get('브릿지 도전구간', 0))
             bridge_shortage_final = format_display(row.get('브릿지 부족', 0))
@@ -452,7 +435,7 @@ def display_result(row):
         
         # MC (인증인 경우만)
         if authentic == "1":
-            st.markdown("<h4 style='color: #ffffff; font-size: 16px;'>💎 MC 성과</h4>", unsafe_allow_html=True)
+            st.markdown("<h4 style='color: #ffffff;'>💎 MC 성과</h4>", unsafe_allow_html=True)
             mc_status = str(row.get('MC도전구간', '')).strip()
             mc_shortage = format_display(row.get('MC부족', 0))
             mc_shortage_final = format_display(row.get('MC부족최종', 0))
@@ -460,7 +443,7 @@ def display_result(row):
             st.markdown(render_mc_box(mc_status, mc_shortage, mc_shortage_final), unsafe_allow_html=True)
         
         # MC+ (모두)
-        st.markdown("<h4 style='color: #ffffff; font-size: 16px;'>🚀 MC PLUS + 성과</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color: #ffffff;'>🚀 MC PLUS + 성과</h4>", unsafe_allow_html=True)
         mcplus_status = str(row.get('MC+구간', '')).strip()
         mcplus_shortage = format_display(row.get('MC부족', 0))
         mcplus_shortage_final = format_display(row.get('MC부족최종', 0))
@@ -469,7 +452,7 @@ def display_result(row):
     
     with col_right:
         # 리플렛 이미지
-        st.markdown("<h4 style='color: #ffffff; font-size: 16px;'>📄 대리점 리플렛</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color: #ffffff;'>📄 대리점 리플렛</h4>", unsafe_allow_html=True)
         
         authentic = str(row.get('어센틱구분', '0')).strip()
         partner = row.get('대리점', 'none')
@@ -513,8 +496,6 @@ else:
     # 세션 상태 초기화
     if "selected_agent" not in st.session_state:
         st.session_state.selected_agent = None
-    if "show_result" not in st.session_state:
-        st.session_state.show_result = False
     
     # 입력 필드
     st.markdown("<h3 style='color: #ffffff; font-size: 20px;'>🔍 설계사 정보 조회</h3>", unsafe_allow_html=True)
@@ -529,55 +510,45 @@ else:
     
     with col2:
         st.markdown("<label style='color: #ffffff; font-weight: 600; font-size: 14px;'>2️⃣ 매니저명</label>", unsafe_allow_html=True)
-        manager_name = st.text_input("매니저명 입력", placeholder="박메리", label_visibility="collapsed", key="manager_input", autocomplete="off")
+        manager_name = st.text_input("매니저명 입력", placeholder="박메리", label_visibility="collapsed", autocomplete="off")
     
     with col3:
         st.markdown("<label style='color: #ffffff; font-weight: 600; font-size: 14px;'>3️⃣ 설계사명</label>", unsafe_allow_html=True)
-        agent_name = st.text_input("설계사명 입력", placeholder="홍길동", label_visibility="collapsed", key="agent_input", autocomplete="off")
+        agent_name = st.text_input("설계사명 입력", placeholder="홍길동", label_visibility="collapsed", autocomplete="off")
     
     # 검색 버튼
     search_col1, search_col2, search_col3 = st.columns([1, 1, 1])
     with search_col2:
         search_clicked = st.button("🔍 검색", use_container_width=True)
     
-    # 엔터 키 감지 (검색 실행)
-    if manager_name and agent_name:
-        # 실제 엔터 감지는 어려우므로, 값 변경 감지로 처리
-        pass
-    
     # 검색 로직
-    def perform_search():
-        if not selected_branch or not manager_name or not agent_name:
-            st.error("⚠️ 지점명, 매니저명, 설계사명을 모두 입력해주세요.")
-            return
-        
-        filtered = df[
-            (df['지점명'].astype(str).str.strip() == selected_branch.strip()) &
-            (df['매니저'].astype(str).str.strip() == manager_name.strip()) &
-            (df['설계사명'].astype(str).str.strip() == agent_name.strip())
-        ]
-        
-        if len(filtered) == 0:
-            st.error(f"❌ 데이터를 찾을 수 없습니다: {selected_branch} / {manager_name} / {agent_name}")
-        elif len(filtered) == 1:
-            st.session_state.selected_agent = filtered.iloc[0]
-            st.session_state.show_result = True
-        else:
-            st.markdown("<p style='color: #ffffff; font-weight: 600; margin-top: 20px; font-size: 14px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
-            
-            for idx, (_, agent_row) in enumerate(filtered.iterrows()):
-                agent_display = f"{agent_row.get('지사명', 'N/A')} - {agent_row.get('설계사명', 'N/A')} ({agent_row.get('현재대리점설계사조직코드', 'N/A')})"
-                
-                if st.button(agent_display, key=f"agent_{idx}", use_container_width=True):
-                    st.session_state.selected_agent = agent_row
-                    st.session_state.show_result = True
-                    st.rerun()
-    
     if search_clicked:
-        perform_search()
+        if not manager_name or not agent_name:
+            st.error("⚠️ 매니저명과 설계사명을 모두 입력해주세요.")
+        else:
+            filtered = df[
+                (df['지점명'].astype(str).str.strip() == selected_branch.strip()) &
+                (df['매니저'].astype(str).str.strip() == manager_name.strip()) &
+                (df['설계사명'].astype(str).str.strip() == agent_name.strip())
+            ]
+            
+            if len(filtered) == 0:
+                st.error(f"❌ 데이터를 찾을 수 없습니다: {selected_branch} / {manager_name} / {agent_name}")
+            elif len(filtered) == 1:
+                st.session_state.selected_agent = filtered.iloc[0]
+                st.rerun()
+            else:
+                st.markdown("<p style='color: #ffffff; font-weight: 600; margin-top: 20px; font-size: 14px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
+                
+                for idx, (_, agent_row) in enumerate(filtered.iterrows()):
+                    agent_display = f"{agent_row.get('지사명', 'N/A')} - {agent_row.get('설계사명', 'N/A')} ({agent_row.get('현재대리점설계사조직코드', 'N/A')})"
+                    
+                    if st.button(agent_display, key=f"agent_{idx}", use_container_width=True):
+                        st.session_state.selected_agent = agent_row
+                        st.rerun()
     
     # 조회 결과 표시
-    if st.session_state.show_result and st.session_state.selected_agent is not None:
+    if st.session_state.selected_agent is not None:
         display_result(st.session_state.selected_agent)
     
     # 초기화 버튼
@@ -585,5 +556,4 @@ else:
     with col_reset2:
         if st.button("🔄 초기화", use_container_width=True):
             st.session_state.selected_agent = None
-            st.session_state.show_result = False
             st.rerun()
