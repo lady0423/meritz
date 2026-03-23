@@ -44,165 +44,164 @@ st.markdown("""
 }
 
 html, body, [data-testid="stAppViewContainer"], .main, [data-testid="stDecoration"] {
-    background: #1a1a1a !important;
-    color: #e0e0e0;
+    background: #f8f9fa !important;
+    color: #2c3e50;
 }
 
 [data-testid="stHeader"] {
-    background: rgba(26, 26, 26, 0.95) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
 }
 
 h1, h2, h3 {
     font-family: 'Noto Sans KR', sans-serif;
     font-weight: 700;
     letter-spacing: -0.5px;
-    color: #ffffff;
+    color: #2c3e50;
 }
 
 input::-webkit-autofill,
 input::-webkit-autofill:hover,
 input::-webkit-autofill:focus,
 input::-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px #2a2a2a inset !important;
-    box-shadow: 0 0 0 30px #2a2a2a inset !important;
+    -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
+    box-shadow: 0 0 0 30px #ffffff inset !important;
 }
 
 input::-webkit-autofill {
-    -webkit-text-fill-color: #ffffff !important;
+    -webkit-text-fill-color: #2c3e50 !important;
 }
 
 .stButton > button {
     font-family: 'Noto Sans KR', sans-serif;
     font-weight: 600;
-    background: #ff6b35;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     padding: 12px 24px;
     color: white;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .stButton > button:hover {
-    background: #ff8555;
-    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    transform: translateY(-2px);
 }
 
 .info-box {
-    background: #2a2a2a;
-    border-left: 4px solid #ff6b35;
+    background: white;
+    border-left: 4px solid #667eea;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 12px;
     margin: 12px 0;
     font-size: 16px;
     line-height: 1.8;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     font-weight: 500;
-    color: #e0e0e0;
+    color: #2c3e50;
 }
 
 .cumulative-box {
-    background: #2a2a2a;
-    border-left: 4px solid #ff6b35;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 28px;
-    border-radius: 8px;
+    border-radius: 12px;
     margin: 15px 0;
     font-size: 28px;
     font-weight: 700;
-    color: #ff6b35;
+    color: white;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.25);
     letter-spacing: 0.5px;
 }
 
 .weekly-row {
-    background: #2a2a2a;
-    border-left: 4px solid #4a90e2;
+    background: white;
+    border-left: 4px solid #48bb78;
     padding: 18px;
-    border-radius: 8px;
+    border-radius: 10px;
     margin: 10px 0;
     font-size: 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     font-weight: 600;
-    color: #e0e0e0;
+    color: #2c3e50;
 }
 
 .weekly-row.current {
-    background: #3a3a3a;
-    border-left: 4px solid #ffa500;
-    box-shadow: 0 2px 12px rgba(255, 165, 0, 0.3);
-    color: #ffffff;
+    background: linear-gradient(135deg, #ffd93d 0%, #ffb93d 100%);
+    border-left: 4px solid #f59e0b;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    color: #92400e;
 }
 
 .bridge-box {
-    background: #2a2a2a;
-    border-left: 4px solid #9b59b6;
+    background: white;
+    border-left: 4px solid #f687b3;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 12px;
     margin: 15px 0;
     font-size: 16px;
     line-height: 1.8;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     font-weight: 600;
-    color: #e0e0e0;
+    color: #2c3e50;
 }
 
 .mc-box {
-    background: #2a2a2a;
-    border-left: 4px solid #e74c3c;
+    background: white;
+    border-left: 4px solid #fc8181;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 12px;
     margin: 15px 0;
     font-size: 16px;
     line-height: 1.8;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     font-weight: 600;
-    color: #e0e0e0;
+    color: #2c3e50;
 }
 
 .mc-plus-box {
-    background: #2a2a2a;
-    border-left: 4px solid #8e44ad;
+    background: white;
+    border-left: 4px solid #9f7aea;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 12px;
     margin: 15px 0;
     font-size: 16px;
     line-height: 1.8;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     font-weight: 600;
-    color: #e0e0e0;
+    color: #2c3e50;
 }
 
 .target-box {
-    background: #2a2a2a;
-    border-left: 4px solid #f39c12;
+    background: white;
+    border-left: 4px solid #f6ad55;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 12px;
     margin: 15px 0;
     font-size: 16px;
     line-height: 1.8;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     font-weight: 600;
-    color: #e0e0e0;
+    color: #2c3e50;
 }
 
 .search-label {
     font-weight: 600;
     font-size: 13px;
-    color: #4a90e2;
+    color: #667eea;
     margin-bottom: 6px;
     display: block;
 }
 
 input, select {
-    background-color: #2a2a2a !important;
-    color: #ffffff !important;
-    border: 1px solid #3a3a3a !important;
-    border-radius: 6px !important;
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 10px !important;
     padding: 12px !important;
     font-family: 'Noto Sans KR', sans-serif !important;
     font-weight: 500 !important;
@@ -210,20 +209,25 @@ input, select {
 }
 
 input:focus, select:focus {
-    border-color: #4a90e2 !important;
-    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2) !important;
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
     outline: none !important;
 }
 
 input::placeholder {
-    color: #666666 !important;
+    color: #a0aec0 !important;
 }
 
 .stTextInput > label, .stSelectbox > label {
     font-weight: 600;
-    color: #4a90e2;
+    color: #667eea;
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 13px;
+    font-size: 14px;
+}
+
+/* 셀렉트박스 화살표 제거 */
+[data-testid="stSelectbox"] svg {
+    display: none;
 }
 
 ::-webkit-scrollbar {
@@ -231,16 +235,16 @@ input::placeholder {
 }
 
 ::-webkit-scrollbar-track {
-    background: #1a1a1a;
+    background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #3a3a3a;
+    background: #cbd5e1;
     border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #4a4a4a;
+    background: #94a3b8;
 }
 
 </style>
@@ -338,31 +342,31 @@ def render_mc_box(mc_challenge, mc_shortage, is_authentic=False, is_mc_plus=Fals
     
     if "최종달성" in shortage_str:
         mc_display_status = "✅ 시상금확보"
-        mc_shortage_color = "#27ae60"
+        mc_shortage_color = "#48bb78"
     elif "다음기회에" in shortage_str or "재도전" in shortage_str:
         mc_display_status = "⚪ 대상아님"
-        mc_shortage_color = "#95a5a6"
+        mc_shortage_color = "#718096"
     elif "대상아님" in shortage_str:
         mc_display_status = "⚪ 대상아님"
-        mc_shortage_color = "#95a5a6"
+        mc_shortage_color = "#718096"
     elif "미달성" in shortage_str:
         mc_display_status = "⚪ 대상아님"
-        mc_shortage_color = "#95a5a6"
+        mc_shortage_color = "#718096"
     elif is_authentic and not is_mc_plus and "전월" in str(mc_challenge):
         mc_display_status = "⚪ 대상아님"
-        mc_shortage_color = "#95a5a6"
+        mc_shortage_color = "#718096"
     elif mc_shortage_val < 0:
         mc_display_status = "✅ 시상금확보"
-        mc_shortage_color = "#27ae60"
+        mc_shortage_color = "#48bb78"
     elif mc_shortage_val == 0:
         mc_display_status = "✅ 시상금확보"
-        mc_shortage_color = "#27ae60"
+        mc_shortage_color = "#48bb78"
     else:
         mc_display_status = "🟡 도전중"
-        mc_shortage_color = "#f39c12"
+        mc_shortage_color = "#ed8936"
     
     box_class = "mc-plus-box" if is_mc_plus else "mc-box"
-    status_color = "#8e44ad" if is_mc_plus else "#f39c12"
+    status_color = "#9f7aea" if is_mc_plus else "#ed8936"
     
     st.markdown(f"""
     <div class='{box_class}'>
@@ -381,6 +385,8 @@ if 'show_duplicates' not in st.session_state:
     st.session_state.show_duplicates = False
 if 'filtered_data' not in st.session_state:
     st.session_state.filtered_data = None
+if 'last_search_params' not in st.session_state:
+    st.session_state.last_search_params = {'branch': '', 'manager': '', 'agent': ''}
 
 col_logo, col_title = st.columns([1, 4])
 with col_logo:
@@ -391,9 +397,9 @@ with col_logo:
         st.write("📊")
 
 with col_title:
-    st.markdown("<h1 style='color: #ff6b35; font-size: 32px; margin-top: 10px;'>메리츠 설계사 성과 조회</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='color: #2c3e50; font-size: 32px; margin-top: 10px;'>메리츠 설계사 성과 조회</h1>", unsafe_allow_html=True)
 
-st.markdown("<hr style='border: 1px solid #3a3a3a;'>", unsafe_allow_html=True)
+st.markdown("<hr style='border: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
 
 df = load_data_from_google_sheets()
 if df is None:
@@ -401,16 +407,16 @@ if df is None:
 
 current_week = get_current_week()
 
-st.markdown("<h3 style='color: #ffffff; margin-top: 20px; margin-bottom: 20px; font-size: 18px;'>🔍 검색 정보 입력</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='color: #667eea; margin-top: 20px; margin-bottom: 20px; font-size: 20px;'>🔍 검색 정보 입력</h3>", unsafe_allow_html=True)
 
-# 지점명 드롭다운 추가 (GA4-2지점 기본값)
-branches = sorted(df['지점명'].unique())
-default_idx = branches.index("GA4-2지점") if "GA4-2지점" in branches else 0
+# GA4 지점 리스트 (GA4-1지점부터 GA4-13지점까지)
+ga4_branches = [f"GA4-{i}지점" for i in range(1, 14)]
+default_idx = ga4_branches.index("GA4-2지점")
 
 col1, col2, col3, col4 = st.columns([1.5, 1.5, 1.5, 1])
 with col1:
     st.markdown("<div class='search-label'>📍 지점명</div>", unsafe_allow_html=True)
-    selected_branch = st.selectbox("지점명", branches, index=default_idx, label_visibility="collapsed", key="branch")
+    selected_branch = st.selectbox("지점명", ga4_branches, index=default_idx, label_visibility="collapsed", key="branch")
 
 with col2:
     st.markdown("<div class='search-label'>👤 매니저명</div>", unsafe_allow_html=True)
@@ -423,6 +429,20 @@ with col3:
 with col4:
     st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
     search_clicked = st.button("🔍 검색", use_container_width=True)
+
+# 입력값 변경 감지
+current_params = {
+    'branch': selected_branch,
+    'manager': manager_name,
+    'agent': agent_name
+}
+
+if current_params != st.session_state.last_search_params:
+    st.session_state.search_performed = False
+    st.session_state.selected_row = None
+    st.session_state.show_duplicates = False
+    st.session_state.filtered_data = None
+    st.session_state.last_search_params = current_params.copy()
 
 # 검색 로직
 if search_clicked:
@@ -450,7 +470,7 @@ if search_clicked:
 
 # 동명이인 선택 UI
 if st.session_state.show_duplicates and st.session_state.filtered_data is not None:
-    st.markdown("<p style='color:#4a90e2;font-weight:600;margin-top:20px;font-size:15px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#667eea;font-weight:600;margin-top:20px;font-size:15px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
     
     for idx, (_, agent_row) in enumerate(st.session_state.filtered_data.iterrows()):
         agent_display = f"{agent_row.get('지점명','N/A')} - {agent_row.get('설계사명','N/A')} ({agent_row.get('현재대리점설계사조직코드','N/A')})"
@@ -464,7 +484,7 @@ if st.session_state.show_duplicates and st.session_state.filtered_data is not No
 if st.session_state.search_performed and st.session_state.selected_row is not None:
     row = st.session_state.selected_row
     
-    agent_name = str(row["설계사명"]).strip()
+    agent_name_display = str(row["설계사명"]).strip()
     branch = str(row["지점명"]).strip()
     agency_name = str(row["대리점"]).strip()
     
@@ -475,28 +495,28 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
     
     with col_left:
         st.markdown("""
-        <div style='text-align: center; padding: 16px; background: #2a2a2a; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ff6b35; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);'>
-        <p style='color: #ffffff; font-weight: 600; font-size: 15px; margin: 0;'>💡 대리점 시상안을 보고 달성 시상금을 확인하세요</p>
+        <div style='text-align: center; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);'>
+        <p style='color: white; font-weight: 600; font-size: 15px; margin: 0;'>💡 대리점 시상안을 보고 달성 시상금을 확인하세요</p>
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown("<h3 style='color: #ff6b35; font-size: 18px; margin-top: 20px;'>📋 기본 정보</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>📋 기본 정보</h3>", unsafe_allow_html=True)
         st.markdown(f"""
         <div class='info-box'>
-        <strong>설계사명:</strong> {agent_name}<br>
+        <strong>설계사명:</strong> {agent_name_display}<br>
         <strong>지사:</strong> {branch}
         </div>
         """, unsafe_allow_html=True)
         
         cumulative = row["누계실적"]
-        st.markdown("<h3 style='color: #ff6b35; font-size: 18px; margin-top: 20px;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
         st.markdown(f"""
         <div class='cumulative-box'>
         {format_display(cumulative)}
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown("<h3 style='color: #ff6b35; font-size: 18px; margin-top: 20px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
         
         week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
         for idx, week_col in enumerate(week_columns, 1):
@@ -506,17 +526,18 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
             if is_current:
                 st.markdown(f"""
                 <div class='weekly-row current'>
-                <strong>{week_col}</strong> <span style='color: #ffa500; font-size: 18px;'>⭐</span> <strong style='color: #ffa500;'>{format_display(week_value)}</strong>
+                <div><strong>{week_col}</strong> ⭐</div>
+                <strong style='color: #92400e;'>{format_display(week_value)}</strong>
                 </div>
                 """, unsafe_allow_html=True)
             else:
                 st.markdown(f"""
                 <div class='weekly-row'>
-                <strong>{week_col}</strong> <strong style='color: #4a90e2;'>{format_display(week_value)}</strong>
+                <strong>{week_col}</strong> <strong style='color: #48bb78;'>{format_display(week_value)}</strong>
                 </div>
                 """, unsafe_allow_html=True)
         
-        st.markdown("<h3 style='color: #ff6b35; font-size: 18px; margin-top: 20px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
         
         if is_authentic:
             weekly_target = row["어센틱주차목표"]
@@ -533,7 +554,7 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
         """, unsafe_allow_html=True)
         
         if not is_authentic:
-            st.markdown("<h3 style='color: #ff6b35; font-size: 18px; margin-top: 20px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
             bridge_target = row["브릿지 도전구간"]
             bridge_shortage = row["브릿지부족최종"]
             
@@ -545,18 +566,18 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
             """, unsafe_allow_html=True)
         
         if is_authentic:
-            st.markdown("<h3 style='color: #ff6b35; font-size: 18px; margin-top: 20px;'>💰 MC 성과</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>💰 MC 성과</h3>", unsafe_allow_html=True)
             mc_challenge = row["MC도전구간"]
             mc_shortage = row["MC부족최종"]
             render_mc_box(mc_challenge, mc_shortage, is_authentic=True, is_mc_plus=False)
         
-        st.markdown("<h3 style='color: #8e44ad; font-size: 18px; margin-top: 20px;'>💰 MC PLUS+ 성과</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #9f7aea; font-size: 20px; margin-top: 20px;'>💰 MC PLUS+ 성과</h3>", unsafe_allow_html=True)
         mc_plus_challenge = row["MC+구간"]
         mc_plus_shortage = row["MC+부족최종"]
         render_mc_box(mc_plus_challenge, mc_plus_shortage, is_authentic=is_authentic, is_mc_plus=True)
     
     with col_right:
-        st.markdown("<h3 style='color: #ff6b35; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #667eea; font-size: 20px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
         image_id = get_image_id_by_authentic_and_partner(is_authentic, is_partner_channel, agency_name)
         image = load_leaflet_template_from_drive(image_id)
         
@@ -576,7 +597,7 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
         else:
             st.info(f"⚠️ 리플렛 이미지를 불러올 수 없습니다.\n(대리점: {agency_name})")
     
-    st.markdown("<hr style='border: 1px solid #3a3a3a; margin: 30px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border: 1px solid #e2e8f0; margin: 30px 0;'>", unsafe_allow_html=True)
     
     if st.button("🔄 초기화", use_container_width=True):
         st.session_state.search_performed = False
@@ -586,8 +607,8 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
 
 elif not st.session_state.show_duplicates:
     st.markdown("""
-    <div style='text-align: center; margin-top: 60px; padding: 50px; background: #2a2a2a; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); border-left: 4px solid #ff6b35;'>
-    <p style='color: #ffffff; font-weight: 600; font-size: 18px; margin-bottom: 10px;'>🔒 매니저명과 설계사명을 입력하고 검색 버튼을 클릭하세요.</p>
-    <p style='color: #95a5a6; font-weight: 400; font-size: 14px; margin-top: 10px;'>개인정보 보호를 위해 검색 후에만 데이터가 표시됩니다.</p>
+    <div style='text-align: center; margin-top: 60px; padding: 50px; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);'>
+    <p style='color: #667eea; font-weight: 600; font-size: 18px; margin-bottom: 10px;'>🔒 매니저명과 설계사명을 입력하고 검색 버튼을 클릭하세요.</p>
+    <p style='color: #718096; font-weight: 400; font-size: 14px; margin-top: 10px;'>개인정보 보호를 위해 검색 후에만 데이터가 표시됩니다.</p>
     </div>
     """, unsafe_allow_html=True)
