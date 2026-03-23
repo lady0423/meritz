@@ -596,13 +596,17 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
         
         st.markdown("<h3 style='color: #4a5568; font-size: 20px; margin-top: 20px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
         
-        # 주차목표와 주차부족최종을 그대로 사용 (엑셀에 이미 계산되어 있음)
+        # 정확한 컬럼명 사용
         if is_authentic:
-            weekly_target = row.get("어센틱주차목표", 0)
-            weekly_shortage = row.get("어센틱주차부족", 0)
+            weekly_target_raw = row.get("어센틱주차목표", 0)
+            weekly_shortage_raw = row.get("어센틱주차부족", 0)
         else:
-            weekly_target = row.get("주차목표", 0)
-            weekly_shortage = row.get("주차부족최종", 0)
+            weekly_target_raw = row.get("주차목표", 0)
+            weekly_shortage_raw = row.get("주차부족최종", 0)
+        
+        # 값 변환
+        weekly_target = safe_float(weekly_target_raw)
+        weekly_shortage = safe_float(weekly_shortage_raw)
         
         st.markdown(f"""
         <div class='target-box'>
