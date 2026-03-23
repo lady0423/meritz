@@ -74,50 +74,50 @@ input::-webkit-autofill {
 .stButton > button {
     font-family: 'Noto Sans KR', sans-serif;
     font-weight: 600;
-    background: linear-gradient(135deg, #c41e3a 0%, #a01729 100%);
+    background: linear-gradient(135deg, #9d66ff 0%, #7d4fc4 100%);
     border: none;
     border-radius: 8px;
     padding: 12px 24px;
     color: white;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(196, 30, 58, 0.4);
+    box-shadow: 0 4px 15px rgba(157, 102, 255, 0.3);
 }
 
 .stButton > button:hover {
-    background: linear-gradient(135deg, #a01729 0%, #7d111f 100%);
-    box-shadow: 0 6px 20px rgba(196, 30, 58, 0.6);
+    background: linear-gradient(135deg, #7d4fc4 0%, #6d3fb4 100%);
+    box-shadow: 0 6px 20px rgba(157, 102, 255, 0.5);
     transform: translateY(-2px);
 }
 
 .info-box {
     background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
-    border-left: 5px solid #c41e3a;
+    border-left: 5px solid #9d66ff;
     padding: 18px;
     border-radius: 10px;
     margin: 12px 0;
     font-size: 17px;
     line-height: 2;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 12px rgba(157, 102, 255, 0.15);
     font-weight: 500;
 }
 
 .cumulative-box {
     background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
-    border-left: 5px solid #ff6b7a;
+    border-left: 5px solid #9d66ff;
     padding: 25px;
     border-radius: 10px;
     margin: 15px 0;
     font-size: 26px;
     font-weight: 700;
-    color: #ff8a99;
+    color: #b399ff;
     text-align: center;
-    box-shadow: 0 4px 20px rgba(196, 30, 58, 0.3);
+    box-shadow: 0 4px 20px rgba(157, 102, 255, 0.2);
     letter-spacing: 1px;
 }
 
 .weekly-row {
     background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
-    border-left: 5px solid #66cc66;
+    border-left: 5px solid #4a9d66;
     padding: 16px;
     border-radius: 8px;
     margin: 10px 0;
@@ -125,48 +125,35 @@ input::-webkit-autofill {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 3px 10px rgba(74, 157, 102, 0.2);
     font-weight: 600;
 }
 
 .weekly-row.current {
     background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
-    border-left: 5px solid #ffcc00;
-    box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
+    border-left: 5px solid #ffa500;
+    box-shadow: 0 0 15px rgba(255, 165, 0, 0.3);
     animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 15px rgba(255, 204, 0, 0.3); }
-    50% { box-shadow: 0 0 25px rgba(255, 204, 0, 0.5); }
+    0%, 100% { box-shadow: 0 0 15px rgba(255, 165, 0, 0.3); }
+    50% { box-shadow: 0 0 25px rgba(255, 165, 0, 0.5); }
 }
 
 .bridge-box {
     background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
-    border-left: 5px solid #ff8a99;
+    border-left: 5px solid #ff9f6d;
     padding: 18px;
     border-radius: 10px;
     margin: 15px 0;
     font-size: 17px;
     line-height: 2.2;
-    box-shadow: 0 4px 12px rgba(196, 30, 58, 0.2);
+    box-shadow: 0 4px 12px rgba(255, 159, 109, 0.15);
     font-weight: 600;
 }
 
 .mc-box {
-    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
-    border-left: 5px solid #ff6b7a;
-    padding: 18px;
-    border-radius: 10px;
-    margin: 15px 0;
-    font-size: 17px;
-    line-height: 2.2;
-    box-shadow: 0 4px 12px rgba(196, 30, 58, 0.2);
-    font-weight: 600;
-    color: #ffffff;
-}
-
-.mc-plus-box {
     background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
     border-left: 5px solid #9d66ff;
     padding: 18px;
@@ -174,27 +161,40 @@ input::-webkit-autofill {
     margin: 15px 0;
     font-size: 17px;
     line-height: 2.2;
-    box-shadow: 0 4px 12px rgba(196, 30, 58, 0.2);
+    box-shadow: 0 4px 12px rgba(157, 102, 255, 0.15);
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.mc-plus-box {
+    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
+    border-left: 5px solid #66ccff;
+    padding: 18px;
+    border-radius: 10px;
+    margin: 15px 0;
+    font-size: 17px;
+    line-height: 2.2;
+    box-shadow: 0 4px 12px rgba(102, 204, 255, 0.15);
     font-weight: 600;
     color: #ffffff;
 }
 
 .target-box {
     background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
-    border-left: 5px solid #ffb366;
+    border-left: 5px solid #ffa500;
     padding: 18px;
     border-radius: 10px;
     margin: 15px 0;
     font-size: 17px;
     line-height: 2.2;
-    box-shadow: 0 4px 12px rgba(196, 30, 58, 0.15);
+    box-shadow: 0 4px 12px rgba(255, 165, 0, 0.15);
     font-weight: 600;
 }
 
 input, select {
     background-color: #1a1a1a !important;
     color: #ffffff !important;
-    border: 2px solid #c41e3a !important;
+    border: 2px solid #9d66ff !important;
     border-radius: 8px !important;
     padding: 12px !important;
     font-family: 'Noto Sans KR', sans-serif !important;
@@ -203,8 +203,8 @@ input, select {
 }
 
 input:focus, select:focus {
-    border-color: #ff6b7a !important;
-    box-shadow: 0 0 10px rgba(255, 107, 122, 0.3) !important;
+    border-color: #b399ff !important;
+    box-shadow: 0 0 10px rgba(157, 102, 255, 0.4) !important;
 }
 
 input::placeholder {
@@ -234,12 +234,12 @@ input::placeholder {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #c41e3a;
+    background: #9d66ff;
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #ff6b7a;
+    background: #b399ff;
 }
 
 </style>
@@ -369,10 +369,10 @@ def render_mc_box(mc_challenge, mc_shortage, is_authentic=False, is_mc_plus=Fals
         mc_shortage_color = "#66ff66"
     else:
         mc_display_status = "🟡 도전중"
-        mc_shortage_color = "#ffb366"
+        mc_shortage_color = "#ffa500"
     
     box_class = "mc-plus-box" if is_mc_plus else "mc-box"
-    status_color = "#9d66ff" if is_mc_plus else "#ffb366"
+    status_color = "#66ccff" if is_mc_plus else "#9d66ff"
     
     st.markdown(f"""
     <div class='{box_class}'>
@@ -395,12 +395,12 @@ def display_result(row):
     
     with col_left:
         st.markdown("""
-        <div style='text-align: center; padding: 15px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #ffb366; margin-bottom: 20px;'>
-        <p style='color: #ffb366; font-weight: 600; font-size: 15px; margin: 0;'>💡 아래 시상안을 보고 달성 시상금을 확인하세요</p>
+        <div style='text-align: center; padding: 15px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #9d66ff; margin-bottom: 20px;'>
+        <p style='color: #b399ff; font-weight: 600; font-size: 15px; margin: 0;'>💡 아래 시상안을 보고 달성 시상금을 확인하세요</p>
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📋 기본 정보</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #9d66ff; font-size: 18px;'>📋 기본 정보</h3>", unsafe_allow_html=True)
         st.markdown(f"""
         <div class='info-box'>
         <strong>대리점:</strong> {agency_name}<br>
@@ -410,14 +410,14 @@ def display_result(row):
         """, unsafe_allow_html=True)
         
         cumulative = row.get("누계실적", 0)
-        st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #9d66ff; font-size: 18px;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
         st.markdown(f"""
         <div class='cumulative-box'>
         {format_display(cumulative)}
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #9d66ff; font-size: 18px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
         
         current_week = get_current_week()
         week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
@@ -428,17 +428,17 @@ def display_result(row):
             if is_current:
                 st.markdown(f"""
                 <div class='weekly-row current'>
-                <strong>{week_col}</strong> <span style='color: #ffcc00; font-size: 20px;'>⭐</span> <strong style='color: #ffcc00;'>{format_display(week_value)}</strong>
+                <strong>{week_col}</strong> <span style='color: #ffa500; font-size: 20px;'>⭐</span> <strong style='color: #ffa500;'>{format_display(week_value)}</strong>
                 </div>
                 """, unsafe_allow_html=True)
             else:
                 st.markdown(f"""
                 <div class='weekly-row'>
-                <strong>{week_col}</strong> <strong style='color: #66cc66;'>{format_display(week_value)}</strong>
+                <strong>{week_col}</strong> <strong style='color: #4a9d66;'>{format_display(week_value)}</strong>
                 </div>
                 """, unsafe_allow_html=True)
         
-        st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #9d66ff; font-size: 18px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
         
         if is_authentic:
             weekly_target = row.get("어센틱주차목표", 0)
@@ -455,7 +455,7 @@ def display_result(row):
         """, unsafe_allow_html=True)
         
         if not is_authentic:
-            st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color: #9d66ff; font-size: 18px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
             bridge_target = row.get("브릿지 도전구간", 0)
             bridge_shortage = row.get("브릿지부족최종", 0)
             
@@ -467,18 +467,18 @@ def display_result(row):
             """, unsafe_allow_html=True)
         
         if is_authentic:
-            st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>💰 MC 성과</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color: #9d66ff; font-size: 18px;'>💰 MC 성과</h3>", unsafe_allow_html=True)
             mc_challenge = row.get("MC도전구간", 0)
             mc_shortage = row.get("MC부족최종", 0)
             render_mc_box(mc_challenge, mc_shortage, is_authentic=True, is_mc_plus=False)
         
-        st.markdown("<h3 style='color: #9d66ff; font-size: 18px;'>💰 MC PLUS+ 성과</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #66ccff; font-size: 18px;'>💰 MC PLUS+ 성과</h3>", unsafe_allow_html=True)
         mc_plus_challenge = row.get("MC+구간", 0)
         mc_plus_shortage = row.get("MC+부족최종", 0)
         render_mc_box(mc_plus_challenge, mc_plus_shortage, is_authentic=is_authentic, is_mc_plus=True)
     
     with col_right:
-        st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #9d66ff; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
         image_id = get_image_id_by_authentic_and_partner(is_authentic, is_partner_channel, agency_name)
         image = load_leaflet_template_from_drive(image_id)
         
@@ -498,7 +498,7 @@ def display_result(row):
         else:
             st.info(f"⚠️ 리플렛 이미지를 불러올 수 없습니다.\n(대리점: {agency_name})")
     
-    st.markdown("<hr style='border: 1px solid #c41e3a; margin: 30px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border: 1px solid #9d66ff; margin: 30px 0;'>", unsafe_allow_html=True)
     
     if st.button("🔄 초기화", use_container_width=True):
         for key in list(st.session_state.keys()):
@@ -514,9 +514,9 @@ with col_logo:
         st.write("📊")
 
 with col_title:
-    st.markdown("<h1 style='color: #ff8a99; font-size: 28px; margin-top: 10px;'>메리츠 실적현황</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='color: #9d66ff; font-size: 28px; margin-top: 10px;'>메리츠 실적현황</h1>", unsafe_allow_html=True)
 
-st.markdown("<hr style='border: 1px solid #c41e3a;'>", unsafe_allow_html=True)
+st.markdown("<hr style='border: 1px solid #9d66ff;'>", unsafe_allow_html=True)
 
 df = load_data_from_google_sheets()
 if df is None:
@@ -533,9 +533,10 @@ if "branch_init" not in st.session_state:
     st.session_state.default_branch = "GA4-2지점" if "GA4-2지점" in branches_list else branches_list[0]
 
 with col1:
+    st.write("**1️⃣ 지점명**")
     branches = sorted(df["지점명"].dropna().unique(), key=extract_branch_number)
     selected_branch = st.selectbox(
-        "1️⃣ 지점명",
+        "지점",
         branches,
         index=list(branches).index(st.session_state.default_branch) if st.session_state.default_branch in branches else 0,
         label_visibility="collapsed",
@@ -543,18 +544,20 @@ with col1:
     )
 
 with col2:
+    st.write("**2️⃣ 매니저명**")
     selected_manager = st.text_input(
-        "2️⃣ 매니저명",
-        placeholder="매니저명",
+        "매니저",
+        placeholder="",
         label_visibility="collapsed",
         key="manager",
         autocomplete="off"
     )
 
 with col3:
+    st.write("**3️⃣ 설계사명**")
     agent_name_input = st.text_input(
-        "3️⃣ 설계사명",
-        placeholder="설계사명",
+        "설계사",
+        placeholder="",
         label_visibility="collapsed",
         key="agent_name",
         autocomplete="off"
@@ -574,8 +577,8 @@ if selected_branch and selected_manager and agent_name_input:
         display_result(row)
     else:
         st.markdown("""
-        <div style='background: #000000; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #c41e3a;'>
-        <p style='color: #ffffff; font-weight: 600; font-size: 15px; margin: 0;'>해당하는 설계사를 선택하세요:</p>
+        <div style='background: #0a0a0a; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #9d66ff;'>
+        <p style='color: #e0e0e0; font-weight: 600; font-size: 14px; margin: 0;'>해당하는 설계사를 선택하세요:</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -594,8 +597,8 @@ if selected_branch and selected_manager and agent_name_input:
                 break
 else:
     st.markdown("""
-    <div style='text-align: center; margin-top: 60px; padding: 40px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #c41e3a;'>
-    <p style='color: #ff8a99; font-weight: 600; font-size: 16px;'>🔒 3가지 정보를 모두 입력하세요.</p>
+    <div style='text-align: center; margin-top: 60px; padding: 40px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #9d66ff;'>
+    <p style='color: #9d66ff; font-weight: 600; font-size: 16px;'>🔒 3가지 정보를 모두 입력하세요.</p>
     <p style='color: #888888; font-weight: 400; font-size: 14px; margin-top: 10px;'>① 지점명 선택 → ② 매니저명 입력 → ③ 설계사명 입력</p>
     </div>
     """, unsafe_allow_html=True)
