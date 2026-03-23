@@ -44,168 +44,165 @@ st.markdown("""
 }
 
 html, body, [data-testid="stAppViewContainer"], .main, [data-testid="stDecoration"] {
-    background: #f8f9fa !important;
-    color: #2c3e50;
+    background: #1a1a1a !important;
+    color: #e0e0e0;
 }
 
 [data-testid="stHeader"] {
-    background: rgba(255, 255, 255, 0.95) !important;
+    background: rgba(26, 26, 26, 0.95) !important;
 }
 
 h1, h2, h3 {
     font-family: 'Noto Sans KR', sans-serif;
     font-weight: 700;
     letter-spacing: -0.5px;
-    color: #2c3e50;
+    color: #ffffff;
 }
 
 input::-webkit-autofill,
 input::-webkit-autofill:hover,
 input::-webkit-autofill:focus,
 input::-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
-    box-shadow: 0 0 0 30px #ffffff inset !important;
+    -webkit-box-shadow: 0 0 0 30px #2a2a2a inset !important;
+    box-shadow: 0 0 0 30px #2a2a2a inset !important;
 }
 
 input::-webkit-autofill {
-    -webkit-text-fill-color: #2c3e50 !important;
+    -webkit-text-fill-color: #ffffff !important;
 }
 
 .stButton > button {
     font-family: 'Noto Sans KR', sans-serif;
     font-weight: 600;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #ff6b35;
     border: none;
-    border-radius: 10px;
+    border-radius: 8px;
     padding: 12px 24px;
     color: white;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
 }
 
 .stButton > button:hover {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    transform: translateY(-2px);
+    background: #ff8555;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+    transform: translateY(-1px);
 }
 
 .info-box {
-    background: white;
-    border-left: 4px solid #667eea;
+    background: #2a2a2a;
+    border-left: 4px solid #ff6b35;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: 8px;
     margin: 12px 0;
     font-size: 16px;
     line-height: 1.8;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     font-weight: 500;
-    color: #2c3e50;
+    color: #e0e0e0;
 }
 
 .cumulative-box {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #2a2a2a;
+    border-left: 4px solid #ff6b35;
     padding: 28px;
-    border-radius: 12px;
+    border-radius: 8px;
     margin: 15px 0;
     font-size: 28px;
     font-weight: 700;
-    color: white;
+    color: #ff6b35;
     text-align: center;
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     letter-spacing: 0.5px;
 }
 
 .weekly-row {
-    background: white;
-    border-left: 4px solid #48bb78;
+    background: #2a2a2a;
+    border-left: 4px solid #4a90e2;
     padding: 18px;
-    border-radius: 10px;
+    border-radius: 8px;
     margin: 10px 0;
     font-size: 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     font-weight: 600;
-    color: #2c3e50;
+    color: #e0e0e0;
 }
 
 .weekly-row.current {
-    background: linear-gradient(135deg, #ffd93d 0%, #ffb93d 100%);
-    border-left: 4px solid #f59e0b;
-    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
-    color: #92400e;
+    background: #3a3a3a;
+    border-left: 4px solid #ffa500;
+    box-shadow: 0 2px 12px rgba(255, 165, 0, 0.3);
+    color: #ffffff;
 }
 
 .bridge-box {
-    background: white;
-    border-left: 4px solid #f687b3;
+    background: #2a2a2a;
+    border-left: 4px solid #9b59b6;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: 8px;
     margin: 15px 0;
     font-size: 16px;
     line-height: 1.8;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     font-weight: 600;
-    color: #2c3e50;
+    color: #e0e0e0;
 }
 
 .mc-box {
-    background: white;
-    border-left: 4px solid #fc8181;
+    background: #2a2a2a;
+    border-left: 4px solid #e74c3c;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: 8px;
     margin: 15px 0;
     font-size: 16px;
     line-height: 1.8;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     font-weight: 600;
-    color: #2c3e50;
+    color: #e0e0e0;
 }
 
 .mc-plus-box {
-    background: white;
-    border-left: 4px solid #9f7aea;
+    background: #2a2a2a;
+    border-left: 4px solid #8e44ad;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: 8px;
     margin: 15px 0;
     font-size: 16px;
     line-height: 1.8;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     font-weight: 600;
-    color: #2c3e50;
+    color: #e0e0e0;
 }
 
 .target-box {
-    background: white;
-    border-left: 4px solid #f6ad55;
+    background: #2a2a2a;
+    border-left: 4px solid #f39c12;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: 8px;
     margin: 15px 0;
     font-size: 16px;
     line-height: 1.8;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     font-weight: 600;
-    color: #2c3e50;
+    color: #e0e0e0;
 }
 
 .search-label {
-    background: white;
-    padding: 8px 12px;
-    border-radius: 8px 8px 0 0;
     font-weight: 600;
     font-size: 13px;
-    color: #667eea;
-    margin-bottom: -8px;
-    display: inline-block;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+    color: #4a90e2;
+    margin-bottom: 6px;
+    display: block;
 }
 
 input, select {
-    background-color: #ffffff !important;
-    color: #2c3e50 !important;
-    border: 2px solid #e2e8f0 !important;
-    border-radius: 10px !important;
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border: 1px solid #3a3a3a !important;
+    border-radius: 6px !important;
     padding: 12px !important;
     font-family: 'Noto Sans KR', sans-serif !important;
     font-weight: 500 !important;
@@ -213,19 +210,20 @@ input, select {
 }
 
 input:focus, select:focus {
-    border-color: #667eea !important;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+    border-color: #4a90e2 !important;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2) !important;
+    outline: none !important;
 }
 
 input::placeholder {
-    color: #a0aec0 !important;
+    color: #666666 !important;
 }
 
 .stTextInput > label, .stSelectbox > label {
     font-weight: 600;
-    color: #667eea;
+    color: #4a90e2;
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 ::-webkit-scrollbar {
@@ -233,16 +231,16 @@ input::placeholder {
 }
 
 ::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: #1a1a1a;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: #3a3a3a;
     border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: #4a4a4a;
 }
 
 </style>
@@ -340,31 +338,31 @@ def render_mc_box(mc_challenge, mc_shortage, is_authentic=False, is_mc_plus=Fals
     
     if "최종달성" in shortage_str:
         mc_display_status = "✅ 시상금확보"
-        mc_shortage_color = "#48bb78"
+        mc_shortage_color = "#27ae60"
     elif "다음기회에" in shortage_str or "재도전" in shortage_str:
         mc_display_status = "⚪ 대상아님"
-        mc_shortage_color = "#718096"
+        mc_shortage_color = "#95a5a6"
     elif "대상아님" in shortage_str:
         mc_display_status = "⚪ 대상아님"
-        mc_shortage_color = "#718096"
+        mc_shortage_color = "#95a5a6"
     elif "미달성" in shortage_str:
         mc_display_status = "⚪ 대상아님"
-        mc_shortage_color = "#718096"
+        mc_shortage_color = "#95a5a6"
     elif is_authentic and not is_mc_plus and "전월" in str(mc_challenge):
         mc_display_status = "⚪ 대상아님"
-        mc_shortage_color = "#718096"
+        mc_shortage_color = "#95a5a6"
     elif mc_shortage_val < 0:
         mc_display_status = "✅ 시상금확보"
-        mc_shortage_color = "#48bb78"
+        mc_shortage_color = "#27ae60"
     elif mc_shortage_val == 0:
         mc_display_status = "✅ 시상금확보"
-        mc_shortage_color = "#48bb78"
+        mc_shortage_color = "#27ae60"
     else:
         mc_display_status = "🟡 도전중"
-        mc_shortage_color = "#ed8936"
+        mc_shortage_color = "#f39c12"
     
     box_class = "mc-plus-box" if is_mc_plus else "mc-box"
-    status_color = "#9f7aea" if is_mc_plus else "#ed8936"
+    status_color = "#8e44ad" if is_mc_plus else "#f39c12"
     
     st.markdown(f"""
     <div class='{box_class}'>
@@ -389,9 +387,9 @@ with col_logo:
         st.write("📊")
 
 with col_title:
-    st.markdown("<h1 style='color: #2c3e50; font-size: 32px; margin-top: 10px;'>메리츠 설계사 성과 조회</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='color: #ff6b35; font-size: 32px; margin-top: 10px;'>메리츠 설계사 성과 조회</h1>", unsafe_allow_html=True)
 
-st.markdown("<hr style='border: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
+st.markdown("<hr style='border: 1px solid #3a3a3a;'>", unsafe_allow_html=True)
 
 df = load_data_from_google_sheets()
 if df is None:
@@ -399,7 +397,7 @@ if df is None:
 
 current_week = get_current_week()
 
-st.markdown("<h3 style='color: #667eea; margin-top: 20px; margin-bottom: 20px; font-size: 20px;'>🔍 검색 정보 입력</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='color: #ffffff; margin-top: 20px; margin-bottom: 20px; font-size: 18px;'>🔍 검색 정보 입력</h3>", unsafe_allow_html=True)
 
 # 지점명 드롭다운 추가 (GA4-2지점 기본값)
 branches = sorted(df['지점명'].unique())
@@ -412,11 +410,11 @@ with col1:
 
 with col2:
     st.markdown("<div class='search-label'>👤 매니저명</div>", unsafe_allow_html=True)
-    manager_name = st.text_input("매니저명", placeholder="예: 박메리", label_visibility="collapsed", key="manager", autocomplete="off")
+    manager_name = st.text_input("매니저명", placeholder="예: 고나연", label_visibility="collapsed", key="manager", autocomplete="off")
 
 with col3:
     st.markdown("<div class='search-label'>👔 설계사명</div>", unsafe_allow_html=True)
-    agent_name = st.text_input("설계사명", placeholder="예: 홍길동", label_visibility="collapsed", key="agent", autocomplete="off")
+    agent_name = st.text_input("설계사명", placeholder="예: 김영삼", label_visibility="collapsed", key="agent", autocomplete="off")
 
 with col4:
     st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
@@ -439,7 +437,7 @@ if search_clicked:
             st.session_state.search_performed = True
             st.session_state.selected_row = filtered.iloc[0]
         else:
-            st.markdown("<p style='color:#667eea;font-weight:600;margin-top:20px;font-size:15px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
+            st.markdown("<p style='color:#4a90e2;font-weight:600;margin-top:20px;font-size:15px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
             for idx, (_, agent_row) in enumerate(filtered.iterrows()):
                 agent_display = f"{agent_row.get('지점명','N/A')} - {agent_row.get('설계사명','N/A')} ({agent_row.get('현재대리점설계사조직코드','N/A')})"
                 if st.button(agent_display, key=f"agent_{idx}", use_container_width=True):
@@ -462,12 +460,12 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
     
     with col_left:
         st.markdown("""
-        <div style='text-align: center; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);'>
-        <p style='color: white; font-weight: 600; font-size: 15px; margin: 0;'>💡 대리점 시상안을 보고 달성 시상금을 확인하세요</p>
+        <div style='text-align: center; padding: 16px; background: #2a2a2a; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ff6b35; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);'>
+        <p style='color: #ffffff; font-weight: 600; font-size: 15px; margin: 0;'>💡 대리점 시상안을 보고 달성 시상금을 확인하세요</p>
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>📋 기본 정보</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #ff6b35; font-size: 18px; margin-top: 20px;'>📋 기본 정보</h3>", unsafe_allow_html=True)
         st.markdown(f"""
         <div class='info-box'>
         <strong>설계사명:</strong> {agent_name}<br>
@@ -476,14 +474,14 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
         """, unsafe_allow_html=True)
         
         cumulative = row["누계실적"]
-        st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #ff6b35; font-size: 18px; margin-top: 20px;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
         st.markdown(f"""
         <div class='cumulative-box'>
         {format_display(cumulative)}
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #ff6b35; font-size: 18px; margin-top: 20px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
         
         week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
         for idx, week_col in enumerate(week_columns, 1):
@@ -493,17 +491,17 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
             if is_current:
                 st.markdown(f"""
                 <div class='weekly-row current'>
-                <strong>{week_col}</strong> <span style='color: #92400e; font-size: 20px;'>⭐</span> <strong style='color: #92400e;'>{format_display(week_value)}</strong>
+                <strong>{week_col}</strong> <span style='color: #ffa500; font-size: 18px;'>⭐</span> <strong style='color: #ffa500;'>{format_display(week_value)}</strong>
                 </div>
                 """, unsafe_allow_html=True)
             else:
                 st.markdown(f"""
                 <div class='weekly-row'>
-                <strong>{week_col}</strong> <strong style='color: #48bb78;'>{format_display(week_value)}</strong>
+                <strong>{week_col}</strong> <strong style='color: #4a90e2;'>{format_display(week_value)}</strong>
                 </div>
                 """, unsafe_allow_html=True)
         
-        st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #ff6b35; font-size: 18px; margin-top: 20px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
         
         if is_authentic:
             weekly_target = row["어센틱주차목표"]
@@ -520,7 +518,7 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
         """, unsafe_allow_html=True)
         
         if not is_authentic:
-            st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color: #ff6b35; font-size: 18px; margin-top: 20px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
             bridge_target = row["브릿지 도전구간"]
             bridge_shortage = row["브릿지부족최종"]
             
@@ -532,18 +530,18 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
             """, unsafe_allow_html=True)
         
         if is_authentic:
-            st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>💰 MC 성과</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color: #ff6b35; font-size: 18px; margin-top: 20px;'>💰 MC 성과</h3>", unsafe_allow_html=True)
             mc_challenge = row["MC도전구간"]
             mc_shortage = row["MC부족최종"]
             render_mc_box(mc_challenge, mc_shortage, is_authentic=True, is_mc_plus=False)
         
-        st.markdown("<h3 style='color: #9f7aea; font-size: 20px; margin-top: 20px;'>💰 MC PLUS+ 성과</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #8e44ad; font-size: 18px; margin-top: 20px;'>💰 MC PLUS+ 성과</h3>", unsafe_allow_html=True)
         mc_plus_challenge = row["MC+구간"]
         mc_plus_shortage = row["MC+부족최종"]
         render_mc_box(mc_plus_challenge, mc_plus_shortage, is_authentic=is_authentic, is_mc_plus=True)
     
     with col_right:
-        st.markdown("<h3 style='color: #667eea; font-size: 20px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #ff6b35; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
         image_id = get_image_id_by_authentic_and_partner(is_authentic, is_partner_channel, agency_name)
         image = load_leaflet_template_from_drive(image_id)
         
@@ -563,7 +561,7 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
         else:
             st.info(f"⚠️ 리플렛 이미지를 불러올 수 없습니다.\n(대리점: {agency_name})")
     
-    st.markdown("<hr style='border: 1px solid #e2e8f0; margin: 30px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border: 1px solid #3a3a3a; margin: 30px 0;'>", unsafe_allow_html=True)
     
     if st.button("🔄 초기화", use_container_width=True):
         st.session_state.search_performed = False
@@ -572,8 +570,8 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
 
 else:
     st.markdown("""
-    <div style='text-align: center; margin-top: 60px; padding: 50px; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);'>
-    <p style='color: #667eea; font-weight: 600; font-size: 18px; margin-bottom: 10px;'>🔒 매니저명과 설계사명을 입력하고 검색 버튼을 클릭하세요.</p>
-    <p style='color: #718096; font-weight: 400; font-size: 14px; margin-top: 10px;'>개인정보 보호를 위해 검색 후에만 데이터가 표시됩니다.</p>
+    <div style='text-align: center; margin-top: 60px; padding: 50px; background: #2a2a2a; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); border-left: 4px solid #ff6b35;'>
+    <p style='color: #ffffff; font-weight: 600; font-size: 18px; margin-bottom: 10px;'>동명이인이 있습니다. 선택해주세요:</p>
+    <p style='color: #95a5a6; font-weight: 400; font-size: 14px; margin-top: 10px;'>개인정보 보호를 위해 검색 후에만 데이터가 표시됩니다.</p>
     </div>
     """, unsafe_allow_html=True)
