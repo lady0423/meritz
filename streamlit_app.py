@@ -436,10 +436,20 @@ if search_clicked:
         
         if len(filtered) == 0:
             st.error(f"❌ 데이터를 찾을 수 없습니다: {selected_branch} / {manager_name} / {agent_name}")
-        else:
+        elif len(filtered) == 1:
             st.session_state.search_performed = True
             st.session_state.selected_row = filtered.iloc[0]
             st.rerun()
+        else:
+            st.markdown("<p style='color: #ffffff; font-weight: 600; margin-top: 20px; font-size: 14px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
+            
+            for idx, (_, agent_row) in enumerate(filtered.iterrows()):
+                agent_display = f"{agent_row.get('지사명', 'N/A')} - {agent_row.get('설계사명', 'N/A')} ({agent_row.get('현재대리점설계사조직코드', 'N/A')})"
+                
+                if st.button(agent_display, key=f"agent_{idx}", use_container_width=True):
+                    st.session_state.search_performed = True
+                    st.session_state.selected_row = agent_row
+                    st.rerun()
 
 # ===== 검색 후 결과 표시 =====
 if st.session_state.search_performed and st.session_state.selected_row is not None:
