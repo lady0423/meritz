@@ -192,7 +192,7 @@ input::-webkit-autofill {
 
 .search-result-item {
     background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
-    border-left: 5px solid #ffb366;
+    border-left: 5px solid #9d66ff;
     padding: 12px;
     border-radius: 8px;
     margin: 8px 0;
@@ -202,7 +202,7 @@ input::-webkit-autofill {
 
 .search-result-item:hover {
     background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
-    box-shadow: 0 4px 12px rgba(255, 179, 102, 0.3);
+    box-shadow: 0 4px 12px rgba(157, 102, 255, 0.3);
 }
 
 input, select {
@@ -271,12 +271,10 @@ def format_display(value):
     if v == "" or v == "nan":
         return "₩ 0"
     
-    # 숫자인지 확인
     try:
         num = float(v.replace(",", ""))
         return f"₩ {num:,.0f}"
     except:
-        # 문자 (최종달성 등)
         return v
 
 def get_current_week():
@@ -344,8 +342,6 @@ def render_mc_box(mc_challenge, mc_shortage, is_authentic=False, is_mc_plus=Fals
     mc_shortage_display = format_display(mc_shortage)
     
     mc_shortage_val = safe_float(mc_shortage)
-    
-    # 상태 결정
     shortage_str = str(mc_shortage).strip()
     
     if "최종달성" in shortage_str:
@@ -389,6 +385,7 @@ def display_result(row):
     agent_name = str(row["설계사명"]).strip()
     branch = str(row["지사명"]).strip()
     agency_name = str(row["대리점"]).strip()
+    code = str(row["현재대리점설계사조직코드"]).strip()
     
     is_authentic = safe_float(row.get("어센틱구분", 0)) == 1
     is_partner_channel = "파트너채널" in branch
@@ -405,12 +402,13 @@ def display_result(row):
         st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📋 기본 정보</h3>", unsafe_allow_html=True)
         st.markdown(f"""
         <div class='info-box'>
-        <strong>설계사명:</strong> {agent_name}<br>
-        <strong>지사:</strong> {branch}
+        <strong>대리점:</strong> {agency_name}<br>
+        <strong>지사:</strong> {branch}<br>
+        <strong>설계사명:</strong> {agent_name} ({code})
         </div>
         """, unsafe_allow_html=True)
         
-        cumulative = row["누계실적"]
+        cumulative = row.get("누계실적", 0)
         st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
         st.markdown(f"""
         <div class='cumulative-box'>
@@ -423,7 +421,7 @@ def display_result(row):
         current_week = get_current_week()
         week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
         for idx, week_col in enumerate(week_columns, 1):
-            week_value = row[week_col]
+            week_value = row.get(week_col, 0)
             is_current = (idx == current_week)
             
             if is_current:
@@ -522,51 +520,37 @@ df = load_data_from_google_sheets()
 if df is None:
     st.stop()
 
-st.markdown("<h3 style='color: #ffffff; margin-top: 20px; font-size: 18px;'>🔍 설계사 검색</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='color: #ffffff; margin-top: 20px; font-size: 18px;'>🔍 설계사 정보 조회</h3>", unsafe_allow_html=True)
 
-search_input = st.text_input("매니저명 + 설계사명으로 검색 (예: 박메리 김주혁)", placeholder="", label_visibility="collapsed", key="search")
+col1, col2, col3 = st.columns([2, 2, 2])
 
-if search_input:
-    # 검색 필터링
-    search_lower = search_input.lower()
+with col1:
+    branches = sorted(df["지점명"].unique())
+    selected_branch = st.selectbox("1️⃣ 지점명 선택", branches, label_visibility="collapsed", key="branch")
+
+with col2:
+    managers = sorted(df[df["지점명"] == selected_branch]["매니저"].unique())
+    selected_manager = st.text_input("2️⃣ 매니저명 입력", placeholder="예: 김대길", label_visibility="collapsed", key="manager")
+
+with col3:
+    agent_name_input = st.text_input("3️⃣ 설계사명 입력", placeholder="예: 이정희", label_visibility="collapsed", key="agent_name")
+
+if selected_branch and selected_manager and agent_name_input:
     filtered = df[
-        (df["매니저"].astype(str).str.lower().str.contains(search_lower, na=False)) |
-        (df["설계사명"].astype(str).str.lower().str.contains(search_lower, na=False))
+        (df["지점명"].astype(str).str.strip() == selected_branch) &
+        (df["매니저"].astype(str).str.strip() == selected_manager) &
+        (df["설계사명"].astype(str).str.strip() == agent_name_input)
     ]
     
     if len(filtered) == 0:
-        st.warning("🔎 검색 결과가 없습니다.")
+        st.warning("🔎 해당 설계사를 찾을 수 없습니다.")
     else:
-        st.markdown(f"**검색 결과: {len(filtered)}명**")
-        
-        for idx, (_, row) in enumerate(filtered.iterrows()):
-            manager = str(row["매니저"]).strip()
-            agent_name = str(row["설계사명"]).strip()
-            branch = str(row["지사명"]).strip()
-            code = str(row["현재대리점설계사조직코드"]).strip()
-            
-            if st.button(
-                f"🧑‍💼 {manager} - {agent_name} ({code})",
-                key=f"agent_{idx}",
-                use_container_width=True
-            ):
-                st.session_state.selected_agent = (manager, code, idx)
+        row = filtered.iloc[0]
+        display_result(row)
 else:
     st.markdown("""
     <div style='text-align: center; margin-top: 60px; padding: 40px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #c41e3a;'>
-    <p style='color: #ff8a99; font-weight: 600; font-size: 16px;'>🔒 매니저명 또는 설계사명을 입력하세요.</p>
-    <p style='color: #888888; font-weight: 400; font-size: 14px; margin-top: 10px;'>검색 후 원하는 설계사를 클릭하면 상세 정보가 표시됩니다.</p>
+    <p style='color: #ff8a99; font-weight: 600; font-size: 16px;'>🔒 3가지 정보를 모두 입력하세요.</p>
+    <p style='color: #888888; font-weight: 400; font-size: 14px; margin-top: 10px;'>① 지점명 선택 → ② 매니저명 입력 → ③ 설계사명 입력</p>
     </div>
     """, unsafe_allow_html=True)
-
-# 선택된 설계사 표시
-if "selected_agent" in st.session_state and st.session_state.selected_agent:
-    manager, code, idx = st.session_state.selected_agent
-    filtered = df[
-        (df["매니저"].astype(str).str.strip() == manager) &
-        (df["현재대리점설계사조직코드"].astype(str).str.strip() == code)
-    ]
-    
-    if len(filtered) > 0:
-        st.markdown("<hr style='border: 1px solid #c41e3a; margin: 30px 0;'>", unsafe_allow_html=True)
-        display_result(filtered.iloc[0])
