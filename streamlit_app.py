@@ -50,15 +50,12 @@ st.markdown("""
     
     body {
         background-color: #0f0f0f;
-        color: #ffffff;
     }
     
     .stApp {
         background-color: #0f0f0f;
-        color: #ffffff;
     }
     
-    /* 입력 필드 스타일 */
     .stTextInput > div > div > input,
     .stSelectbox > div > div > select {
         background-color: #1a1a1a !important;
@@ -73,27 +70,19 @@ st.markdown("""
         color: #888888 !important;
     }
     
-    /* 자동완성 제거 */
-    input {
-        autocomplete: "off" !important;
-    }
-    
     input:-webkit-autofill {
         -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
         -webkit-text-fill-color: #ffffff !important;
     }
     
-    /* 버튼 스타일 */
     .stButton > button {
         background: linear-gradient(135deg, #4a4a4a 0%, #2a2a2a 100%) !important;
-        color: #ffffff !important;
+        color: white !important;
         border: 1px solid #555555 !important;
         border-radius: 8px !important;
         padding: 10px 20px !important;
         font-weight: 600 !important;
         font-size: 14px !important;
-        width: 100% !important;
-        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
     }
     
     .stButton > button:hover {
@@ -101,7 +90,6 @@ st.markdown("""
         border: 1px solid #666666 !important;
     }
     
-    /* 정보 박스 스타일 */
     .info-box {
         background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
         border-left: 5px solid #ffffff;
@@ -109,7 +97,6 @@ st.markdown("""
         padding: 15px;
         margin: 10px 0;
         color: #ffffff;
-        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     }
     
     .info-box p {
@@ -118,7 +105,6 @@ st.markdown("""
         line-height: 1.6;
     }
     
-    /* 누적 성과 박스 */
     .cumulative-box {
         background: linear-gradient(135deg, #2a2410 0%, #1a1410 100%);
         border-left: 5px solid #ffdc00;
@@ -126,10 +112,8 @@ st.markdown("""
         padding: 15px;
         margin: 10px 0;
         color: #ffffff;
-        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     }
     
-    /* 주차 성과 박스 */
     .weekly-box {
         background: linear-gradient(135deg, #1a2a1a 0%, #131a13 100%);
         border-left: 5px solid #ffffff;
@@ -137,7 +121,6 @@ st.markdown("""
         padding: 15px;
         margin: 10px 0;
         color: #ffffff;
-        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     }
     
     .weekly-box p {
@@ -151,7 +134,6 @@ st.markdown("""
         border-left: 5px solid #ffa500;
     }
     
-    /* 목표 박스 */
     .target-box {
         background: linear-gradient(135deg, #1a1a2a 0%, #131320 100%);
         border-left: 5px solid #ffffff;
@@ -159,7 +141,6 @@ st.markdown("""
         padding: 15px;
         margin: 10px 0;
         color: #ffffff;
-        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     }
     
     .target-box p {
@@ -168,7 +149,6 @@ st.markdown("""
         line-height: 1.5;
     }
     
-    /* 브릿지 박스 */
     .bridge-box {
         background: linear-gradient(135deg, #2a1a10 0%, #1a0f00 100%);
         border-left: 5px solid #ff9f6d;
@@ -176,10 +156,8 @@ st.markdown("""
         padding: 15px;
         margin: 10px 0;
         color: #ffffff;
-        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     }
     
-    /* MC 박스 */
     .mc-box {
         background: linear-gradient(135deg, #1a2a2a 0%, #131a1a 100%);
         border-left: 5px solid #ffffff;
@@ -187,10 +165,8 @@ st.markdown("""
         padding: 15px;
         margin: 10px 0;
         color: #ffffff;
-        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     }
     
-    /* MC+ 박스 */
     .mcplus-box {
         background: linear-gradient(135deg, #1a2a3a 0%, #131a2a 100%);
         border-left: 5px solid #66ccff;
@@ -198,10 +174,8 @@ st.markdown("""
         padding: 15px;
         margin: 10px 0;
         color: #ffffff;
-        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     }
     
-    /* 제목 스타일 */
     h1, h2, h3, h4, h5, h6 {
         color: #ffffff;
         font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
@@ -231,7 +205,6 @@ st.markdown("""
         line-height: 1.6;
     }
     
-    /* 스크롤바 스타일 */
     ::-webkit-scrollbar {
         width: 8px;
     }
@@ -253,14 +226,12 @@ st.markdown("""
 
 # ===== 헬퍼 함수 =====
 def safe_float(value):
-    """안전한 float 변환"""
     try:
         return float(value) if value else 0
     except (ValueError, TypeError):
         return 0
 
 def format_display(value):
-    """숫자 포맷팅"""
     value = safe_float(value)
     if value == int(value):
         return f"{int(value):,}"
@@ -268,7 +239,6 @@ def format_display(value):
         return f"{value:,.2f}"
 
 def get_current_week():
-    """현재 주차 반환 (3월 기준)"""
     kst = pytz.timezone('Asia/Seoul')
     today = datetime.now(kst).date()
     march_start = today.replace(day=1)
@@ -286,7 +256,6 @@ def get_current_week():
         return 5
 
 def get_image_id_by_authentic_and_partner(authentic, partner):
-    """인증여부와 파트너사 기준 이미지 ID 조회"""
     if pd.isna(authentic) or pd.isna(partner):
         return LEAFLET_TEMPLATE_IDS.get("none")
     
@@ -299,7 +268,6 @@ def get_image_id_by_authentic_and_partner(authentic, partner):
         return LEAFLET_TEMPLATE_IDS.get(partner_str, LEAFLET_TEMPLATE_IDS.get("none"))
 
 def extract_branch_number(branch_name):
-    """지점명에서 숫자 추출"""
     match = re.search(r'-(\d+)', str(branch_name))
     if match:
         return int(match.group(1))
@@ -307,7 +275,6 @@ def extract_branch_number(branch_name):
 
 @st.cache_data(ttl=300)
 def load_data_from_google_sheets():
-    """Google Sheets에서 데이터 로드"""
     csv_url = f"https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/export?format=csv"
     try:
         df = pd.read_csv(csv_url)
@@ -317,7 +284,6 @@ def load_data_from_google_sheets():
         return None
 
 def load_leaflet_template_from_drive(file_id):
-    """Google Drive에서 이미지 로드"""
     if not file_id or file_id == "none":
         return None
     
@@ -334,13 +300,11 @@ def load_leaflet_template_from_drive(file_id):
     return None
 
 def load_logo():
-    """로고 로드"""
     if os.path.exists("meritz.png"):
         return Image.open("meritz.png")
     return None
 
 def render_mc_box(status, shortage, shortage_final):
-    """MC 상태 박스 렌더링"""
     status_str = str(status).strip()
     
     if status_str == "달성":
@@ -365,8 +329,6 @@ def render_mc_box(status, shortage, shortage_final):
     """
 
 def display_result(row):
-    """조회 결과 표시 - 원래 완벽한 코드 그대로"""
-    # 팁 문구 - 조회 후에만 표시
     st.markdown("""
     <div style='text-align: center; padding: 15px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #ffb366; margin-bottom: 20px;'>
     <p style='color: #ffb366; font-weight: 600; font-size: 15px; margin: 0;'>💡 아래 시상안을 보고 달성 시상금을 확인하세요</p>
@@ -376,9 +338,9 @@ def display_result(row):
     col_left, col_right = st.columns([1, 1])
     
     with col_left:
-        # 기본 정보
         st.markdown(f"""
         <div class='info-box'>
+            <p><strong>📋 기본 정보</strong></p>
             <p><strong>지사명:</strong> {row.get('지사명', 'N/A')}</p>
             <p><strong>지점명:</strong> {row.get('지점명', 'N/A')}</p>
             <p><strong>설계사명:</strong> {row.get('설계사명', 'N/A')} ({row.get('현재대리점설계사조직코드', 'N/A')})</p>
@@ -386,16 +348,14 @@ def display_result(row):
         </div>
         """, unsafe_allow_html=True)
         
-        # 3월 누계 실적
         cumulative = format_display(row.get('3월실적', 0))
         st.markdown(f"""
         <div class='cumulative-box'>
-            <h4 style='color: #ffdc00; margin: 0;'>💰 3월 누계 실적</h4>
+            <h4 style='color: #ffdc00; margin: 0;'>💰 3월 누계실적</h4>
             <p style='font-size: 24px; font-weight: 700; color: #ffdc00; margin: 10px 0;'>{cumulative}</p>
         </div>
         """, unsafe_allow_html=True)
         
-        # 주차별 성과
         st.markdown("<h4 style='color: #ffffff;'>📊 주차별 성과</h4>", unsafe_allow_html=True)
         current_week = get_current_week()
         
@@ -411,7 +371,6 @@ def display_result(row):
             </div>
             """, unsafe_allow_html=True)
         
-        # 당주 목표
         target = format_display(row.get('주차목표', 0))
         shortage = format_display(row.get('주차부족', 0))
         
@@ -423,7 +382,6 @@ def display_result(row):
         </div>
         """, unsafe_allow_html=True)
         
-        # 브릿지 (인증 아닌 경우만)
         authentic = str(row.get('어센틱구분', '0')).strip()
         if authentic != "1":
             st.markdown("<h4 style='color: #ffffff;'>🌉 브릿지 성과</h4>", unsafe_allow_html=True)
@@ -433,7 +391,6 @@ def display_result(row):
             
             st.markdown(render_mc_box(bridge_status, bridge_shortage, bridge_shortage_final), unsafe_allow_html=True)
         
-        # MC (인증인 경우만)
         if authentic == "1":
             st.markdown("<h4 style='color: #ffffff;'>💎 MC 성과</h4>", unsafe_allow_html=True)
             mc_status = str(row.get('MC도전구간', '')).strip()
@@ -442,7 +399,6 @@ def display_result(row):
             
             st.markdown(render_mc_box(mc_status, mc_shortage, mc_shortage_final), unsafe_allow_html=True)
         
-        # MC+ (모두)
         st.markdown("<h4 style='color: #ffffff;'>🚀 MC PLUS + 성과</h4>", unsafe_allow_html=True)
         mcplus_status = str(row.get('MC+구간', '')).strip()
         mcplus_shortage = format_display(row.get('MC부족', 0))
@@ -451,7 +407,6 @@ def display_result(row):
         st.markdown(render_mc_box(mcplus_status, mcplus_shortage, mcplus_shortage_final), unsafe_allow_html=True)
     
     with col_right:
-        # 리플렛 이미지
         st.markdown("<h4 style='color: #ffffff;'>📄 대리점 리플렛</h4>", unsafe_allow_html=True)
         
         authentic = str(row.get('어센틱구분', '0')).strip()
@@ -463,7 +418,6 @@ def display_result(row):
         if leaflet_image:
             st.image(leaflet_image, use_container_width=True)
             
-            # 다운로드 버튼
             with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
                 leaflet_image.save(tmp_file.name)
                 with open(tmp_file.name, "rb") as f:
@@ -487,17 +441,20 @@ if logo:
 else:
     st.title("메리츠 설계사 성과 조회")
 
-# 데이터 로드
 df = load_data_from_google_sheets()
 
 if df is None:
     st.error("데이터를 로드할 수 없습니다.")
 else:
-    # 세션 상태 초기화
     if "selected_agent" not in st.session_state:
         st.session_state.selected_agent = None
     
-    # 입력 필드
+    st.markdown("""
+    <div style='text-align: center; padding: 15px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #ffb366; margin-bottom: 20px;'>
+    <p style='color: #ffb366; font-weight: 600; font-size: 15px; margin: 0;'>💡 아래 시상안을 보고 달성 시상금을 확인하세요</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
     st.markdown("<h3 style='color: #ffffff; font-size: 20px;'>🔍 설계사 정보 조회</h3>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
@@ -510,18 +467,16 @@ else:
     
     with col2:
         st.markdown("<label style='color: #ffffff; font-weight: 600; font-size: 14px;'>2️⃣ 매니저명</label>", unsafe_allow_html=True)
-        manager_name = st.text_input("매니저명 입력", placeholder="박메리", label_visibility="collapsed", autocomplete="off")
+        manager_name = st.text_input("매니저명 입력", placeholder="박메리", label_visibility="collapsed")
     
     with col3:
         st.markdown("<label style='color: #ffffff; font-weight: 600; font-size: 14px;'>3️⃣ 설계사명</label>", unsafe_allow_html=True)
-        agent_name = st.text_input("설계사명 입력", placeholder="홍길동", label_visibility="collapsed", autocomplete="off")
+        agent_name = st.text_input("설계사명 입력", placeholder="홍길동", label_visibility="collapsed")
     
-    # 검색 버튼
     search_col1, search_col2, search_col3 = st.columns([1, 1, 1])
     with search_col2:
         search_clicked = st.button("🔍 검색", use_container_width=True)
     
-    # 검색 로직
     if search_clicked:
         if not manager_name or not agent_name:
             st.error("⚠️ 매니저명과 설계사명을 모두 입력해주세요.")
@@ -547,11 +502,9 @@ else:
                         st.session_state.selected_agent = agent_row
                         st.rerun()
     
-    # 조회 결과 표시
     if st.session_state.selected_agent is not None:
         display_result(st.session_state.selected_agent)
     
-    # 초기화 버튼
     col_reset1, col_reset2, col_reset3 = st.columns([1, 1, 1])
     with col_reset2:
         if st.button("🔄 초기화", use_container_width=True):
