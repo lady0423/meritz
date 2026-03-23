@@ -41,51 +41,66 @@ st.set_page_config(page_title="메리츠 설계사 성과 조회", layout="wide"
 # ===== CSS 스타일링 =====
 st.markdown("""
 <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    
     * {
-        font-family: 'Noto Sans KR', sans-serif;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        letter-spacing: -0.3px;
     }
     
     body {
         background-color: #0f0f0f;
+        color: #ffffff;
     }
     
     .stApp {
         background-color: #0f0f0f;
+        color: #ffffff;
     }
     
-    /* 입력 필드 스타일 - 테두리 제거, 자동완성 비활성화 */
+    /* 입력 필드 스타일 - 테두리 제거, 자동완성 완벽 비활성화 */
     .stTextInput > div > div > input,
     .stSelectbox > div > div > select {
         background-color: #1a1a1a !important;
         color: #ffffff !important;
         border: none !important;
         border-radius: 8px !important;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
+        font-size: 14px !important;
     }
     
     .stTextInput > div > div > input::placeholder {
         color: #888888 !important;
     }
     
-    /* 자동완성 제거 */
+    /* 자동완성 완벽 제거 */
     input:-webkit-autofill {
+        -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
+        -webkit-text-fill-color: #ffffff !important;
+        -webkit-transition: background-color 5000s ease-in-out 0s !important;
+    }
+    
+    input:-webkit-autofill:focus {
         -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
         -webkit-text-fill-color: #ffffff !important;
     }
     
-    /* 버튼 스타일 */
+    /* 버튼 스타일 - 어두운 색상 */
     .stButton > button {
-        background: linear-gradient(135deg, #c41e3a 0%, #8b0000 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 20px;
-        font-weight: 600;
-        font-size: 14px;
-        width: 100%;
+        background: linear-gradient(135deg, #4a4a4a 0%, #2a2a2a 100%) !important;
+        color: #ffffff !important;
+        border: 1px solid #555555 !important;
+        border-radius: 8px !important;
+        padding: 10px 20px !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        width: 100% !important;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
     }
     
     .stButton > button:hover {
-        background: linear-gradient(135deg, #8b0000 0%, #600000 100%);
+        background: linear-gradient(135deg, #555555 0%, #333333 100%) !important;
+        border: 1px solid #666666 !important;
     }
     
     /* 정보 박스 스타일 */
@@ -96,6 +111,13 @@ st.markdown("""
         padding: 15px;
         margin: 10px 0;
         color: #ffffff;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    }
+    
+    .info-box p {
+        margin: 8px 0;
+        font-size: 14px;
+        line-height: 1.6;
     }
     
     /* 누적 성과 박스 */
@@ -106,6 +128,7 @@ st.markdown("""
         padding: 15px;
         margin: 10px 0;
         color: #ffffff;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     }
     
     /* 주차 성과 박스 */
@@ -116,6 +139,13 @@ st.markdown("""
         padding: 15px;
         margin: 10px 0;
         color: #ffffff;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    }
+    
+    .weekly-box p {
+        margin: 8px 0;
+        font-size: 14px;
+        line-height: 1.5;
     }
     
     .weekly-current {
@@ -131,6 +161,13 @@ st.markdown("""
         padding: 15px;
         margin: 10px 0;
         color: #ffffff;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    }
+    
+    .target-box p {
+        margin: 8px 0;
+        font-size: 14px;
+        line-height: 1.5;
     }
     
     /* 브릿지 박스 */
@@ -141,6 +178,7 @@ st.markdown("""
         padding: 15px;
         margin: 10px 0;
         color: #ffffff;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     }
     
     /* MC 박스 */
@@ -151,6 +189,7 @@ st.markdown("""
         padding: 15px;
         margin: 10px 0;
         color: #ffffff;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     }
     
     /* MC+ 박스 */
@@ -161,6 +200,47 @@ st.markdown("""
         padding: 15px;
         margin: 10px 0;
         color: #ffffff;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    }
+    
+    /* 제목 스타일 */
+    h1, h2, h3, h4, h5, h6 {
+        color: #ffffff;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        font-weight: 600;
+        letter-spacing: -0.3px;
+    }
+    
+    h1 {
+        font-size: 32px;
+        margin-bottom: 20px;
+    }
+    
+    h3 {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+    
+    h4 {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+    
+    p {
+        color: #ffffff;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+    
+    /* 동명이인 선택 버튼 - 어둡게 */
+    .duplicate-selector {
+        background-color: #1a1a1a !important;
+        border: 1px solid #444444 !important;
+        border-radius: 8px !important;
+        padding: 12px !important;
+        margin: 8px 0 !important;
+        color: #ffffff !important;
     }
     
     /* 스크롤바 스타일 */
@@ -179,15 +259,6 @@ st.markdown("""
     
     ::-webkit-scrollbar-thumb:hover {
         background: #888888;
-    }
-    
-    /* 텍스트 스타일 */
-    h1, h2, h3 {
-        color: #ffffff;
-    }
-    
-    p {
-        color: #ffffff;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -298,10 +369,10 @@ def render_mc_box(status, shortage, shortage_final):
     shortage_final_val = format_display(shortage_final)
     
     return f"""
-    <div style='background: {bg}; border-left: 5px solid {color}; border-radius: 8px; padding: 12px; margin: 8px 0;'>
-        <p style='color: {color}; font-weight: 600; margin: 5px 0;'>상태: {status_str}</p>
-        <p style='color: #ffffff; margin: 5px 0;'>도전구간: {shortage_val}</p>
-        <p style='color: #ffdc00; margin: 5px 0;'>부족최종: {shortage_final_val}</p>
+    <div style='background: {bg}; border-left: 5px solid {color}; border-radius: 8px; padding: 12px; margin: 8px 0; font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;'>
+        <p style='color: {color}; font-weight: 600; margin: 5px 0; font-size: 14px;'>상태: {status_str}</p>
+        <p style='color: #ffffff; margin: 5px 0; font-size: 14px;'>도전구간: {shortage_val}</p>
+        <p style='color: #ffdc00; margin: 5px 0; font-size: 14px;'>부족최종: {shortage_final_val}</p>
     </div>
     """
 
@@ -309,7 +380,7 @@ def display_result(row):
     """조회 결과 표시"""
     # 팁 문구 - 조회 후에만 표시
     st.markdown("""
-    <div style='text-align: center; padding: 15px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #ffb366; margin-bottom: 20px;'>
+    <div style='text-align: center; padding: 15px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #ffb366; margin-bottom: 20px; font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;'>
     <p style='color: #ffb366; font-weight: 600; font-size: 15px; margin: 0;'>💡 아래 시상안을 보고 달성 시상금을 확인하세요</p>
     </div>
     """, unsafe_allow_html=True)
@@ -331,13 +402,13 @@ def display_result(row):
         cumulative = format_display(row.get('3월실적', 0))
         st.markdown(f"""
         <div class='cumulative-box'>
-            <h4 style='color: #ffdc00; margin: 0;'>💰 3월 누계 실적</h4>
+            <h4 style='color: #ffdc00; margin: 0; font-size: 16px;'>💰 3월 누계 실적</h4>
             <p style='font-size: 24px; font-weight: 700; color: #ffdc00; margin: 10px 0;'>{cumulative}</p>
         </div>
         """, unsafe_allow_html=True)
         
         # 주차별 성과
-        st.markdown("<h4 style='color: #ffffff;'>📊 주차별 성과</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color: #ffffff; font-size: 16px;'>📊 주차별 성과</h4>", unsafe_allow_html=True)
         current_week = get_current_week()
         
         for week in range(1, 6):
@@ -348,7 +419,7 @@ def display_result(row):
             
             st.markdown(f"""
             <div class='{week_class}'>
-                <p style='color: #ffffff; margin: 5px 0;'>{week_emoji} {week}주차: <strong>{value}</strong></p>
+                <p style='color: #ffffff; margin: 5px 0; font-size: 14px;'>{week_emoji} {week}주차: <strong>{value}</strong></p>
             </div>
             """, unsafe_allow_html=True)
         
@@ -358,16 +429,16 @@ def display_result(row):
         
         st.markdown(f"""
         <div class='target-box'>
-            <h4 style='color: #ffffff; margin: 0;'>🎯 당주 목표</h4>
-            <p style='color: #ffffff; margin: 5px 0;'>목표: <strong>{target}</strong></p>
-            <p style='color: #ffdc00; margin: 5px 0;'>부족: <strong>{shortage}</strong></p>
+            <h4 style='color: #ffffff; margin: 0; font-size: 16px;'>🎯 당주 목표</h4>
+            <p style='color: #ffffff; margin: 5px 0; font-size: 14px;'>목표: <strong>{target}</strong></p>
+            <p style='color: #ffdc00; margin: 5px 0; font-size: 14px;'>부족: <strong>{shortage}</strong></p>
         </div>
         """, unsafe_allow_html=True)
         
         # 브릿지 (인증 아닌 경우만)
         authentic = str(row.get('어센틱구분', '0')).strip()
         if authentic != "1":
-            st.markdown("<h4 style='color: #ffffff;'>🌉 브릿지 성과</h4>", unsafe_allow_html=True)
+            st.markdown("<h4 style='color: #ffffff; font-size: 16px;'>🌉 브릿지 성과</h4>", unsafe_allow_html=True)
             bridge_status = str(row.get('브릿지 달성구간', '')).strip()
             bridge_shortage = format_display(row.get('브릿지 도전구간', 0))
             bridge_shortage_final = format_display(row.get('브릿지 부족', 0))
@@ -376,7 +447,7 @@ def display_result(row):
         
         # MC (인증인 경우만)
         if authentic == "1":
-            st.markdown("<h4 style='color: #ffffff;'>💎 MC 성과</h4>", unsafe_allow_html=True)
+            st.markdown("<h4 style='color: #ffffff; font-size: 16px;'>💎 MC 성과</h4>", unsafe_allow_html=True)
             mc_status = str(row.get('MC도전구간', '')).strip()
             mc_shortage = format_display(row.get('MC부족', 0))
             mc_shortage_final = format_display(row.get('MC부족최종', 0))
@@ -384,7 +455,7 @@ def display_result(row):
             st.markdown(render_mc_box(mc_status, mc_shortage, mc_shortage_final), unsafe_allow_html=True)
         
         # MC+ (모두)
-        st.markdown("<h4 style='color: #ffffff;'>🚀 MC PLUS + 성과</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color: #ffffff; font-size: 16px;'>🚀 MC PLUS + 성과</h4>", unsafe_allow_html=True)
         mcplus_status = str(row.get('MC+구간', '')).strip()
         mcplus_shortage = format_display(row.get('MC부족', 0))
         mcplus_shortage_final = format_display(row.get('MC부족최종', 0))
@@ -393,7 +464,7 @@ def display_result(row):
     
     with col_right:
         # 리플렛 이미지
-        st.markdown("<h4 style='color: #ffffff;'>📄 대리점 리플렛</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color: #ffffff; font-size: 16px;'>📄 대리점 리플렛</h4>", unsafe_allow_html=True)
         
         authentic = str(row.get('어센틱구분', '0')).strip()
         partner = row.get('대리점', 'none')
@@ -437,25 +508,27 @@ else:
     # 세션 상태 초기화
     if "selected_agent" not in st.session_state:
         st.session_state.selected_agent = None
+    if "search_performed" not in st.session_state:
+        st.session_state.search_performed = False
     
     # 입력 필드
-    st.markdown("<h3 style='color: #ffffff;'>🔍 설계사 정보 조회</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color: #ffffff; font-size: 20px;'>🔍 설계사 정보 조회</h3>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.markdown("<label style='color: #ffffff; font-weight: 600;'>1️⃣ 지점명</label>", unsafe_allow_html=True)
+        st.markdown("<label style='color: #ffffff; font-weight: 600; font-size: 14px;'>1️⃣ 지점명</label>", unsafe_allow_html=True)
         branches = sorted(df["지점명"].dropna().unique(), key=extract_branch_number)
         default_branch = "GA4-2지점" if "GA4-2지점" in branches else (branches[0] if branches else "")
         selected_branch = st.selectbox("지점 선택", branches, index=list(branches).index(default_branch) if default_branch in branches else 0, label_visibility="collapsed")
     
     with col2:
-        st.markdown("<label style='color: #ffffff; font-weight: 600;'>2️⃣ 매니저명</label>", unsafe_allow_html=True)
-        manager_name = st.text_input("매니저명 입력", placeholder="박메리", label_visibility="collapsed", key="manager_input")
+        st.markdown("<label style='color: #ffffff; font-weight: 600; font-size: 14px;'>2️⃣ 매니저명</label>", unsafe_allow_html=True)
+        manager_name = st.text_input("매니저명 입력", placeholder="박메리", label_visibility="collapsed", key=f"manager_input_{st.session_state.search_performed}")
     
     with col3:
-        st.markdown("<label style='color: #ffffff; font-weight: 600;'>3️⃣ 설계사명</label>", unsafe_allow_html=True)
-        agent_name = st.text_input("설계사명 입력", placeholder="홍길동", label_visibility="collapsed", key="agent_input")
+        st.markdown("<label style='color: #ffffff; font-weight: 600; font-size: 14px;'>3️⃣ 설계사명</label>", unsafe_allow_html=True)
+        agent_name = st.text_input("설계사명 입력", placeholder="홍길동", label_visibility="collapsed", key=f"agent_input_{st.session_state.search_performed}")
     
     # 검색 버튼
     search_col1, search_col2, search_col3 = st.columns([1, 1, 1])
@@ -476,15 +549,17 @@ else:
             if len(filtered) == 0:
                 st.error(f"❌ 데이터를 찾을 수 없습니다: {selected_branch} / {manager_name} / {agent_name}")
             elif len(filtered) == 1:
+                st.session_state.search_performed = True
                 display_result(filtered.iloc[0])
             else:
-                st.markdown("<p style='color: #ffffff; font-weight: 600; margin-top: 20px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
+                st.markdown("<p style='color: #ffffff; font-weight: 600; margin-top: 20px; font-size: 14px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
                 
                 for idx, (_, agent_row) in enumerate(filtered.iterrows()):
                     agent_display = f"{agent_row.get('지사명', 'N/A')} - {agent_row.get('설계사명', 'N/A')} ({agent_row.get('현재대리점설계사조직코드', 'N/A')})"
                     
                     if st.button(agent_display, key=f"agent_{idx}", use_container_width=True):
                         st.session_state.selected_agent = agent_row
+                        st.session_state.search_performed = True
                         st.rerun()
                 
                 if st.session_state.selected_agent is not None:
@@ -495,6 +570,5 @@ else:
     with col_reset2:
         if st.button("🔄 초기화", use_container_width=True):
             st.session_state.selected_agent = None
-            st.session_state.manager_input = ""
-            st.session_state.agent_input = ""
+            st.session_state.search_performed = not st.session_state.search_performed
             st.rerun()
