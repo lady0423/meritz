@@ -422,7 +422,7 @@ if search_clicked:
             with col_left:
                 st.markdown("""
                 <div style='text-align: center; padding: 15px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #ffb366; margin-bottom: 20px;'>
-                <p style='color: #ffb366; font-weight: 600; font-size: 15px; margin: 0;'>💡 아래 시상안을 보고 달성 시상금을 확인하세요</p>
+                <p style='color: #ffb366; font-weight: 600; font-size: 15px; margin: 0;'>💡 대리점 시상안을 보고 달성 시상금을 확인하세요</p>
                 </div>
                 """, unsafe_allow_html=True)
 
