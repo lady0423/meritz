@@ -354,7 +354,6 @@ def render_mc_box(mc_challenge, mc_shortage, is_authentic=False, is_mc_plus=Fals
         mc_display_status = "⚪ 대상아님"
         mc_shortage_color = "#999999"
     elif is_authentic and not is_mc_plus and "전월" in str(mc_challenge):
-        # MC 도전구간에 "전월 20만원 미달성" 같은 텍스트 있으면 대상아님
         mc_display_status = "⚪ 대상아님"
         mc_shortage_color = "#999999"
     elif mc_shortage_val < 0:
@@ -405,7 +404,6 @@ if "selected_row" not in st.session_state:
 
 st.markdown("<h3 style='color: #ffffff; margin-top: 20px; font-size: 18px;'>🔍 검색 정보 입력</h3>", unsafe_allow_html=True)
 
-# ===== 검색 UI - 변경된 부분 =====
 col1, col2, col3 = st.columns([1, 2, 2])
 with col1:
     st.markdown("<label style='color: #ffffff; font-weight: 600; font-size: 14px;'>1️⃣ 지점명</label>", unsafe_allow_html=True)
@@ -449,6 +447,7 @@ if search_clicked:
                 if st.button(agent_display, key=f"agent_{idx}", use_container_width=True):
                     st.session_state.search_performed = True
                     st.session_state.selected_row = agent_row
+                    st.rerun()
 
 # ===== 검색 후 결과 표시 =====
 if st.session_state.search_performed and st.session_state.selected_row is not None:
@@ -537,58 +536,6 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
             <strong>부족금액 →</strong> {format_display(bridge_shortage)}
             </div>
             """, unsafe_allow_html=True)
-        
-        # ===== MC / MC+ 성과 =====
-        if is_authentic:
-            # MC (어센틱만)
-            st.markdown("<h3 style='color: #ffffff; font-size: 18px;'>💰 MC 성과</h3>", unsafe_allow_html=True)
-            mc_challenge = row["MC도전구간"]
-            mc_shortage = row["MC부족최종"]
-            render_mc_box(mc_challenge, mc_shortage, is_authentic=True, is_mc_plus=False)
-        
-        # MC+ (모두)
-        st.markdown("<h3 style='color: #66ccff; font-size: 18px;'>💰 MC PLUS+ 성과</h3>", unsafe_allow_html=True)
-        mc_plus_challenge = row["MC+구간"]
-        mc_plus_shortage = row["MC+부족최종"]
-        render_mc_box(mc_plus_challenge, mc_plus_shortage, is_authentic=is_authentic, is_mc_plus=True)
-    
-    with col_right:
-        st.markdown("<h3 style='color: #ffffff; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
-        image_id = get_image_id_by_authentic_and_partner(is_authentic, is_partner_channel, agency_name)
-        image = load_leaflet_template_from_drive(image_id)
-        
-        if image:
-            st.image(image, use_container_width=True)
-            
-            with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
-                image.save(tmp_file.name, "JPEG")
-                with open(tmp_file.name, "rb") as f:
-                    st.download_button(
-                        label="📥 리플렛 다운로드",
-                        data=f.read(),
-                        file_name=f"{agency_name}_leaflet.jpg",
-                        mime="image/jpeg",
-                        use_container_width=True
-                    )
-        else:
-            st.info(f"⚠️ 리플렛 이미지를 불러올 수 없습니다.\n(대리점: {agency_name})")
-    
-    st.markdown("<hr style='border: 1px solid #555555; margin: 30px 0;'>", unsafe_allow_html=True)
-    
-    col_reset = st.columns(1)[0]
-    with col_reset:
-        if st.button("🔄 초기화", use_container_width=True):
-            st.session_state.search_performed = False
-            st.session_state.selected_row = None
-            st.rerun()
-
-else:
-    st.markdown("""
-    <div style='text-align: center; margin-top: 60px; padding: 40px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #555555;'>
-    <p style='color: #ffffff; font-weight: 600; font-size: 16px;'>🔒 매니저명과 설계사명을 입력하고 검색 버튼을 클릭하세요.</p>
-    <p style='color: #888888; font-weight: 400; font-size: 14px; margin-top: 10px;'>개인정보 보호를 위해 검색 후에만 데이터가 표시됩니다.</p>
-    </div>
-    """, unsafe_allow_html=True)
         
         # ===== MC / MC+ 성과 =====
         if is_authentic:
