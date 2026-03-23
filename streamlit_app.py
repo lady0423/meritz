@@ -261,12 +261,22 @@ input::placeholder {
 }
 
 .login-box {
-    max-width: 400px;
-    margin: 100px auto;
-    padding: 40px;
+    max-width: 350px;
+    margin: 80px auto;
+    padding: 30px;
     background: white;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.login-box h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.login-box input {
+    font-size: 14px !important;
+    padding: 10px !important;
 }
 
 </style>
@@ -281,6 +291,10 @@ def safe_float(value):
         v = str(value).strip()
         if v == "":
             return 0.0
+        # "10만원" 형태 처리
+        if "만원" in v:
+            num_part = v.replace("만원", "").strip()
+            return float(num_part) * 10000
         return float(v.replace(",", ""))
     except:
         return 0.0
@@ -290,6 +304,11 @@ def format_display(value):
     if v == "" or v == "nan":
         return "₩ 0"
     try:
+        # "10만원" 형태 처리
+        if "만원" in v:
+            num_part = v.replace("만원", "").strip()
+            num = float(num_part) * 10000
+            return f"₩ {num:,.0f}"
         num = float(v.replace(",", ""))
         return f"₩ {num:,.0f}"
     except:
@@ -427,13 +446,13 @@ if not st.session_state.authenticated:
     
     st.markdown("""
     <div class='login-box'>
-    <h2 style='text-align: center; color: #4a5568; margin-bottom: 30px;'>🔐 로그인</h2>
+    <h2 style='text-align: center; color: #4a5568;'>🔐 로그인</h2>
     </div>
     """, unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
-        password_input = st.text_input("비밀번호", type="password", placeholder="비밀번호를 입력하세요", label_visibility="collapsed")
+        password_input = st.text_input("비밀번호", type="password", placeholder="비밀번호 입력", label_visibility="collapsed")
         
         if st.button("로그인", use_container_width=True):
             if password_input == PASSWORD:
@@ -596,22 +615,18 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
         
         st.markdown("<h3 style='color: #4a5568; font-size: 20px; margin-top: 20px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
         
-        # 정확한 컬럼명 사용
+        # S열(주차목표)와 U열(주차부족최종) 직접 조회
         if is_authentic:
-            weekly_target_raw = row.get("어센틱주차목표", 0)
-            weekly_shortage_raw = row.get("어센틱주차부족", 0)
+            weekly_target_raw = row.get("어센틱주차목표", "0")
+            weekly_shortage_raw = row.get("어센틱주차부족", "0")
         else:
-            weekly_target_raw = row.get("주차목표", 0)
-            weekly_shortage_raw = row.get("주차부족최종", 0)
-        
-        # 값 변환
-        weekly_target = safe_float(weekly_target_raw)
-        weekly_shortage = safe_float(weekly_shortage_raw)
+            weekly_target_raw = row.get("주차목표", "0")
+            weekly_shortage_raw = row.get("주차부족최종", "0")
         
         st.markdown(f"""
         <div class='target-box'>
-        <strong>목표 →</strong> {format_display(weekly_target)}<br>
-        <strong>부족금액 →</strong> {format_display(weekly_shortage)}
+        <strong>목표 →</strong> {format_display(weekly_target_raw)}<br>
+        <strong>부족금액 →</strong> {format_display(weekly_shortage_raw)}
         </div>
         """, unsafe_allow_html=True)
         
