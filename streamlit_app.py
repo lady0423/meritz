@@ -33,6 +33,8 @@ LEAFLET_TEMPLATE_IDS = {
     "none": "19ZnaS2s4X8JKv27NW9FFuMUVh32i3hc0"
 }
 
+PASSWORD = "2603"
+
 st.set_page_config(page_title="메리츠 실적현황", layout="wide")
 
 st.markdown("""
@@ -225,7 +227,7 @@ input::placeholder {
     font-size: 14px;
 }
 
-/* 셀렉트박스 스타일 개선 */
+/* 셀렉트박스 내부 텍스트 표시 */
 [data-baseweb="select"] {
     width: 100%;
 }
@@ -234,6 +236,12 @@ input::placeholder {
     background-color: #ffffff !important;
     border: 2px solid #e2e8f0 !important;
     border-radius: 10px !important;
+    min-height: 44px;
+}
+
+[data-baseweb="select"] > div > div {
+    color: #2c3e50 !important;
+    font-weight: 500 !important;
 }
 
 ::-webkit-scrollbar {
@@ -251,6 +259,16 @@ input::placeholder {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+}
+
+/* 로그인 박스 스타일 */
+.login-box {
+    max-width: 400px;
+    margin: 100px auto;
+    padding: 40px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 </style>
@@ -383,6 +401,8 @@ def render_mc_box(mc_challenge, mc_shortage, is_authentic=False, is_mc_plus=Fals
     """, unsafe_allow_html=True)
 
 # 세션 상태 초기화
+if 'authenticated' not in st.session_state:
+    st.session_state.authenticated = False
 if 'search_performed' not in st.session_state:
     st.session_state.search_performed = False
 if 'selected_row' not in st.session_state:
@@ -392,8 +412,41 @@ if 'show_duplicates' not in st.session_state:
 if 'filtered_data' not in st.session_state:
     st.session_state.filtered_data = None
 if 'last_search_params' not in st.session_state:
-    st.session_state.last_search_params = {'branch': '', 'manager': '', 'agent': ''}
+    st.session_state.last_search_params = {'branch': '', 'agent': ''}
 
+# 로그인 화면
+if not st.session_state.authenticated:
+    col_logo, col_title = st.columns([1, 4])
+    with col_logo:
+        logo = load_logo()
+        if logo:
+            st.image(logo, width=80)
+    
+    with col_title:
+        st.markdown("<h1 style='color: #2c3e50; font-size: 32px; margin-top: 10px;'>메리츠 설계사 성과 조회</h1>", unsafe_allow_html=True)
+    
+    st.markdown("<hr style='border: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div class='login-box'>
+    <h2 style='text-align: center; color: #4a5568; margin-bottom: 30px;'>🔐 로그인</h2>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        password_input = st.text_input("비밀번호", type="password", placeholder="비밀번호를 입력하세요", label_visibility="collapsed")
+        
+        if st.button("로그인", use_container_width=True):
+            if password_input == PASSWORD:
+                st.session_state.authenticated = True
+                st.rerun()
+            else:
+                st.error("❌ 비밀번호가 올바르지 않습니다.")
+    
+    st.stop()
+
+# 로그인 후 메인 화면
 col_logo, col_title = st.columns([1, 4])
 with col_logo:
     logo = load_logo()
@@ -419,27 +472,22 @@ st.markdown("<h3 style='color: #4a5568; margin-top: 20px; margin-bottom: 20px; f
 ga4_branches = [f"GA4-{i}지점" for i in range(1, 14)]
 default_idx = 1  # GA4-2지점이 인덱스 1
 
-col1, col2, col3, col4 = st.columns([1.5, 1.5, 1.5, 1])
+col1, col2, col3 = st.columns([2, 2, 1])
 with col1:
     st.markdown("<div class='search-label'>📍 지점명</div>", unsafe_allow_html=True)
     selected_branch = st.selectbox("지점명", ga4_branches, index=default_idx, label_visibility="collapsed", key="branch")
 
 with col2:
-    st.markdown("<div class='search-label'>👤 매니저명</div>", unsafe_allow_html=True)
-    manager_name = st.text_input("매니저명", placeholder="예: 박메리", label_visibility="collapsed", key="manager", autocomplete="off")
-
-with col3:
     st.markdown("<div class='search-label'>👔 설계사명</div>", unsafe_allow_html=True)
     agent_name = st.text_input("설계사명", placeholder="예: 홍길동", label_visibility="collapsed", key="agent", autocomplete="off")
 
-with col4:
+with col3:
     st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
     search_clicked = st.button("🔍 검색", use_container_width=True)
 
 # 입력값 변경 감지
 current_params = {
     'branch': selected_branch,
-    'manager': manager_name,
     'agent': agent_name
 }
 
@@ -452,13 +500,12 @@ if current_params != st.session_state.last_search_params:
 
 # 검색 로직
 if search_clicked:
-    if not manager_name or not agent_name:
-        st.error("⚠️ 매니저명과 설계사명을 모두 입력해주세요.")
+    if not agent_name:
+        st.error("⚠️ 설계사명을 입력해주세요.")
         st.session_state.search_performed = False
         st.session_state.show_duplicates = False
     else:
         filtered = df[(df["지점명"].astype(str).str.strip() == selected_branch.strip()) &
-                      (df["매니저"].astype(str).str.strip() == manager_name.strip()) &
                       (df["설계사명"].astype(str).str.strip() == agent_name.strip())]
         
         if len(filtered) == 0:
@@ -479,7 +526,7 @@ if st.session_state.show_duplicates and st.session_state.filtered_data is not No
     st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:20px;font-size:15px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
     
     for idx, (_, agent_row) in enumerate(st.session_state.filtered_data.iterrows()):
-        agency_branch = str(agent_row.get('대리점지사명','N/A')).strip()
+        agency_branch = str(agent_row.get('지사명','N/A')).strip()
         agent_display_name = str(agent_row.get('설계사명','N/A')).strip()
         agent_code = str(agent_row.get('현재대리점설계사조직코드','N/A')).strip()
         
@@ -496,7 +543,7 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
     
     agent_name_display = str(row["설계사명"]).strip()
     agent_code = str(row.get("현재대리점설계사조직코드", "N/A")).strip()
-    agency_branch = str(row.get("대리점지사명", "N/A")).strip()
+    agency_branch = str(row.get("지사명", "N/A")).strip()
     agency_name = str(row["대리점"]).strip()
     branch = str(row["지점명"]).strip()
     
@@ -551,19 +598,13 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
         
         st.markdown("<h3 style='color: #4a5568; font-size: 20px; margin-top: 20px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
         
-        # 현재주차 목표는 해당 주차 컬럼명으로 가져오기
-        current_week_col = f"{current_week}주차"
-        if current_week_col in row:
-            current_week_performance = safe_float(row[current_week_col])
-        else:
-            current_week_performance = 0
-        
+        # 주차목표와 주차부족최종 사용
         if is_authentic:
-            weekly_target = safe_float(row["어센틱주차목표"])
-            weekly_shortage = weekly_target - current_week_performance
+            weekly_target = row["어센틱주차목표"]
+            weekly_shortage = row["어센틱주차부족"]
         else:
-            weekly_target = safe_float(row["주차목표"])
-            weekly_shortage = weekly_target - current_week_performance
+            weekly_target = row["주차목표"]
+            weekly_shortage = row["주차부족최종"]
         
         st.markdown(f"""
         <div class='target-box'>
@@ -627,7 +668,7 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
 elif not st.session_state.show_duplicates:
     st.markdown("""
     <div style='text-align: center; margin-top: 60px; padding: 50px; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);'>
-    <p style='color: #4a5568; font-weight: 600; font-size: 18px; margin-bottom: 10px;'>🔒 매니저명과 설계사명을 입력하고 검색 버튼을 클릭하세요.</p>
+    <p style='color: #4a5568; font-weight: 600; font-size: 18px; margin-bottom: 10px;'>🔒 지점명과 설계사명을 입력하고 검색 버튼을 클릭하세요.</p>
     <p style='color: #718096; font-weight: 400; font-size: 14px; margin-top: 10px;'>개인정보 보호를 위해 검색 후에만 데이터가 표시됩니다.</p>
     </div>
     """, unsafe_allow_html=True)
