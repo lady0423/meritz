@@ -482,7 +482,8 @@ def display_result(row):
     st.markdown("<hr style='border: 1px solid #c41e3a; margin: 30px 0;'>", unsafe_allow_html=True)
     
     if st.button("🔄 초기화", use_container_width=True):
-        st.session_state.clear()
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
         st.rerun()
 
 col_logo, col_title = st.columns([1, 4])
@@ -506,16 +507,20 @@ st.markdown("<h3 style='color: #ffffff; margin-top: 20px; font-size: 18px;'>🔍
 
 col1, col2, col3 = st.columns([2, 2, 2])
 
+# 1단계: 지점명 선택 (GA4-1 ~ GA4-13 순서대로)
 with col1:
-    branches = sorted(df["지점명"].dropna().unique())
-    selected_branch = st.selectbox("1️⃣ 지점명 선택", branches, label_visibility="collapsed", key="branch")
+    branches = sorted(df["지점명"].dropna().unique(), key=lambda x: int(x.split("-")[1]) if "-" in x else 0)
+    selected_branch = st.selectbox("1️⃣ 지점명", branches, label_visibility="collapsed", key="branch")
 
+# 2단계: 매니저명 입력
 with col2:
-    selected_manager = st.text_input("2️⃣ 매니저명 입력", placeholder="박메리", label_visibility="collapsed", key="manager")
+    selected_manager = st.text_input("2️⃣ 매니저명", placeholder="박메리", label_visibility="collapsed", key="manager")
 
+# 3단계: 설계사명 입력
 with col3:
-    agent_name_input = st.text_input("3️⃣ 설계사명 입력", placeholder="홍길동", label_visibility="collapsed", key="agent_name")
+    agent_name_input = st.text_input("3️⃣ 설계사명", placeholder="홍길동", label_visibility="collapsed", key="agent_name")
 
+# 필터링 로직
 if selected_branch and selected_manager and agent_name_input:
     filtered = df[
         (df["지점명"].astype(str).str.strip() == selected_branch) &
@@ -525,9 +530,27 @@ if selected_branch and selected_manager and agent_name_input:
     
     if len(filtered) == 0:
         st.warning("🔎 해당 설계사를 찾을 수 없습니다.")
-    else:
+    elif len(filtered) == 1:
+        # 1명만 검색되면 바로 표시
         row = filtered.iloc[0]
         display_result(row)
+    else:
+        # 동명이인이 있을 때 선택창 표시
+        st.markdown("#### 해당하는 설계사를 선택하세요:")
+        
+        for idx, (_, row) in enumerate(filtered.iterrows()):
+            agency = str(row["대리점"]).strip()
+            branch = str(row["지사명"]).strip()
+            name = str(row["설계사명"]).strip()
+            code = str(row["현재대리점설계사조직코드"]).strip()
+            
+            if st.button(
+                f"🧑‍💼 {agency} / {branch} / {name} ({code})",
+                key=f"agent_{idx}",
+                use_container_width=True
+            ):
+                display_result(row)
+                break
 else:
     st.markdown("""
     <div style='text-align: center; margin-top: 60px; padding: 40px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #c41e3a;'>
