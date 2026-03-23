@@ -466,9 +466,18 @@ current_week = get_current_week()
 
 st.markdown("<h3 style='color: #4a5568; margin-top: 20px; margin-bottom: 20px; font-size: 20px;'>🔍 검색 정보 입력</h3>", unsafe_allow_html=True)
 
-# GA4 지점 리스트 (GA4-1지점부터 GA4-13지점까지)
-ga4_branches = [f"GA4-{i}지점" for i in range(1, 14)]
-default_idx = 1  # GA4-2지점이 인덱스 1
+# 구글 시트에서 지점명 자동으로 가져오기
+if df is not None and '지점명' in df.columns:
+    ga4_branches = sorted(df['지점명'].dropna().unique().tolist())
+    # GA4-2지점이 있으면 그것을 기본값으로, 없으면 첫 번째 지점
+    if "GA4-2지점" in ga4_branches:
+        default_idx = ga4_branches.index("GA4-2지점")
+    else:
+        default_idx = 0 if len(ga4_branches) > 0 else 0
+else:
+    # 데이터 로드 실패 시 기본값
+    ga4_branches = [f"GA4-{i}지점" for i in range(1, 14)]
+    default_idx = 1
 
 col1, col2, col3 = st.columns([2, 2, 1])
 with col1:
