@@ -190,6 +190,21 @@ input::-webkit-autofill {
     font-weight: 600;
 }
 
+.search-result-item {
+    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
+    border-left: 5px solid #ffb366;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 8px 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.search-result-item:hover {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    box-shadow: 0 4px 12px rgba(255, 179, 102, 0.3);
+}
+
 input, select {
     background-color: #1a1a1a !important;
     color: #ffffff !important;
@@ -346,7 +361,6 @@ def render_mc_box(mc_challenge, mc_shortage, is_authentic=False, is_mc_plus=Fals
         mc_display_status = "⚪ 대상아님"
         mc_shortage_color = "#999999"
     elif is_authentic and not is_mc_plus and "전월" in str(mc_challenge):
-        # MC 도전구간에 "전월 20만원 미달성" 같은 텍스트 있으면 대상아님
         mc_display_status = "⚪ 대상아님"
         mc_shortage_color = "#999999"
     elif mc_shortage_val < 0:
@@ -370,6 +384,127 @@ def render_mc_box(mc_challenge, mc_shortage, is_authentic=False, is_mc_plus=Fals
     </div>
     """, unsafe_allow_html=True)
 
+def display_result(row):
+    """검색 결과 표시"""
+    agent_name = str(row["설계사명"]).strip()
+    branch = str(row["지사명"]).strip()
+    agency_name = str(row["대리점"]).strip()
+    
+    is_authentic = safe_float(row.get("어센틱구분", 0)) == 1
+    is_partner_channel = "파트너채널" in branch
+    
+    col_left, col_right = st.columns([1.5, 1])
+    
+    with col_left:
+        st.markdown("""
+        <div style='text-align: center; padding: 15px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #ffb366; margin-bottom: 20px;'>
+        <p style='color: #ffb366; font-weight: 600; font-size: 15px; margin: 0;'>💡 아래 시상안을 보고 달성 시상금을 확인하세요</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📋 기본 정보</h3>", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class='info-box'>
+        <strong>설계사명:</strong> {agent_name}<br>
+        <strong>지사:</strong> {branch}
+        </div>
+        """, unsafe_allow_html=True)
+        
+        cumulative = row["누계실적"]
+        st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class='cumulative-box'>
+        {format_display(cumulative)}
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
+        
+        current_week = get_current_week()
+        week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
+        for idx, week_col in enumerate(week_columns, 1):
+            week_value = row[week_col]
+            is_current = (idx == current_week)
+            
+            if is_current:
+                st.markdown(f"""
+                <div class='weekly-row current'>
+                <strong>{week_col}</strong> <span style='color: #ffcc00; font-size: 20px;'>⭐</span> <strong style='color: #ffcc00;'>{format_display(week_value)}</strong>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div class='weekly-row'>
+                <strong>{week_col}</strong> <strong style='color: #66cc66;'>{format_display(week_value)}</strong>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
+        
+        if is_authentic:
+            weekly_target = row.get("어센틱주차목표", 0)
+            weekly_shortage = row.get("어센틱주차부족최종", 0)
+        else:
+            weekly_target = row.get("주차목표", 0)
+            weekly_shortage = row.get("주차부족최종", 0)
+        
+        st.markdown(f"""
+        <div class='target-box'>
+        <strong>목표 →</strong> {format_display(weekly_target)}<br>
+        <strong>부족금액 →</strong> {format_display(weekly_shortage)}
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if not is_authentic:
+            st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
+            bridge_target = row.get("브릿지 도전구간", 0)
+            bridge_shortage = row.get("브릿지부족최종", 0)
+            
+            st.markdown(f"""
+            <div class='bridge-box'>
+            <strong>목표 →</strong> {format_display(bridge_target)}<br>
+            <strong>부족금액 →</strong> {format_display(bridge_shortage)}
+            </div>
+            """, unsafe_allow_html=True)
+        
+        if is_authentic:
+            st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>💰 MC 성과</h3>", unsafe_allow_html=True)
+            mc_challenge = row.get("MC도전구간", 0)
+            mc_shortage = row.get("MC부족최종", 0)
+            render_mc_box(mc_challenge, mc_shortage, is_authentic=True, is_mc_plus=False)
+        
+        st.markdown("<h3 style='color: #9d66ff; font-size: 18px;'>💰 MC PLUS+ 성과</h3>", unsafe_allow_html=True)
+        mc_plus_challenge = row.get("MC+구간", 0)
+        mc_plus_shortage = row.get("MC+부족최종", 0)
+        render_mc_box(mc_plus_challenge, mc_plus_shortage, is_authentic=is_authentic, is_mc_plus=True)
+    
+    with col_right:
+        st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
+        image_id = get_image_id_by_authentic_and_partner(is_authentic, is_partner_channel, agency_name)
+        image = load_leaflet_template_from_drive(image_id)
+        
+        if image:
+            st.image(image, use_container_width=True)
+            
+            with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
+                image.save(tmp_file.name, "JPEG")
+                with open(tmp_file.name, "rb") as f:
+                    st.download_button(
+                        label="📥 리플렛 다운로드",
+                        data=f.read(),
+                        file_name=f"{agency_name}_leaflet.jpg",
+                        mime="image/jpeg",
+                        use_container_width=True
+                    )
+        else:
+            st.info(f"⚠️ 리플렛 이미지를 불러올 수 없습니다.\n(대리점: {agency_name})")
+    
+    st.markdown("<hr style='border: 1px solid #c41e3a; margin: 30px 0;'>", unsafe_allow_html=True)
+    
+    if st.button("🔄 초기화", use_container_width=True):
+        st.session_state.selected_agent = None
+        st.rerun()
+
 col_logo, col_title = st.columns([1, 4])
 with col_logo:
     logo = load_logo()
@@ -387,159 +522,51 @@ df = load_data_from_google_sheets()
 if df is None:
     st.stop()
 
-current_week = get_current_week()
+st.markdown("<h3 style='color: #ffffff; margin-top: 20px; font-size: 18px;'>🔍 설계사 검색</h3>", unsafe_allow_html=True)
 
-st.markdown("<h3 style='color: #ffffff; margin-top: 20px; font-size: 18px;'>🔍 검색 정보 입력</h3>", unsafe_allow_html=True)
-col1, col2, col3 = st.columns([2, 2, 1])
-with col1:
-    manager_name = st.text_input("매니저명", placeholder="예: 박메리", label_visibility="collapsed", key="manager", autocomplete="off")
-with col2:
-    agent_code = st.text_input("설계사 코드", placeholder="예: 7로 시작하는 숫자", label_visibility="collapsed", key="code", autocomplete="off")
-with col3:
-    search_clicked = st.button("🔍 검색", use_container_width=True)
+search_input = st.text_input("매니저명 + 설계사명으로 검색 (예: 박메리 김주혁)", placeholder="", label_visibility="collapsed", key="search")
 
-if search_clicked:
-    if not manager_name or not agent_code:
-        st.error("⚠️ 매니저명과 설계사 코드를 모두 입력해주세요.")
+if search_input:
+    # 검색 필터링
+    search_lower = search_input.lower()
+    filtered = df[
+        (df["매니저"].astype(str).str.lower().str.contains(search_lower, na=False)) |
+        (df["설계사명"].astype(str).str.lower().str.contains(search_lower, na=False))
+    ]
+    
+    if len(filtered) == 0:
+        st.warning("🔎 검색 결과가 없습니다.")
     else:
-        filtered = df[(df["매니저"].astype(str).str.strip() == manager_name.strip()) &
-                      (df["현재대리점설계사조직코드"].astype(str).str.strip() == agent_code.strip())]
+        st.markdown(f"**검색 결과: {len(filtered)}명**")
         
-        if len(filtered) == 0:
-            st.error(f"❌ 데이터를 찾을 수 없습니다: {manager_name} / {agent_code}")
-        else:
-            row = filtered.iloc[0]
-            
+        for idx, (_, row) in enumerate(filtered.iterrows()):
+            manager = str(row["매니저"]).strip()
             agent_name = str(row["설계사명"]).strip()
             branch = str(row["지사명"]).strip()
-            agency_name = str(row["대리점"]).strip()
+            code = str(row["현재대리점설계사조직코드"]).strip()
             
-            is_authentic = safe_float(row["어센틱구분"]) == 1
-            is_partner_channel = "파트너채널" in branch
-            
-            col_left, col_right = st.columns([1.5, 1])
-            
-            with col_left:
-                st.markdown("""
-                <div style='text-align: center; padding: 15px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #ffb366; margin-bottom: 20px;'>
-                <p style='color: #ffb366; font-weight: 600; font-size: 15px; margin: 0;'>💡 대리점 시상안을 보고 달성 시상금을 확인하세요</p>
-                </div>
-                """, unsafe_allow_html=True)
-
-                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📋 기본 정보</h3>", unsafe_allow_html=True)
-                st.markdown(f"""
-                <div class='info-box'>
-                <strong>설계사명:</strong> {agent_name}<br>
-                <strong>지사:</strong> {branch}
-                </div>
-                """, unsafe_allow_html=True)
-                
-                cumulative = row["누계실적"]
-                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
-                st.markdown(f"""
-                <div class='cumulative-box'>
-                {format_display(cumulative)}
-                </div>
-                """, unsafe_allow_html=True)
-                
-                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
-                
-                week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
-                for idx, week_col in enumerate(week_columns, 1):
-                    week_value = row[week_col]
-                    is_current = (idx == current_week)
-                    
-                    if is_current:
-                        st.markdown(f"""
-                        <div class='weekly-row current'>
-                        <strong>{week_col}</strong> <span style='color: #ffcc00; font-size: 20px;'>⭐</span> <strong style='color: #ffcc00;'>{format_display(week_value)}</strong>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    else:
-                        st.markdown(f"""
-                        <div class='weekly-row'>
-                        <strong>{week_col}</strong> <strong style='color: #66cc66;'>{format_display(week_value)}</strong>
-                        </div>
-                        """, unsafe_allow_html=True)
-                
-                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
-                
-                # ===== 정확한 컬럼명 매핑 =====
-                if is_authentic:
-                    # 어센틱구분 = 1
-                    weekly_target = row["어센틱주차목표"]
-                    weekly_shortage = row["어센틱주차부족최종"]
-                else:
-                    # 어센틱구분 = 0
-                    weekly_target = row["주차목표"]
-                    weekly_shortage = row["주차부족최종"]
-                
-                st.markdown(f"""
-                <div class='target-box'>
-                <strong>목표 →</strong> {format_display(weekly_target)}<br>
-                <strong>부족금액 →</strong> {format_display(weekly_shortage)}
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # ===== 브릿지 성과 (비어센틱만 표시) =====
-                if not is_authentic:
-                    st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
-                    bridge_target = row["브릿지 도전구간"]
-                    bridge_shortage = row["브릿지부족최종"]
-                    
-                    st.markdown(f"""
-                    <div class='bridge-box'>
-                    <strong>목표 →</strong> {format_display(bridge_target)}<br>
-                    <strong>부족금액 →</strong> {format_display(bridge_shortage)}
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                # ===== MC / MC+ 성과 =====
-                if is_authentic:
-                    # MC (어센틱만)
-                    st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>💰 MC 성과</h3>", unsafe_allow_html=True)
-                    mc_challenge = row["MC도전구간"]
-                    mc_shortage = row["MC부족최종"]
-                    render_mc_box(mc_challenge, mc_shortage, is_authentic=True, is_mc_plus=False)
-                
-                # MC+ (모두)
-                st.markdown("<h3 style='color: #9d66ff; font-size: 18px;'>💰 MC PLUS+ 성과</h3>", unsafe_allow_html=True)
-                mc_plus_challenge = row["MC+구간"]
-                mc_plus_shortage = row["MC+부족최종"]
-                render_mc_box(mc_plus_challenge, mc_plus_shortage, is_authentic=is_authentic, is_mc_plus=True)
-            
-            with col_right:
-                st.markdown("<h3 style='color: #ff8a99; font-size: 18px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
-                image_id = get_image_id_by_authentic_and_partner(is_authentic, is_partner_channel, agency_name)
-                image = load_leaflet_template_from_drive(image_id)
-                
-                if image:
-                    st.image(image, use_container_width=True)
-                    
-                    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
-                        image.save(tmp_file.name, "JPEG")
-                        with open(tmp_file.name, "rb") as f:
-                            st.download_button(
-                                label="📥 리플렛 다운로드",
-                                data=f.read(),
-                                file_name=f"{agency_name}_leaflet.jpg",
-                                mime="image/jpeg",
-                                use_container_width=True
-                            )
-                else:
-                    st.info(f"⚠️ 리플렛 이미지를 불러올 수 없습니다.\n(대리점: {agency_name})")
-            
-            st.markdown("<hr style='border: 1px solid #c41e3a; margin: 30px 0;'>", unsafe_allow_html=True)
-            
-            col_reset = st.columns(1)[0]
-            with col_reset:
-                if st.button("🔄 초기화", use_container_width=True):
-                    st.rerun()
-
+            if st.button(
+                f"🧑‍💼 {manager} - {agent_name} ({code})",
+                key=f"agent_{idx}",
+                use_container_width=True
+            ):
+                st.session_state.selected_agent = (manager, code, idx)
 else:
     st.markdown("""
     <div style='text-align: center; margin-top: 60px; padding: 40px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #c41e3a;'>
-    <p style='color: #ff8a99; font-weight: 600; font-size: 16px;'>🔒 매니저명과 설계사 코드를 입력하고 검색 버튼을 클릭하세요.</p>
-    <p style='color: #888888; font-weight: 400; font-size: 14px; margin-top: 10px;'>개인정보 보호를 위해 검색 후에만 데이터가 표시됩니다.</p>
+    <p style='color: #ff8a99; font-weight: 600; font-size: 16px;'>🔒 매니저명 또는 설계사명을 입력하세요.</p>
+    <p style='color: #888888; font-weight: 400; font-size: 14px; margin-top: 10px;'>검색 후 원하는 설계사를 클릭하면 상세 정보가 표시됩니다.</p>
     </div>
     """, unsafe_allow_html=True)
+
+# 선택된 설계사 표시
+if "selected_agent" in st.session_state and st.session_state.selected_agent:
+    manager, code, idx = st.session_state.selected_agent
+    filtered = df[
+        (df["매니저"].astype(str).str.strip() == manager) &
+        (df["현재대리점설계사조직코드"].astype(str).str.strip() == code)
+    ]
+    
+    if len(filtered) > 0:
+        st.markdown("<hr style='border: 1px solid #c41e3a; margin: 30px 0;'>", unsafe_allow_html=True)
+        display_result(filtered.iloc[0])
