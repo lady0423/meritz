@@ -190,21 +190,6 @@ input::-webkit-autofill {
     font-weight: 600;
 }
 
-.search-result-item {
-    background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%);
-    border-left: 5px solid #9d66ff;
-    padding: 12px;
-    border-radius: 8px;
-    margin: 8px 0;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.search-result-item:hover {
-    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
-    box-shadow: 0 4px 12px rgba(157, 102, 255, 0.3);
-}
-
 input, select {
     background-color: #1a1a1a !important;
     color: #ffffff !important;
@@ -252,7 +237,6 @@ input::placeholder {
 """, unsafe_allow_html=True)
 
 def safe_float(value):
-    """숫자를 float로 변환"""
     if pd.isna(value):
         return 0.0
     if value == "" or value is None:
@@ -266,7 +250,6 @@ def safe_float(value):
         return 0.0
 
 def format_display(value):
-    """원본 값 그대로 표시 (숫자면 포맷, 문자면 그대로)"""
     v = str(value).strip()
     if v == "" or v == "nan":
         return "₩ 0"
@@ -381,7 +364,6 @@ def render_mc_box(mc_challenge, mc_shortage, is_authentic=False, is_mc_plus=Fals
     """, unsafe_allow_html=True)
 
 def display_result(row):
-    """검색 결과 표시"""
     agent_name = str(row["설계사명"]).strip()
     branch = str(row["지사명"]).strip()
     agency_name = str(row["대리점"]).strip()
@@ -500,7 +482,7 @@ def display_result(row):
     st.markdown("<hr style='border: 1px solid #c41e3a; margin: 30px 0;'>", unsafe_allow_html=True)
     
     if st.button("🔄 초기화", use_container_width=True):
-        st.session_state.selected_agent = None
+        st.session_state.clear()
         st.rerun()
 
 col_logo, col_title = st.columns([1, 4])
@@ -525,15 +507,14 @@ st.markdown("<h3 style='color: #ffffff; margin-top: 20px; font-size: 18px;'>🔍
 col1, col2, col3 = st.columns([2, 2, 2])
 
 with col1:
-    branches = sorted(df["지점명"].unique())
+    branches = sorted(df["지점명"].dropna().unique())
     selected_branch = st.selectbox("1️⃣ 지점명 선택", branches, label_visibility="collapsed", key="branch")
 
 with col2:
-    managers = sorted(df[df["지점명"] == selected_branch]["매니저"].unique())
-    selected_manager = st.text_input("2️⃣ 매니저명 입력", placeholder="예: 김대길", label_visibility="collapsed", key="manager")
+    selected_manager = st.text_input("2️⃣ 매니저명 입력", placeholder="박메리", label_visibility="collapsed", key="manager")
 
 with col3:
-    agent_name_input = st.text_input("3️⃣ 설계사명 입력", placeholder="예: 이정희", label_visibility="collapsed", key="agent_name")
+    agent_name_input = st.text_input("3️⃣ 설계사명 입력", placeholder="홍길동", label_visibility="collapsed", key="agent_name")
 
 if selected_branch and selected_manager and agent_name_input:
     filtered = df[
