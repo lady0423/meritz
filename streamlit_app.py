@@ -217,6 +217,14 @@ input::placeholder {
     font-family: 'Noto Sans KR', sans-serif;
 }
 
+.stSelectbox [data-baseweb="select"] {
+    border: none !important;
+}
+
+.stSelectbox [data-baseweb="select"]::before {
+    border: none !important;
+}
+
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -518,20 +526,40 @@ st.markdown("<h3 style='color: #ffffff; margin-top: 20px; font-size: 18px;'>🔍
 
 col1, col2, col3 = st.columns([2, 2, 2])
 
-# 1단계: 지점명 선택 (GA4-1 ~ GA4-13 순서대로)
+# 초기값 설정
+if "branch_init" not in st.session_state:
+    st.session_state.branch_init = True
+    branches_list = sorted(df["지점명"].dropna().unique(), key=extract_branch_number)
+    st.session_state.default_branch = "GA4-2지점" if "GA4-2지점" in branches_list else branches_list[0]
+
 with col1:
     branches = sorted(df["지점명"].dropna().unique(), key=extract_branch_number)
-    selected_branch = st.selectbox("1️⃣ 지점명", branches, label_visibility="collapsed", key="branch")
+    selected_branch = st.selectbox(
+        "1️⃣ 지점명",
+        branches,
+        index=list(branches).index(st.session_state.default_branch) if st.session_state.default_branch in branches else 0,
+        label_visibility="collapsed",
+        key="branch"
+    )
 
-# 2단계: 매니저명 입력
 with col2:
-    selected_manager = st.text_input("2️⃣ 매니저명", placeholder="박메리", label_visibility="collapsed", key="manager")
+    selected_manager = st.text_input(
+        "2️⃣ 매니저명",
+        placeholder="매니저명",
+        label_visibility="collapsed",
+        key="manager",
+        autocomplete="off"
+    )
 
-# 3단계: 설계사명 입력
 with col3:
-    agent_name_input = st.text_input("3️⃣ 설계사명", placeholder="홍길동", label_visibility="collapsed", key="agent_name")
+    agent_name_input = st.text_input(
+        "3️⃣ 설계사명",
+        placeholder="설계사명",
+        label_visibility="collapsed",
+        key="agent_name",
+        autocomplete="off"
+    )
 
-# 필터링 로직
 if selected_branch and selected_manager and agent_name_input:
     filtered = df[
         (df["지점명"].astype(str).str.strip() == selected_branch) &
@@ -542,12 +570,14 @@ if selected_branch and selected_manager and agent_name_input:
     if len(filtered) == 0:
         st.warning("🔎 해당 설계사를 찾을 수 없습니다.")
     elif len(filtered) == 1:
-        # 1명만 검색되면 바로 표시
         row = filtered.iloc[0]
         display_result(row)
     else:
-        # 동명이인이 있을 때 선택창 표시
-        st.markdown("#### 해당하는 설계사를 선택하세요:")
+        st.markdown("""
+        <div style='background: #000000; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #c41e3a;'>
+        <p style='color: #ffffff; font-weight: 600; font-size: 15px; margin: 0;'>해당하는 설계사를 선택하세요:</p>
+        </div>
+        """, unsafe_allow_html=True)
         
         for idx, (_, row) in enumerate(filtered.iterrows()):
             agency = str(row["대리점"]).strip()
