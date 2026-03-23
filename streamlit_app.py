@@ -257,12 +257,10 @@ def format_display(value):
     if v == "" or v == "nan":
         return "₩ 0"
     
-    # 숫자인지 확인
     try:
         num = float(v.replace(",", ""))
         return f"₩ {num:,.0f}"
     except:
-        # 문자 (최종달성 등)
         return v
 
 def get_current_week():
@@ -338,7 +336,6 @@ def render_mc_box(mc_challenge, mc_shortage, is_authentic=False, is_mc_plus=Fals
     
     mc_shortage_val = safe_float(mc_shortage)
     
-    # 상태 결정
     shortage_str = str(mc_shortage).strip()
     
     if "최종달성" in shortage_str:
@@ -396,7 +393,6 @@ if df is None:
 
 current_week = get_current_week()
 
-# ===== 세션 상태 =====
 if "search_performed" not in st.session_state:
     st.session_state.search_performed = False
 if "selected_row" not in st.session_state:
@@ -423,7 +419,6 @@ search_col1, search_col2, search_col3 = st.columns([1, 1, 1])
 with search_col2:
     search_clicked = st.button("🔍 검색", use_container_width=True)
 
-# ===== 검색 로직 =====
 if search_clicked:
     if not manager_name or not agent_name:
         st.error("⚠️ 매니저명과 설계사명을 모두 입력해주세요.")
@@ -449,7 +444,6 @@ if search_clicked:
                     st.session_state.selected_row = agent_row
                     st.rerun()
 
-# ===== 검색 후 결과 표시 =====
 if st.session_state.search_performed and st.session_state.selected_row is not None:
     row = st.session_state.selected_row
     
@@ -507,13 +501,10 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
         
         st.markdown("<h3 style='color: #ffffff; font-size: 18px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
         
-        # ===== 정확한 컬럼명 매핑 =====
         if is_authentic:
-            # 어센틱구분 = 1
             weekly_target = row["어센틱주차목표"]
             weekly_shortage = row["어센틱주차부족최종"]
         else:
-            # 어센틱구분 = 0
             weekly_target = row["주차목표"]
             weekly_shortage = row["주차부족최종"]
         
@@ -524,7 +515,6 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
         </div>
         """, unsafe_allow_html=True)
         
-        # ===== 브릿지 성과 (비어센틱만 표시) =====
         if not is_authentic:
             st.markdown("<h3 style='color: #ffffff; font-size: 18px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
             bridge_target = row["브릿지 도전구간"]
@@ -537,15 +527,12 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
             </div>
             """, unsafe_allow_html=True)
         
-        # ===== MC / MC+ 성과 =====
         if is_authentic:
-            # MC (어센틱만)
             st.markdown("<h3 style='color: #ffffff; font-size: 18px;'>💰 MC 성과</h3>", unsafe_allow_html=True)
             mc_challenge = row["MC도전구간"]
             mc_shortage = row["MC부족최종"]
             render_mc_box(mc_challenge, mc_shortage, is_authentic=True, is_mc_plus=False)
         
-        # MC+ (모두)
         st.markdown("<h3 style='color: #66ccff; font-size: 18px;'>💰 MC PLUS+ 성과</h3>", unsafe_allow_html=True)
         mc_plus_challenge = row["MC+구간"]
         mc_plus_shortage = row["MC+부족최종"]
