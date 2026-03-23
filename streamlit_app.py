@@ -225,6 +225,17 @@ input::placeholder {
     font-size: 14px;
 }
 
+/* 셀렉트박스 스타일 개선 */
+[data-baseweb="select"] {
+    width: 100%;
+}
+
+[data-baseweb="select"] > div {
+    background-color: #ffffff !important;
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+}
+
 ::-webkit-scrollbar {
     width: 10px;
 }
@@ -240,21 +251,6 @@ input::placeholder {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
-}
-
-/* 페이지 하단 접속자 통계 스타일 */
-.visitor-stats {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    background: rgba(74, 85, 104, 0.9);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    z-index: 9999;
 }
 
 </style>
@@ -398,11 +394,6 @@ if 'filtered_data' not in st.session_state:
 if 'last_search_params' not in st.session_state:
     st.session_state.last_search_params = {'branch': '', 'manager': '', 'agent': ''}
 
-# 접속자 카운터 (세션 기반)
-if 'visitor_count' not in st.session_state:
-    st.session_state.visitor_count = 0
-st.session_state.visitor_count += 1
-
 col_logo, col_title = st.columns([1, 4])
 with col_logo:
     logo = load_logo()
@@ -488,7 +479,11 @@ if st.session_state.show_duplicates and st.session_state.filtered_data is not No
     st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:20px;font-size:15px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
     
     for idx, (_, agent_row) in enumerate(st.session_state.filtered_data.iterrows()):
-        agent_display = f"{agent_row.get('지점명','N/A')} - {agent_row.get('설계사명','N/A')} ({agent_row.get('현재대리점설계사조직코드','N/A')})"
+        agency_branch = str(agent_row.get('대리점지사명','N/A')).strip()
+        agent_display_name = str(agent_row.get('설계사명','N/A')).strip()
+        agent_code = str(agent_row.get('현재대리점설계사조직코드','N/A')).strip()
+        
+        agent_display = f"{agency_branch} - {agent_display_name} ({agent_code})"
         if st.button(agent_display, key=f"agent_{idx}", use_container_width=True):
             st.session_state.search_performed = True
             st.session_state.selected_row = agent_row
@@ -501,8 +496,9 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
     
     agent_name_display = str(row["설계사명"]).strip()
     agent_code = str(row.get("현재대리점설계사조직코드", "N/A")).strip()
-    branch = str(row["지점명"]).strip()
+    agency_branch = str(row.get("대리점지사명", "N/A")).strip()
     agency_name = str(row["대리점"]).strip()
+    branch = str(row["지점명"]).strip()
     
     is_authentic = safe_float(row["어센틱구분"]) == 1
     is_partner_channel = "파트너채널" in branch
@@ -519,7 +515,7 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
         st.markdown("<h3 style='color: #4a5568; font-size: 20px; margin-top: 20px;'>📋 기본 정보</h3>", unsafe_allow_html=True)
         st.markdown(f"""
         <div class='info-box'>
-        <strong>지사명:</strong> {branch}<br>
+        <strong>지사명:</strong> {agency_branch}<br>
         <strong>설계사명(코드):</strong> {agent_name_display} ({agent_code})
         </div>
         """, unsafe_allow_html=True)
@@ -555,12 +551,19 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
         
         st.markdown("<h3 style='color: #4a5568; font-size: 20px; margin-top: 20px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
         
-        if is_authentic:
-            weekly_target = row["어센틱주차목표"]
-            weekly_shortage = row["어센틱주차부족최종"]
+        # 현재주차 목표는 해당 주차 컬럼명으로 가져오기
+        current_week_col = f"{current_week}주차"
+        if current_week_col in row:
+            current_week_performance = safe_float(row[current_week_col])
         else:
-            weekly_target = row["주차목표"]
-            weekly_shortage = row["주차부족최종"]
+            current_week_performance = 0
+        
+        if is_authentic:
+            weekly_target = safe_float(row["어센틱주차목표"])
+            weekly_shortage = weekly_target - current_week_performance
+        else:
+            weekly_target = safe_float(row["주차목표"])
+            weekly_shortage = weekly_target - current_week_performance
         
         st.markdown(f"""
         <div class='target-box'>
