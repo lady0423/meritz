@@ -11,7 +11,6 @@ import re
 GOOGLE_SHEET_ID = "1NSm_gy0a_QbWXquI2efdM93BjBuHn_sYLpU0NybL5_8"
 
 LEAFLET_TEMPLATE_IDS = {
-LEAFLET_TEMPLATE_IDS = {
     "메가": "1N0Aq60bQnPjg7o4GFv19lbqv3pUc57H8",
     "토스": "1Xn_hB6Xl6fojhcgyF2zVlpYtyQst5ann",
     "지금융": "1b4BIQeFKooVdC-pt0z87gVZSuYTzpY8l",
