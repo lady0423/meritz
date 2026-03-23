@@ -227,7 +227,6 @@ input::placeholder {
     font-size: 14px;
 }
 
-/* 셀렉트박스 내부 텍스트 표시 */
 [data-baseweb="select"] {
     width: 100%;
 }
@@ -261,7 +260,6 @@ input::placeholder {
     background: #94a3b8;
 }
 
-/* 로그인 박스 스타일 */
 .login-box {
     max-width: 400px;
     margin: 100px auto;
@@ -315,7 +313,7 @@ def get_current_week():
             return 4
         else:
             return 5
-    return 1
+    return 4  # 현재는 4주차
 
 def get_image_id_by_authentic_and_partner(is_authentic, is_partner_channel, agency_name):
     if is_authentic:
@@ -598,13 +596,13 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
         
         st.markdown("<h3 style='color: #4a5568; font-size: 20px; margin-top: 20px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
         
-        # 주차목표와 주차부족최종 사용
+        # 주차목표와 주차부족최종을 그대로 사용 (엑셀에 이미 계산되어 있음)
         if is_authentic:
-            weekly_target = row["어센틱주차목표"]
-            weekly_shortage = row["어센틱주차부족"]
+            weekly_target = row.get("어센틱주차목표", 0)
+            weekly_shortage = row.get("어센틱주차부족", 0)
         else:
-            weekly_target = row["주차목표"]
-            weekly_shortage = row["주차부족최종"]
+            weekly_target = row.get("주차목표", 0)
+            weekly_shortage = row.get("주차부족최종", 0)
         
         st.markdown(f"""
         <div class='target-box'>
