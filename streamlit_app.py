@@ -420,11 +420,11 @@ with col1:
 
 with col2:
     st.markdown("<div class='search-label'>👤 매니저명</div>", unsafe_allow_html=True)
-    manager_name = st.text_input("매니저명", placeholder="예: 고나연", label_visibility="collapsed", key="manager", autocomplete="off")
+    manager_name = st.text_input("매니저명", placeholder="예: 박메리", label_visibility="collapsed", key="manager", autocomplete="off")
 
 with col3:
     st.markdown("<div class='search-label'>👔 설계사명</div>", unsafe_allow_html=True)
-    agent_name = st.text_input("설계사명", placeholder="예: 김영삼", label_visibility="collapsed", key="agent", autocomplete="off")
+    agent_name = st.text_input("설계사명", placeholder="예: 홍길동", label_visibility="collapsed", key="agent", autocomplete="off")
 
 with col4:
     st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
