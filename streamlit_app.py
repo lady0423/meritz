@@ -390,7 +390,7 @@ current_week = get_current_week()
 st.markdown("<h3 style='color: #ffffff; margin-top: 20px; font-size: 18px;'>🔍 검색 정보 입력</h3>", unsafe_allow_html=True)
 
 # 지점명 드롭다운 추가 (GA4-2지점 기본값)
-branches = sorted(df['지사명'].unique())
+branches = sorted(df['지점명'].unique())
 default_idx = branches.index("GA4-2지점") if "GA4-2지점" in branches else 0
 
 col1, col2, col3, col4 = st.columns([1.5, 1.5, 1.5, 1])
@@ -412,7 +412,7 @@ if search_clicked:
         st.error("⚠️ 매니저명과 설계사명을 모두 입력해주세요.")
         st.session_state.search_performed = False
     else:
-        filtered = df[(df["지사명"].astype(str).str.strip() == selected_branch.strip()) &
+        filtered = df[(df["지점명"].astype(str).str.strip() == selected_branch.strip()) &
                       (df["매니저"].astype(str).str.strip() == manager_name.strip()) &
                       (df["설계사명"].astype(str).str.strip() == agent_name.strip())]
         
@@ -425,7 +425,7 @@ if search_clicked:
         else:
             st.markdown("<p style='color:#fff;font-weight:600;margin-top:20px;font-size:14px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
             for idx, (_, agent_row) in enumerate(filtered.iterrows()):
-                agent_display = f"{agent_row.get('지사명','N/A')} - {agent_row.get('설계사명','N/A')} ({agent_row.get('현재대리점설계사조직코드','N/A')})"
+                agent_display = f"{agent_row.get('지점명','N/A')} - {agent_row.get('설계사명','N/A')} ({agent_row.get('현재대리점설계사조직코드','N/A')})"
                 if st.button(agent_display, key=f"agent_{idx}", use_container_width=True):
                     st.session_state.search_performed = True
                     st.session_state.selected_row = agent_row
@@ -436,7 +436,7 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
     row = st.session_state.selected_row
     
     agent_name = str(row["설계사명"]).strip()
-    branch = str(row["지사명"]).strip()
+    branch = str(row["지점명"]).strip()
     agency_name = str(row["대리점"]).strip()
     
     is_authentic = safe_float(row["어센틱구분"]) == 1
