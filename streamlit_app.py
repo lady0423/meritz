@@ -406,7 +406,7 @@ if "selected_row" not in st.session_state:
 st.markdown("<h3 style='color: #ffffff; margin-top: 20px; font-size: 18px;'>🔍 검색 정보 입력</h3>", unsafe_allow_html=True)
 
 # ===== 검색 UI - 변경된 부분 =====
-col1, col2, col3 = st.columns([1, 2, 2, 1])
+col1, col2, col3 = st.columns([1, 2, 2])
 with col1:
     st.markdown("<label style='color: #ffffff; font-weight: 600; font-size: 14px;'>1️⃣ 지점명</label>", unsafe_allow_html=True)
     branches = sorted(df["지점명"].dropna().unique(), key=extract_branch_number)
