@@ -6,6 +6,7 @@ from PIL import Image
 import gdown
 import tempfile
 import os
+import re
 
 GOOGLE_SHEET_ID = "1NSm_gy0a_QbWXquI2efdM93BjBuHn_sYLpU0NybL5_8"
 
@@ -297,6 +298,13 @@ def get_image_id_by_authentic_and_partner(is_authentic, is_partner_channel, agen
                 return image_id
         return LEAFLET_TEMPLATE_IDS.get("none")
 
+def extract_branch_number(branch_name):
+    """지점명에서 숫자 추출"""
+    match = re.search(r'-(\d+)', str(branch_name))
+    if match:
+        return int(match.group(1))
+    return 999
+
 @st.cache_data(ttl=300)
 def load_data_from_google_sheets():
     url = f"https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/export?format=csv&gid=0"
@@ -396,24 +404,38 @@ if "selected_row" not in st.session_state:
     st.session_state.selected_row = None
 
 st.markdown("<h3 style='color: #ffffff; margin-top: 20px; font-size: 18px;'>🔍 검색 정보 입력</h3>", unsafe_allow_html=True)
-col1, col2, col3 = st.columns([2, 2, 1])
+
+# ===== 검색 UI - 변경된 부분 =====
+col1, col2, col3 = st.columns([1, 2, 2, 1])
 with col1:
-    manager_name = st.text_input("매니저명", placeholder="예: 박메리", label_visibility="collapsed", key="manager", autocomplete="off")
+    st.markdown("<label style='color: #ffffff; font-weight: 600; font-size: 14px;'>1️⃣ 지점명</label>", unsafe_allow_html=True)
+    branches = sorted(df["지점명"].dropna().unique(), key=extract_branch_number)
+    default_branch = "GA4-2지점" if "GA4-2지점" in branches else (branches[0] if branches else "")
+    selected_branch = st.selectbox("지점 선택", branches, index=list(branches).index(default_branch) if default_branch in branches else 0, label_visibility="collapsed")
+
 with col2:
-    agent_code = st.text_input("설계사 코드", placeholder="예: 7로 시작하는 숫자", label_visibility="collapsed", key="code", autocomplete="off")
+    st.markdown("<label style='color: #ffffff; font-weight: 600; font-size: 14px;'>2️⃣ 매니저명</label>", unsafe_allow_html=True)
+    manager_name = st.text_input("매니저명 입력", placeholder="예: 박메리", label_visibility="collapsed", autocomplete="off")
+
 with col3:
+    st.markdown("<label style='color: #ffffff; font-weight: 600; font-size: 14px;'>3️⃣ 설계사명</label>", unsafe_allow_html=True)
+    agent_name = st.text_input("설계사명 입력", placeholder="예: 홍길동", label_visibility="collapsed", autocomplete="off")
+
+search_col1, search_col2, search_col3 = st.columns([1, 1, 1])
+with search_col2:
     search_clicked = st.button("🔍 검색", use_container_width=True)
 
 # ===== 검색 로직 =====
 if search_clicked:
-    if not manager_name or not agent_code:
-        st.error("⚠️ 매니저명과 설계사 코드를 모두 입력해주세요.")
+    if not manager_name or not agent_name:
+        st.error("⚠️ 매니저명과 설계사명을 모두 입력해주세요.")
     else:
-        filtered = df[(df["매니저"].astype(str).str.strip() == manager_name.strip()) &
-                      (df["현재대리점설계사조직코드"].astype(str).str.strip() == agent_code.strip())]
+        filtered = df[(df["지점명"].astype(str).str.strip() == selected_branch.strip()) &
+                      (df["매니저"].astype(str).str.strip() == manager_name.strip()) &
+                      (df["설계사명"].astype(str).str.strip() == agent_name.strip())]
         
         if len(filtered) == 0:
-            st.error(f"❌ 데이터를 찾을 수 없습니다: {manager_name} / {agent_code}")
+            st.error(f"❌ 데이터를 찾을 수 없습니다: {selected_branch} / {manager_name} / {agent_name}")
         else:
             st.session_state.search_performed = True
             st.session_state.selected_row = filtered.iloc[0]
@@ -554,7 +576,7 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
 else:
     st.markdown("""
     <div style='text-align: center; margin-top: 60px; padding: 40px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #555555;'>
-    <p style='color: #ffffff; font-weight: 600; font-size: 16px;'>🔒 매니저명과 설계사 코드를 입력하고 검색 버튼을 클릭하세요.</p>
+    <p style='color: #ffffff; font-weight: 600; font-size: 16px;'>🔒 매니저명과 설계사명을 입력하고 검색 버튼을 클릭하세요.</p>
     <p style='color: #888888; font-weight: 400; font-size: 14px; margin-top: 10px;'>개인정보 보호를 위해 검색 후에만 데이터가 표시됩니다.</p>
     </div>
     """, unsafe_allow_html=True)
