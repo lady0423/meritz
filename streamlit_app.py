@@ -74,24 +74,24 @@ input::-webkit-autofill {
 .stButton > button {
     font-family: 'Noto Sans KR', sans-serif;
     font-weight: 600;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
     border: none;
     border-radius: 10px;
     padding: 12px 24px;
     color: white;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 15px rgba(74, 85, 104, 0.3);
 }
 
 .stButton > button:hover {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    box-shadow: 0 6px 20px rgba(74, 85, 104, 0.4);
     transform: translateY(-2px);
 }
 
 .info-box {
     background: white;
-    border-left: 4px solid #667eea;
+    border-left: 4px solid #4a5568;
     padding: 20px;
     border-radius: 12px;
     margin: 12px 0;
@@ -103,7 +103,7 @@ input::-webkit-autofill {
 }
 
 .cumulative-box {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
     padding: 28px;
     border-radius: 12px;
     margin: 15px 0;
@@ -111,7 +111,7 @@ input::-webkit-autofill {
     font-weight: 700;
     color: white;
     text-align: center;
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.25);
+    box-shadow: 0 4px 20px rgba(74, 85, 104, 0.25);
     letter-spacing: 0.5px;
 }
 
@@ -139,7 +139,7 @@ input::-webkit-autofill {
 
 .bridge-box {
     background: white;
-    border-left: 4px solid #f687b3;
+    border-left: 4px solid #ed64a6;
     padding: 20px;
     border-radius: 12px;
     margin: 15px 0;
@@ -165,7 +165,7 @@ input::-webkit-autofill {
 
 .mc-plus-box {
     background: white;
-    border-left: 4px solid #9f7aea;
+    border-left: 4px solid #805ad5;
     padding: 20px;
     border-radius: 12px;
     margin: 15px 0;
@@ -178,7 +178,7 @@ input::-webkit-autofill {
 
 .target-box {
     background: white;
-    border-left: 4px solid #f6ad55;
+    border-left: 4px solid #ed8936;
     padding: 20px;
     border-radius: 12px;
     margin: 15px 0;
@@ -192,7 +192,7 @@ input::-webkit-autofill {
 .search-label {
     font-weight: 600;
     font-size: 13px;
-    color: #667eea;
+    color: #4a5568;
     margin-bottom: 6px;
     display: block;
 }
@@ -209,8 +209,8 @@ input, select {
 }
 
 input:focus, select:focus {
-    border-color: #667eea !important;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+    border-color: #4a5568 !important;
+    box-shadow: 0 0 0 3px rgba(74, 85, 104, 0.1) !important;
     outline: none !important;
 }
 
@@ -220,14 +220,24 @@ input::placeholder {
 
 .stTextInput > label, .stSelectbox > label {
     font-weight: 600;
-    color: #667eea;
+    color: #4a5568;
     font-family: 'Noto Sans KR', sans-serif;
     font-size: 14px;
 }
 
-/* 셀렉트박스 화살표 제거 */
-[data-testid="stSelectbox"] svg {
-    display: none;
+/* 셀렉트박스 드롭다운 화살표 숨기기 */
+[data-baseweb="select"] > div {
+    background-color: #ffffff !important;
+}
+
+/* 기본 streamlit 셀렉트 박스 아이콘 제거 */
+.stSelectbox [data-testid="stMarkdownContainer"] svg {
+    display: none !important;
+}
+
+/* 드롭다운 아이콘 완전히 제거 */
+[data-baseweb="select"] svg {
+    display: none !important;
 }
 
 ::-webkit-scrollbar {
@@ -366,7 +376,7 @@ def render_mc_box(mc_challenge, mc_shortage, is_authentic=False, is_mc_plus=Fals
         mc_shortage_color = "#ed8936"
     
     box_class = "mc-plus-box" if is_mc_plus else "mc-box"
-    status_color = "#9f7aea" if is_mc_plus else "#ed8936"
+    status_color = "#805ad5" if is_mc_plus else "#ed8936"
     
     st.markdown(f"""
     <div class='{box_class}'>
@@ -407,7 +417,7 @@ if df is None:
 
 current_week = get_current_week()
 
-st.markdown("<h3 style='color: #667eea; margin-top: 20px; margin-bottom: 20px; font-size: 20px;'>🔍 검색 정보 입력</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='color: #4a5568; margin-top: 20px; margin-bottom: 20px; font-size: 20px;'>🔍 검색 정보 입력</h3>", unsafe_allow_html=True)
 
 # GA4 지점 리스트 (GA4-1지점부터 GA4-13지점까지)
 ga4_branches = [f"GA4-{i}지점" for i in range(1, 14)]
@@ -470,7 +480,7 @@ if search_clicked:
 
 # 동명이인 선택 UI
 if st.session_state.show_duplicates and st.session_state.filtered_data is not None:
-    st.markdown("<p style='color:#667eea;font-weight:600;margin-top:20px;font-size:15px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:20px;font-size:15px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
     
     for idx, (_, agent_row) in enumerate(st.session_state.filtered_data.iterrows()):
         agent_display = f"{agent_row.get('지점명','N/A')} - {agent_row.get('설계사명','N/A')} ({agent_row.get('현재대리점설계사조직코드','N/A')})"
@@ -495,12 +505,12 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
     
     with col_left:
         st.markdown("""
-        <div style='text-align: center; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);'>
+        <div style='text-align: center; padding: 16px; background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%); border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(74, 85, 104, 0.2);'>
         <p style='color: white; font-weight: 600; font-size: 15px; margin: 0;'>💡 대리점 시상안을 보고 달성 시상금을 확인하세요</p>
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>📋 기본 정보</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #4a5568; font-size: 20px; margin-top: 20px;'>📋 기본 정보</h3>", unsafe_allow_html=True)
         st.markdown(f"""
         <div class='info-box'>
         <strong>설계사명:</strong> {agent_name_display}<br>
@@ -509,14 +519,14 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
         """, unsafe_allow_html=True)
         
         cumulative = row["누계실적"]
-        st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #4a5568; font-size: 20px; margin-top: 20px;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
         st.markdown(f"""
         <div class='cumulative-box'>
         {format_display(cumulative)}
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #4a5568; font-size: 20px; margin-top: 20px;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
         
         week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
         for idx, week_col in enumerate(week_columns, 1):
@@ -537,7 +547,7 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
                 </div>
                 """, unsafe_allow_html=True)
         
-        st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #4a5568; font-size: 20px; margin-top: 20px;'>⭐ 현재주차 목표</h3>", unsafe_allow_html=True)
         
         if is_authentic:
             weekly_target = row["어센틱주차목표"]
@@ -554,7 +564,7 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
         """, unsafe_allow_html=True)
         
         if not is_authentic:
-            st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color: #4a5568; font-size: 20px; margin-top: 20px;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
             bridge_target = row["브릿지 도전구간"]
             bridge_shortage = row["브릿지부족최종"]
             
@@ -566,18 +576,18 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
             """, unsafe_allow_html=True)
         
         if is_authentic:
-            st.markdown("<h3 style='color: #667eea; font-size: 20px; margin-top: 20px;'>💰 MC 성과</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color: #4a5568; font-size: 20px; margin-top: 20px;'>💰 MC 성과</h3>", unsafe_allow_html=True)
             mc_challenge = row["MC도전구간"]
             mc_shortage = row["MC부족최종"]
             render_mc_box(mc_challenge, mc_shortage, is_authentic=True, is_mc_plus=False)
         
-        st.markdown("<h3 style='color: #9f7aea; font-size: 20px; margin-top: 20px;'>💰 MC PLUS+ 성과</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #805ad5; font-size: 20px; margin-top: 20px;'>💰 MC PLUS+ 성과</h3>", unsafe_allow_html=True)
         mc_plus_challenge = row["MC+구간"]
         mc_plus_shortage = row["MC+부족최종"]
         render_mc_box(mc_plus_challenge, mc_plus_shortage, is_authentic=is_authentic, is_mc_plus=True)
     
     with col_right:
-        st.markdown("<h3 style='color: #667eea; font-size: 20px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #4a5568; font-size: 20px;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
         image_id = get_image_id_by_authentic_and_partner(is_authentic, is_partner_channel, agency_name)
         image = load_leaflet_template_from_drive(image_id)
         
@@ -608,7 +618,7 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
 elif not st.session_state.show_duplicates:
     st.markdown("""
     <div style='text-align: center; margin-top: 60px; padding: 50px; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);'>
-    <p style='color: #667eea; font-weight: 600; font-size: 18px; margin-bottom: 10px;'>🔒 매니저명과 설계사명을 입력하고 검색 버튼을 클릭하세요.</p>
+    <p style='color: #4a5568; font-weight: 600; font-size: 18px; margin-bottom: 10px;'>🔒 매니저명과 설계사명을 입력하고 검색 버튼을 클릭하세요.</p>
     <p style='color: #718096; font-weight: 400; font-size: 14px; margin-top: 10px;'>개인정보 보호를 위해 검색 후에만 데이터가 표시됩니다.</p>
     </div>
     """, unsafe_allow_html=True)
