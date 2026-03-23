@@ -225,21 +225,6 @@ input::placeholder {
     font-size: 14px;
 }
 
-/* 셀렉트박스 드롭다운 화살표 숨기기 */
-[data-baseweb="select"] > div {
-    background-color: #ffffff !important;
-}
-
-/* 기본 streamlit 셀렉트 박스 아이콘 제거 */
-.stSelectbox [data-testid="stMarkdownContainer"] svg {
-    display: none !important;
-}
-
-/* 드롭다운 아이콘 완전히 제거 */
-[data-baseweb="select"] svg {
-    display: none !important;
-}
-
 ::-webkit-scrollbar {
     width: 10px;
 }
@@ -255,6 +240,21 @@ input::placeholder {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+}
+
+/* 페이지 하단 접속자 통계 스타일 */
+.visitor-stats {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(74, 85, 104, 0.9);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
 }
 
 </style>
@@ -398,6 +398,11 @@ if 'filtered_data' not in st.session_state:
 if 'last_search_params' not in st.session_state:
     st.session_state.last_search_params = {'branch': '', 'manager': '', 'agent': ''}
 
+# 접속자 카운터 (세션 기반)
+if 'visitor_count' not in st.session_state:
+    st.session_state.visitor_count = 0
+st.session_state.visitor_count += 1
+
 col_logo, col_title = st.columns([1, 4])
 with col_logo:
     logo = load_logo()
@@ -421,7 +426,7 @@ st.markdown("<h3 style='color: #4a5568; margin-top: 20px; margin-bottom: 20px; f
 
 # GA4 지점 리스트 (GA4-1지점부터 GA4-13지점까지)
 ga4_branches = [f"GA4-{i}지점" for i in range(1, 14)]
-default_idx = ga4_branches.index("GA4-2지점")
+default_idx = 1  # GA4-2지점이 인덱스 1
 
 col1, col2, col3, col4 = st.columns([1.5, 1.5, 1.5, 1])
 with col1:
@@ -495,6 +500,7 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
     row = st.session_state.selected_row
     
     agent_name_display = str(row["설계사명"]).strip()
+    agent_code = str(row.get("현재대리점설계사조직코드", "N/A")).strip()
     branch = str(row["지점명"]).strip()
     agency_name = str(row["대리점"]).strip()
     
@@ -513,8 +519,8 @@ if st.session_state.search_performed and st.session_state.selected_row is not No
         st.markdown("<h3 style='color: #4a5568; font-size: 20px; margin-top: 20px;'>📋 기본 정보</h3>", unsafe_allow_html=True)
         st.markdown(f"""
         <div class='info-box'>
-        <strong>설계사명:</strong> {agent_name_display}<br>
-        <strong>지사:</strong> {branch}
+        <strong>지사명:</strong> {branch}<br>
+        <strong>설계사명(코드):</strong> {agent_name_display} ({agent_code})
         </div>
         """, unsafe_allow_html=True)
         
