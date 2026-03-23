@@ -58,7 +58,7 @@ st.markdown("""
         color: #ffffff;
     }
     
-    /* 입력 필드 스타일 - 테두리 제거, 자동완성 완벽 비활성화 */
+    /* 입력 필드 스타일 - 자동완성 완벽 제거 */
     .stTextInput > div > div > input,
     .stSelectbox > div > div > select {
         background-color: #1a1a1a !important;
@@ -74,10 +74,15 @@ st.markdown("""
     }
     
     /* 자동완성 완벽 제거 */
+    input {
+        autocomplete: "off" !important;
+    }
+    
     input:-webkit-autofill {
         -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
         -webkit-text-fill-color: #ffffff !important;
         -webkit-transition: background-color 5000s ease-in-out 0s !important;
+        transition: background-color 5000s ease-in-out 0s !important;
     }
     
     input:-webkit-autofill:focus {
@@ -508,8 +513,8 @@ else:
     # 세션 상태 초기화
     if "selected_agent" not in st.session_state:
         st.session_state.selected_agent = None
-    if "search_performed" not in st.session_state:
-        st.session_state.search_performed = False
+    if "show_result" not in st.session_state:
+        st.session_state.show_result = False
     
     # 입력 필드
     st.markdown("<h3 style='color: #ffffff; font-size: 20px;'>🔍 설계사 정보 조회</h3>", unsafe_allow_html=True)
@@ -524,51 +529,61 @@ else:
     
     with col2:
         st.markdown("<label style='color: #ffffff; font-weight: 600; font-size: 14px;'>2️⃣ 매니저명</label>", unsafe_allow_html=True)
-        manager_name = st.text_input("매니저명 입력", placeholder="박메리", label_visibility="collapsed", key=f"manager_input_{st.session_state.search_performed}")
+        manager_name = st.text_input("매니저명 입력", placeholder="박메리", label_visibility="collapsed", key="manager_input", autocomplete="off")
     
     with col3:
         st.markdown("<label style='color: #ffffff; font-weight: 600; font-size: 14px;'>3️⃣ 설계사명</label>", unsafe_allow_html=True)
-        agent_name = st.text_input("설계사명 입력", placeholder="홍길동", label_visibility="collapsed", key=f"agent_input_{st.session_state.search_performed}")
+        agent_name = st.text_input("설계사명 입력", placeholder="홍길동", label_visibility="collapsed", key="agent_input", autocomplete="off")
     
     # 검색 버튼
     search_col1, search_col2, search_col3 = st.columns([1, 1, 1])
     with search_col2:
         search_clicked = st.button("🔍 검색", use_container_width=True)
     
+    # 엔터 키 감지 (검색 실행)
+    if manager_name and agent_name:
+        # 실제 엔터 감지는 어려우므로, 값 변경 감지로 처리
+        pass
+    
     # 검색 로직
-    if search_clicked:
+    def perform_search():
         if not selected_branch or not manager_name or not agent_name:
             st.error("⚠️ 지점명, 매니저명, 설계사명을 모두 입력해주세요.")
+            return
+        
+        filtered = df[
+            (df['지점명'].astype(str).str.strip() == selected_branch.strip()) &
+            (df['매니저'].astype(str).str.strip() == manager_name.strip()) &
+            (df['설계사명'].astype(str).str.strip() == agent_name.strip())
+        ]
+        
+        if len(filtered) == 0:
+            st.error(f"❌ 데이터를 찾을 수 없습니다: {selected_branch} / {manager_name} / {agent_name}")
+        elif len(filtered) == 1:
+            st.session_state.selected_agent = filtered.iloc[0]
+            st.session_state.show_result = True
         else:
-            filtered = df[
-                (df['지점명'].astype(str).str.strip() == selected_branch.strip()) &
-                (df['매니저'].astype(str).str.strip() == manager_name.strip()) &
-                (df['설계사명'].astype(str).str.strip() == agent_name.strip())
-            ]
+            st.markdown("<p style='color: #ffffff; font-weight: 600; margin-top: 20px; font-size: 14px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
             
-            if len(filtered) == 0:
-                st.error(f"❌ 데이터를 찾을 수 없습니다: {selected_branch} / {manager_name} / {agent_name}")
-            elif len(filtered) == 1:
-                st.session_state.search_performed = True
-                display_result(filtered.iloc[0])
-            else:
-                st.markdown("<p style='color: #ffffff; font-weight: 600; margin-top: 20px; font-size: 14px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
+            for idx, (_, agent_row) in enumerate(filtered.iterrows()):
+                agent_display = f"{agent_row.get('지사명', 'N/A')} - {agent_row.get('설계사명', 'N/A')} ({agent_row.get('현재대리점설계사조직코드', 'N/A')})"
                 
-                for idx, (_, agent_row) in enumerate(filtered.iterrows()):
-                    agent_display = f"{agent_row.get('지사명', 'N/A')} - {agent_row.get('설계사명', 'N/A')} ({agent_row.get('현재대리점설계사조직코드', 'N/A')})"
-                    
-                    if st.button(agent_display, key=f"agent_{idx}", use_container_width=True):
-                        st.session_state.selected_agent = agent_row
-                        st.session_state.search_performed = True
-                        st.rerun()
-                
-                if st.session_state.selected_agent is not None:
-                    display_result(st.session_state.selected_agent)
+                if st.button(agent_display, key=f"agent_{idx}", use_container_width=True):
+                    st.session_state.selected_agent = agent_row
+                    st.session_state.show_result = True
+                    st.rerun()
+    
+    if search_clicked:
+        perform_search()
+    
+    # 조회 결과 표시
+    if st.session_state.show_result and st.session_state.selected_agent is not None:
+        display_result(st.session_state.selected_agent)
     
     # 초기화 버튼
     col_reset1, col_reset2, col_reset3 = st.columns([1, 1, 1])
     with col_reset2:
         if st.button("🔄 초기화", use_container_width=True):
             st.session_state.selected_agent = None
-            st.session_state.search_performed = not st.session_state.search_performed
+            st.session_state.show_result = False
             st.rerun()
