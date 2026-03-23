@@ -53,7 +53,7 @@ st.markdown("""
         background-color: #0f0f0f;
     }
     
-    /* 입력 필드 스타일 - 테두리 제거 */
+    /* 입력 필드 스타일 - 테두리 제거, 자동완성 비활성화 */
     .stTextInput > div > div > input,
     .stSelectbox > div > div > select {
         background-color: #1a1a1a !important;
@@ -66,6 +66,12 @@ st.markdown("""
         color: #888888 !important;
     }
     
+    /* 자동완성 제거 */
+    input:-webkit-autofill {
+        -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+    
     /* 버튼 스타일 */
     .stButton > button {
         background: linear-gradient(135deg, #c41e3a 0%, #8b0000 100%);
@@ -75,6 +81,7 @@ st.markdown("""
         padding: 10px 20px;
         font-weight: 600;
         font-size: 14px;
+        width: 100%;
     }
     
     .stButton > button:hover {
@@ -300,6 +307,13 @@ def render_mc_box(status, shortage, shortage_final):
 
 def display_result(row):
     """조회 결과 표시"""
+    # 팁 문구 - 조회 후에만 표시
+    st.markdown("""
+    <div style='text-align: center; padding: 15px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #ffb366; margin-bottom: 20px;'>
+    <p style='color: #ffb366; font-weight: 600; font-size: 15px; margin: 0;'>💡 아래 시상안을 보고 달성 시상금을 확인하세요</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
     col_left, col_right = st.columns([1, 1])
     
     with col_left:
@@ -414,13 +428,6 @@ if logo:
 else:
     st.title("메리츠 설계사 성과 조회")
 
-# 팁 문구
-st.markdown("""
-<div style='text-align: center; padding: 15px; background: linear-gradient(135deg, #1a1a1a 0%, #131313 100%); border-radius: 10px; border-left: 5px solid #ffb366; margin-bottom: 20px;'>
-<p style='color: #ffb366; font-weight: 600; font-size: 15px; margin: 0;'>💡 대리점 시상안을 보고 달성 시상금을 확인하세요</p>
-</div>
-""", unsafe_allow_html=True)
-
 # 데이터 로드
 df = load_data_from_google_sheets()
 
@@ -444,40 +451,50 @@ else:
     
     with col2:
         st.markdown("<label style='color: #ffffff; font-weight: 600;'>2️⃣ 매니저명</label>", unsafe_allow_html=True)
-        manager_name = st.text_input("매니저명 입력", placeholder="박메리", label_visibility="collapsed", autocomplete=None)
+        manager_name = st.text_input("매니저명 입력", placeholder="박메리", label_visibility="collapsed", key="manager_input")
     
     with col3:
         st.markdown("<label style='color: #ffffff; font-weight: 600;'>3️⃣ 설계사명</label>", unsafe_allow_html=True)
-        agent_name = st.text_input("설계사명 입력", placeholder="홍길동", label_visibility="collapsed", autocomplete=None)
+        agent_name = st.text_input("설계사명 입력", placeholder="홍길동", label_visibility="collapsed", key="agent_input")
+    
+    # 검색 버튼
+    search_col1, search_col2, search_col3 = st.columns([1, 1, 1])
+    with search_col2:
+        search_clicked = st.button("🔍 검색", use_container_width=True)
     
     # 검색 로직
-    if selected_branch and manager_name and agent_name:
-        filtered = df[
-            (df['지점명'].astype(str).str.strip() == selected_branch.strip()) &
-            (df['매니저'].astype(str).str.strip() == manager_name.strip()) &
-            (df['설계사명'].astype(str).str.strip() == agent_name.strip())
-        ]
-        
-        if len(filtered) == 0:
-            st.error(f"❌ 데이터를 찾을 수 없습니다: {selected_branch} / {manager_name} / {agent_name}")
-        elif len(filtered) == 1:
-            display_result(filtered.iloc[0])
+    if search_clicked:
+        if not selected_branch or not manager_name or not agent_name:
+            st.error("⚠️ 지점명, 매니저명, 설계사명을 모두 입력해주세요.")
         else:
-            st.markdown("<p style='color: #ffffff; font-weight: 600;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
+            filtered = df[
+                (df['지점명'].astype(str).str.strip() == selected_branch.strip()) &
+                (df['매니저'].astype(str).str.strip() == manager_name.strip()) &
+                (df['설계사명'].astype(str).str.strip() == agent_name.strip())
+            ]
             
-            for idx, (_, agent_row) in enumerate(filtered.iterrows()):
-                agent_display = f"{agent_row.get('지사명', 'N/A')} - {agent_row.get('설계사명', 'N/A')} ({agent_row.get('현재대리점설계사조직코드', 'N/A')})"
+            if len(filtered) == 0:
+                st.error(f"❌ 데이터를 찾을 수 없습니다: {selected_branch} / {manager_name} / {agent_name}")
+            elif len(filtered) == 1:
+                display_result(filtered.iloc[0])
+            else:
+                st.markdown("<p style='color: #ffffff; font-weight: 600; margin-top: 20px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
                 
-                if st.button(agent_display, key=f"agent_{idx}"):
-                    st.session_state.selected_agent = agent_row
-                    st.rerun()
-            
-            if st.session_state.selected_agent is not None:
-                display_result(st.session_state.selected_agent)
-    else:
-        st.info("📋 지점명, 매니저명, 설계사명을 모두 입력해주세요.")
+                for idx, (_, agent_row) in enumerate(filtered.iterrows()):
+                    agent_display = f"{agent_row.get('지사명', 'N/A')} - {agent_row.get('설계사명', 'N/A')} ({agent_row.get('현재대리점설계사조직코드', 'N/A')})"
+                    
+                    if st.button(agent_display, key=f"agent_{idx}", use_container_width=True):
+                        st.session_state.selected_agent = agent_row
+                        st.rerun()
+                
+                if st.session_state.selected_agent is not None:
+                    display_result(st.session_state.selected_agent)
     
     # 초기화 버튼
-    if st.button("🔄 초기화"):
-        st.session_state.selected_agent = None
-        st.rerun()
+    col_reset1, col_reset2, col_reset3 = st.columns([1, 1, 1])
+    with col_reset2:
+        if st.button("🔄 초기화", use_container_width=True):
+            st.session_state.selected_agent = None
+            st.session_state.manager_input = ""
+            st.session_state.agent_input = ""
+            st.rerun()
