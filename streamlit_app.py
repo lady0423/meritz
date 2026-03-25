@@ -752,7 +752,7 @@ with tab2:
     col1, col2 = st.columns([3, 1])
     with col1:
         st.markdown("<div class='search-label'>🔍 전화번호 또는 설계사명 입력</div>", unsafe_allow_html=True)
-        contact_search = st.text_input("검색", placeholder="예: 010-1234-5678 또는 홍길동", label_visibility="collapsed", key="contact_search")
+        contact_search = st.text_input("검색", placeholder="예: 23456789, 2345-6789 또는 홍길동", label_visibility="collapsed", key="contact_search")
     
     with col2:
         st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
@@ -780,14 +780,14 @@ with tab2:
                 st.session_state.contact_search_performed = True
                 st.session_state.contact_selected_row = filtered_contacts.iloc[0]
             else:
-                st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>검색 결과가 여러 개입니다. 선택해주세요:</p>", unsafe_allow_html=True)
+                st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>검색 결과가 여러 개입니다. 소속을 선택해주세요:</p>", unsafe_allow_html=True)
                 
                 for idx, (_, contact_row) in enumerate(filtered_contacts.iterrows()):
-                    contact_name = str(contact_row.get('설계사명', 'N/A')).strip()
-                    contact_phone = str(contact_row.get('휴대전화', 'N/A')).strip()
+                    contact_office = str(contact_row.get('지점', 'N/A')).strip()
                     contact_branch = str(contact_row.get('지사', 'N/A')).strip()
                     
-                    contact_display = f"{contact_name} - {contact_phone} ({contact_branch})"
+                    # 지점명 | 지사명만 표시
+                    contact_display = f"{contact_office} | {contact_branch}"
                     
                     if st.button(contact_display, key=f"contact_{idx}", use_container_width=True):
                         st.session_state.contact_search_performed = True
@@ -856,7 +856,6 @@ with tab2:
         st.markdown("""
         <div style='text-align: center; margin-top: 30px; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);'>
         <p style='color: #4a5568; font-weight: 600; font-size: 15px; margin-bottom: 8px;'>📞 전화번호 또는 설계사명을 입력하고 검색하세요.</p>
-        <p style='color: #718096; font-weight: 400; font-size: 13px; margin-top: 8px;'>예: 010-1234-5678 또는 홍길동</p>
-        <p style='color: #718096; font-weight: 400; font-size: 13px; margin-top: 8px;'>💡 전화번호는 하이픈(-) 없이 입력해도 검색됩니다.</p>
+        <p style='color: #718096; font-weight: 400; font-size: 13px; margin-top: 8px;'>💡 전화번호는 010 없이도 검색됩니다 (예: 23456789, 2345-6789)</p>
         </div>
         """, unsafe_allow_html=True)
