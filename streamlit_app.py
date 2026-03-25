@@ -18,7 +18,7 @@ LEAFLET_TEMPLATE_IDS = {
     "유퍼스트": "1X7jZLVwEYIScZqEp_9O-UHX1kK2rPhQ3",
     "케이지에이에셋": "1faWuhu3haJ3-bjkhK3Xwlp5x60Yj063W",
     "피플라이프": "1oShjwYdKsjUvVkAMUmxAbgrmTA_v9Wna",
-    "더금융": "1DeUpP_czQzEpa2JTiWyvcg_42e0FT-_Y",
+    "더금융": "1DeUpP_czQzEpa2CTiWyvcg_42e0FT-_Y",
     "더좋은보험": "1OLsK7oilx3OacZSw8f1VZP3pKBvYsLRj",
     "프라임에셋": "1iZie57BZYUNguiiuympKd4wsg_kkZxVt",
     "에이플러스": "1EFc4RNsiKo1Rgv0M0tAXVvALY6lC74V0",
@@ -453,19 +453,19 @@ def load_logo():
         return Image.open("meritz.png")
     return None
 
-# 🔧 수정 1: render_mc_box 함수 - MC대상 AB열 처리
 def render_mc_box(mc_challenge, mc_shortage, is_authentic=False, is_mc_plus=False, mc_target_value=1):
     """
-    mc_target_value: MC대상 컬럼 값 (1=대상, 2=미대상)
+    🔧 수정: AB열 값이 0이면 "이번달 20만원 도전" 표시
+    mc_target_value: MC대상 컬럼 값 (1=대상, 0=미대상, 2=미대상)
     """
     
-    # MC 미대상자 처리 (MC+는 제외)
-    if not is_mc_plus and mc_target_value == 2:
+    # MC 미대상자 처리 (MC+는 제외) - AB열이 0 또는 2인 경우
+    if not is_mc_plus and (mc_target_value == 0 or mc_target_value == 2):
         st.markdown(f"""
         <div class='mc-box'>
-        <strong>도전구간 →</strong> ₩ 0<br>
-        <strong>부족금액 →</strong> <span style='color: #ed8936; font-weight: 700;'>이번달 20만원 도전</span><br>
-        <strong>상태 →</strong> <span style='color: #718096; font-weight: 700;'>⚪ 대상아님</span>
+        <strong>도전구간 →</strong> 대상아님<br>
+        <strong>부족금액 →</strong> ₩ 0<br>
+        <strong>상태 →</strong> <span style='color: #ed8936; font-weight: 700;'>이번달 20만원 도전</span>
         </div>
         """, unsafe_allow_html=True)
         return
@@ -528,6 +528,11 @@ if 'contact_search_performed' not in st.session_state:
     st.session_state.contact_search_performed = False
 if 'contact_selected_row' not in st.session_state:
     st.session_state.contact_selected_row = None
+# 🔧 추가: 전화번호 조회 중복자 표시용 상태
+if 'contact_show_duplicates' not in st.session_state:
+    st.session_state.contact_show_duplicates = False
+if 'contact_filtered_data' not in st.session_state:
+    st.session_state.contact_filtered_data = None
 
 # 로그인 화면
 if not st.session_state.authenticated:
@@ -626,7 +631,7 @@ with tab1:
                 st.session_state.filtered_data = filtered
                 st.session_state.search_performed = False
 
-    # 🔧 수정 2: 동명이인 선택 처리 (.to_dict() 제거)
+    # 동명이인 선택 처리
     if st.session_state.show_duplicates and st.session_state.filtered_data is not None:
         st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
         
@@ -724,7 +729,7 @@ with tab1:
                 mc_challenge = row.get("MC도전구간", 0)
                 mc_shortage = row.get("MC부족최종", 0)
                 
-                # 🔧 수정 3: AB열(MC대상) 읽기 - 컬럼 인덱스로 직접 접근
+                # 🔧 수정: AB열(MC대상) 읽기
                 try:
                     # AB열은 28번째 컬럼 (0-based index = 27)
                     mc_target_value = safe_float(df.iloc[row.name, 27])
@@ -805,7 +810,14 @@ with tab2:
     col1, col2 = st.columns([3, 1])
     with col1:
         st.markdown("<div class='search-label'>🔍 전화번호 또는 설계사명 입력</div>", unsafe_allow_html=True)
-        contact_search = st.text_input("검색", placeholder="예: 01012345678, 1234567, 123-4567, 홍길동", label_visibility="collapsed", key="contact_search", autocomplete="new-password")
+        # 🔧 수정: autocomplete="off" 및 name 속성 추가로 검색 이력 방지
+        contact_search = st.text_input(
+            "검색", 
+            placeholder="예: 01012345678, 1234567, 123-4567, 홍길동", 
+            label_visibility="collapsed", 
+            key="contact_search",
+            autocomplete="off"
+        )
     
     with col2:
         st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
@@ -814,6 +826,8 @@ with tab2:
     if contact_search_clicked:
         if not contact_search:
             st.warning("⚠️ 전화번호 또는 설계사명을 입력해주세요.")
+            st.session_state.contact_search_performed = False
+            st.session_state.contact_show_duplicates = False
         else:
             search_value = contact_search.strip()
             search_normalized = normalize_phone_number(search_value)
@@ -834,24 +848,36 @@ with tab2:
             if len(filtered_contacts) == 0:
                 st.error(f"❌ '{search_value}'에 해당하는 데이터를 찾을 수 없습니다.")
                 st.session_state.contact_search_performed = False
+                st.session_state.contact_show_duplicates = False
             elif len(filtered_contacts) == 1:
                 st.session_state.contact_search_performed = True
                 st.session_state.contact_selected_row = filtered_contacts.iloc[0]
+                st.session_state.contact_show_duplicates = False
             else:
-                st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>검색 결과가 여러 개입니다. 선택해주세요:</p>", unsafe_allow_html=True)
-                
-                # 🔧 수정 2: 동명이인 선택 로직 (.to_dict() 제거)
-                for idx, (row_idx, contact_row) in enumerate(filtered_contacts.iterrows()):
-                    contact_office = str(contact_row.get('지점', 'N/A')).strip()
-                    contact_branch = str(contact_row.get('지사', 'N/A')).strip()
-                    
-                    contact_display = f"{contact_office} | {contact_branch}"
-                    
-                    if st.button(contact_display, key=f"contact_select_{row_idx}_{idx}", use_container_width=True):
-                        st.session_state.contact_search_performed = True
-                        st.session_state.contact_selected_row = contact_row
-                        st.rerun()
+                # 🔧 수정: 중복자 표시 상태 변경
+                st.session_state.contact_show_duplicates = True
+                st.session_state.contact_filtered_data = filtered_contacts
+                st.session_state.contact_search_performed = False
     
+    # 🔧 수정: 전화번호 조회 동명이인 선택 처리
+    if st.session_state.contact_show_duplicates and st.session_state.contact_filtered_data is not None:
+        st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>검색 결과가 여러 개입니다. 선택해주세요:</p>", unsafe_allow_html=True)
+        
+        for idx, (row_idx, contact_row) in enumerate(st.session_state.contact_filtered_data.iterrows()):
+            contact_office = str(contact_row.get('지점', 'N/A')).strip()
+            contact_branch = str(contact_row.get('지사', 'N/A')).strip()
+            contact_name = str(contact_row.get('설계사명', 'N/A')).strip()
+            
+            contact_display = f"{contact_office} | {contact_branch} | {contact_name}"
+            
+            if st.button(contact_display, key=f"contact_select_{row_idx}_{idx}", use_container_width=True):
+                st.session_state.contact_selected_row = contact_row
+                st.session_state.contact_search_performed = True
+                st.session_state.contact_show_duplicates = False
+                st.session_state.contact_filtered_data = None
+                st.rerun()
+    
+    # 조회 결과 표시
     if st.session_state.contact_search_performed and st.session_state.contact_selected_row is not None:
         row = st.session_state.contact_selected_row
         
@@ -913,9 +939,11 @@ with tab2:
         if st.button("🔄 초기화", use_container_width=True, key="reset_contact"):
             st.session_state.contact_search_performed = False
             st.session_state.contact_selected_row = None
+            st.session_state.contact_show_duplicates = False
+            st.session_state.contact_filtered_data = None
             st.rerun()
     
-    elif not st.session_state.contact_search_performed:
+    elif not st.session_state.contact_show_duplicates:
         st.markdown("""
         <div style='text-align: center; margin-top: 30px; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);'>
         <p style='color: #4a5568; font-weight: 600; font-size: 15px; margin-bottom: 8px;'>📞 전화번호 또는 설계사명을 입력하고 검색하세요.</p>
