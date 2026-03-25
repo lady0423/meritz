@@ -627,18 +627,25 @@ with tab1:
     if st.session_state.show_duplicates and st.session_state.filtered_data is not None:
         st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
         
-        for idx, (row_idx, agent_row) in enumerate(st.session_state.filtered_data.iterrows()):
+        # 리스트 형태로 변환하여 enumerate
+        duplicate_list = list(st.session_state.filtered_data.iterrows())
+        
+        for idx, (row_idx, agent_row) in enumerate(duplicate_list):
             office_branch = str(agent_row.get('지점명','N/A')).strip()
             agency_branch = str(agent_row.get('지사명','N/A')).strip()
             
             # 소속지점 + 지사명만 표기
             agent_display = f"{office_branch} | {agency_branch}"
             
-            if st.button(agent_display, key=f"agent_select_{idx}", use_container_width=True):
-                st.session_state.selected_row = agent_row
+            # 버튼 클릭 시 즉시 세션 상태 업데이트
+            if st.button(agent_display, key=f"dup_agent_{row_idx}_{idx}", use_container_width=True):
+                # 세션 상태 업데이트
+                st.session_state.selected_row = agent_row.copy()
                 st.session_state.search_performed = True
                 st.session_state.show_duplicates = False
                 st.session_state.filtered_data = None
+                # 강제 리로드
+                st.rerun()
 
     # 조회 결과 표시
     if st.session_state.search_performed and st.session_state.selected_row is not None:
@@ -732,6 +739,17 @@ with tab1:
                 mc_challenge = row["MC도전구간"]
                 mc_shortage = row["MC부족최종"]
                 render_mc_box(mc_challenge, mc_shortage, is_authentic=True, is_mc_plus=False)
+            else:
+                st.markdown("<h3 style='color: #4a5568;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
+                bridge_target = row["브릿지 도전구간"]
+                bridge_shortage = row["브릿지부족최종"]
+                
+                st.markdown(f"""
+                <div class='bridge-box'>
+                <strong>목표 →</strong> {format_display(bridge_target)}<br>
+                <strong>부족금액 →</strong> {format_display(bridge_shortage)}
+                </div>
+                """, unsafe_allow_html=True)
             
             st.markdown("<h3 style='color: #805ad5;'>💰 MC PLUS+ 성과</h3>", unsafe_allow_html=True)
             mc_plus_challenge = row["MC+구간"]
