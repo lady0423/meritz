@@ -395,7 +395,7 @@ def load_data_from_google_sheets():
 
 @st.cache_data(ttl=300)
 def load_contact_data_from_google_sheets():
-    url = f"https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/export?format=csv&gid=https://docs.google.com/spreadsheets/d/1NSm_gy0a_QbWXquI2efdM93BjBuHn_sYLpU0NybL5_8/edit?gid=363789500#gid=363789500"
+    url = f"https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/export?format=csv&gid=363789500"
     try:
         df = pd.read_csv(url)
         df.columns = df.columns.str.strip()
