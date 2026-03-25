@@ -33,9 +33,9 @@ LEAFLET_TEMPLATE_IDS = {
     "none": "19ZnaS2s4X8JKv27NW9FFuMUVh32i3hc0"
 }
 
-PASSWORD = "2603"
+PASSWORD = "2233"
 
-st.set_page_config(page_title="메리츠 실적현황", layout="wide", page_icon="📊")
+st.set_page_config(page_title="메리츠 실적현황", layout="wide")
 
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -202,28 +202,6 @@ input::-webkit-autofill {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     font-weight: 600;
     color: #2c3e50;
-}
-
-.pwa-install-box {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 16px;
-    border-radius: 12px;
-    margin: 12px 0;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    color: white;
-    text-align: center;
-}
-
-.pwa-install-box h4 {
-    color: white;
-    margin-bottom: 8px;
-    font-size: 16px;
-}
-
-.pwa-install-box p {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 13px;
-    line-height: 1.5;
 }
 
 .search-label {
@@ -446,6 +424,19 @@ def get_current_month_performance(performance_df, agent_code):
     except:
         return 0.0
 
+def create_vcard(name, phone, company):
+    """vCard 파일 생성 (지사명+설계사명)"""
+    phone_clean = phone.replace("-", "").replace(" ", "")
+    
+    vcard = f"""BEGIN:VCARD
+VERSION:3.0
+FN:{name}
+TEL;TYPE=CELL:{phone_clean}
+ORG:{company}
+END:VCARD"""
+    
+    return vcard
+
 def load_leaflet_template_from_drive(file_id):
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -522,8 +513,6 @@ if 'contact_search_performed' not in st.session_state:
     st.session_state.contact_search_performed = False
 if 'contact_selected_row' not in st.session_state:
     st.session_state.contact_selected_row = None
-if 'show_pwa_guide' not in st.session_state:
-    st.session_state.show_pwa_guide = False
 
 # 로그인 화면
 if not st.session_state.authenticated:
@@ -570,41 +559,6 @@ with col_title:
     st.markdown("<h1 style='color: #2c3e50; font-size: 24px; margin-top: 5px;'>메리츠 설계사 성과 조회</h1>", unsafe_allow_html=True)
 
 st.markdown("<hr style='border: 1px solid #e2e8f0; margin: 8px 0;'>", unsafe_allow_html=True)
-
-# PWA 설치 안내
-if st.button("📱 휴대폰 홈 화면에 추가하기", use_container_width=True):
-    st.session_state.show_pwa_guide = not st.session_state.show_pwa_guide
-
-if st.session_state.show_pwa_guide:
-    logo = load_logo()
-    
-    st.markdown("""
-    <div class='pwa-install-box'>
-    <h4>📱 앱처럼 사용하기</h4>
-    <p>이 웹사이트를 휴대폰 홈 화면에 추가하면 앱처럼 빠르게 접속할 수 있습니다!</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    if logo:
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            st.image(logo, caption="메리츠 로고", use_container_width=True)
-    
-    st.markdown("""
-    <div class='info-box'>
-    <strong>📱 iPhone (Safari):</strong><br>
-    1. 하단 <strong>공유 버튼 (□↑)</strong> 클릭<br>
-    2. <strong>"홈 화면에 추가"</strong> 선택<br>
-    3. <strong>"추가"</strong> 버튼 클릭<br><br>
-    
-    <strong>🤖 Android (Chrome):</strong><br>
-    1. 우측 상단 <strong>⋮ (메뉴)</strong> 클릭<br>
-    2. <strong>"홈 화면에 추가"</strong> 또는 <strong>"앱 설치"</strong> 선택<br>
-    3. <strong>"설치"</strong> 또는 <strong>"추가"</strong> 클릭
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("<hr style='border: 1px solid #e2e8f0; margin: 12px 0;'>", unsafe_allow_html=True)
 
 # 탭 생성
 tab1, tab2 = st.tabs(["📊 실적조회", "📞 전화번호 조회"])
@@ -908,48 +862,38 @@ with tab2:
         current_month = format_display(current_month_perf)
         
         st.markdown("<h3 style='color: #4a5568;'>📋 설계사 정보</h3>", unsafe_allow_html=True)
-        st.markdown("<p style='color: #718096; font-size: 12px; margin-bottom: 8px;'>💡 각 정보를 길게 눌러 복사할 수 있습니다</p>", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class='contact-box'>
+        <strong>설계사명:</strong> {name}<br>
+        <strong>설계사코드:</strong> {code}<br>
+        <strong>📞 휴대전화:</strong> <span style='color: #48bb78; font-weight: 700; font-size: 16px;'>{phone}</span><br>
+        <strong>소속지사:</strong> {branch}<br>
+        <strong>소속지점:</strong> {office}<br>
+        <strong>담당매니저:</strong> {manager}<br>
+        <strong>위촉일자:</strong> {join_date}
+        </div>
+        """, unsafe_allow_html=True)
         
-        col1, col2 = st.columns(2)
+        st.markdown("<h3 style='color: #4a5568;'>📊 최근 실적</h3>", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class='info-box'>
+        <strong>1월 실적:</strong> {prev_prev_month}<br>
+        <strong>2월 실적:</strong> {prev_month}<br>
+        <strong>3월 실적:</strong> {current_month}
+        </div>
+        """, unsafe_allow_html=True)
         
-        with col1:
-            st.markdown("<strong style='color: #4a5568; font-size: 13px;'>설계사명</strong>", unsafe_allow_html=True)
-            st.code(name, language=None)
-            
-            st.markdown("<strong style='color: #4a5568; font-size: 13px;'>설계사코드</strong>", unsafe_allow_html=True)
-            st.code(code, language=None)
-            
-            st.markdown("<strong style='color: #4a5568; font-size: 13px;'>📞 휴대전화</strong>", unsafe_allow_html=True)
-            st.code(phone, language=None)
-            
-            st.markdown("<strong style='color: #4a5568; font-size: 13px;'>소속지사</strong>", unsafe_allow_html=True)
-            st.code(branch, language=None)
+        # vCard 생성 및 다운로드 (지사명+설계사명)
+        vcard_name = f"{branch} {name}"
+        vcard_content = create_vcard(vcard_name, phone, branch)
         
-        with col2:
-            st.markdown("<strong style='color: #4a5568; font-size: 13px;'>소속지점</strong>", unsafe_allow_html=True)
-            st.code(office, language=None)
-            
-            st.markdown("<strong style='color: #4a5568; font-size: 13px;'>담당매니저</strong>", unsafe_allow_html=True)
-            st.code(manager, language=None)
-            
-            st.markdown("<strong style='color: #4a5568; font-size: 13px;'>위촉일자</strong>", unsafe_allow_html=True)
-            st.code(join_date, language=None)
-        
-        st.markdown("<h3 style='color: #4a5568; margin-top: 16px;'>📊 최근 실적</h3>", unsafe_allow_html=True)
-        
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            st.markdown("<strong style='color: #4a5568; font-size: 13px;'>1월 실적</strong>", unsafe_allow_html=True)
-            st.code(prev_prev_month, language=None)
-        
-        with col2:
-            st.markdown("<strong style='color: #4a5568; font-size: 13px;'>2월 실적</strong>", unsafe_allow_html=True)
-            st.code(prev_month, language=None)
-        
-        with col3:
-            st.markdown("<strong style='color: #4a5568; font-size: 13px;'>3월 실적</strong>", unsafe_allow_html=True)
-            st.code(current_month, language=None)
+        st.download_button(
+            label="📥 연락처 저장 (vCard)",
+            data=vcard_content,
+            file_name=f"{branch}_{name}_연락처.vcf",
+            mime="text/vcard",
+            use_container_width=True
+        )
         
         st.markdown("<hr style='border: 1px solid #e2e8f0; margin: 15px 0;'>", unsafe_allow_html=True)
         
