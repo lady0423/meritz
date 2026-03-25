@@ -513,6 +513,8 @@ if 'contact_search_performed' not in st.session_state:
     st.session_state.contact_search_performed = False
 if 'contact_selected_row' not in st.session_state:
     st.session_state.contact_selected_row = None
+if 'selected_duplicate_index' not in st.session_state:
+    st.session_state.selected_duplicate_index = None
 
 # 로그인 화면
 if not st.session_state.authenticated:
@@ -599,6 +601,7 @@ with tab1:
         st.session_state.selected_row = None
         st.session_state.show_duplicates = False
         st.session_state.filtered_data = None
+        st.session_state.selected_duplicate_index = None
         st.session_state.last_search_params = current_params.copy()
 
     if search_clicked:
@@ -626,18 +629,19 @@ with tab1:
     if st.session_state.show_duplicates and st.session_state.filtered_data is not None:
         st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
         
-        for idx, (_, agent_row) in enumerate(st.session_state.filtered_data.iterrows()):
+        for idx, (row_idx, agent_row) in enumerate(st.session_state.filtered_data.iterrows()):
             office_branch = str(agent_row.get('지점명','N/A')).strip()
             agency_branch = str(agent_row.get('지사명','N/A')).strip()
             
             # 소속지점 + 지사명만 표기
             agent_display = f"{office_branch} | {agency_branch}"
             
-            if st.button(agent_display, key=f"agent_{idx}", use_container_width=True):
-                st.session_state.search_performed = True
+            if st.button(agent_display, key=f"agent_select_{idx}", use_container_width=True):
                 st.session_state.selected_row = agent_row
+                st.session_state.search_performed = True
                 st.session_state.show_duplicates = False
                 st.session_state.filtered_data = None
+                st.session_state.selected_duplicate_index = None
                 st.rerun()
 
     if st.session_state.search_performed and st.session_state.selected_row is not None:
@@ -765,6 +769,7 @@ with tab1:
             st.session_state.selected_row = None
             st.session_state.show_duplicates = False
             st.session_state.filtered_data = None
+            st.session_state.selected_duplicate_index = None
             st.rerun()
 
     elif not st.session_state.show_duplicates:
@@ -834,7 +839,7 @@ with tab2:
                     # 소속지점 + 지사명만 표기
                     contact_display = f"{contact_office} | {contact_branch}"
                     
-                    if st.button(contact_display, key=f"contact_{idx}", use_container_width=True):
+                    if st.button(contact_display, key=f"contact_select_{idx}", use_container_width=True):
                         st.session_state.contact_search_performed = True
                         st.session_state.contact_selected_row = contact_row
                         st.rerun()
