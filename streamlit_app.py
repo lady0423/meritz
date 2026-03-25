@@ -453,10 +453,10 @@ def load_logo():
         return Image.open("meritz.png")
     return None
 
-# 🔧 수정 1: render_mc_box 함수 수정 (MC대상 구분 추가)
+# 🔧 수정 1: render_mc_box 함수 - MC대상 AB열 처리
 def render_mc_box(mc_challenge, mc_shortage, is_authentic=False, is_mc_plus=False, mc_target_value=1):
     """
-    mc_target_value: MC대상 컬럼(AB열) 값 (1=대상, 2=미대상)
+    mc_target_value: MC대상 컬럼 값 (1=대상, 2=미대상)
     """
     
     # MC 미대상자 처리 (MC+는 제외)
@@ -528,9 +528,6 @@ if 'contact_search_performed' not in st.session_state:
     st.session_state.contact_search_performed = False
 if 'contact_selected_row' not in st.session_state:
     st.session_state.contact_selected_row = None
-# 🔧 수정 5: 전화번호 검색 이력 제거용
-if 'contact_search_reset' not in st.session_state:
-    st.session_state.contact_search_reset = 0
 
 # 로그인 화면
 if not st.session_state.authenticated:
@@ -629,7 +626,7 @@ with tab1:
                 st.session_state.filtered_data = filtered
                 st.session_state.search_performed = False
 
-    # 🔧 수정 3: 동명이인 선택 처리 (딕셔너리로 저장)
+    # 🔧 수정 2: 동명이인 선택 처리 (.to_dict() 제거)
     if st.session_state.show_duplicates and st.session_state.filtered_data is not None:
         st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
         
@@ -640,19 +637,15 @@ with tab1:
             agent_display = f"{office_branch} | {agency_branch}"
             
             if st.button(agent_display, key=f"agent_select_{row_idx}_{idx}", use_container_width=True):
-                st.session_state.selected_row = agent_row.to_dict()
+                st.session_state.selected_row = agent_row
                 st.session_state.search_performed = True
                 st.session_state.show_duplicates = False
                 st.session_state.filtered_data = None
                 st.rerun()
 
-    # 🔧 수정 4: 조회 결과 표시 (dict → Series 변환)
+    # 조회 결과 표시
     if st.session_state.search_performed and st.session_state.selected_row is not None:
-        # dict를 Series로 변환
-        if isinstance(st.session_state.selected_row, dict):
-            row = pd.Series(st.session_state.selected_row)
-        else:
-            row = st.session_state.selected_row
+        row = st.session_state.selected_row
         
         agent_name_display = str(row["설계사명"]).strip()
         agent_code = str(row.get("현재대리점설계사조직코드", "N/A")).strip()
@@ -727,11 +720,17 @@ with tab1:
             
             # 어센틱 구분에 따라 브릿지 또는 MC만 표시
             if is_authentic:
-                # 🔧 수정 2: MC대상 값 읽어서 전달
                 st.markdown("<h3 style='color: #4a5568;'>💰 MC 성과</h3>", unsafe_allow_html=True)
-                mc_challenge = row["MC도전구간"]
-                mc_shortage = row["MC부족최종"]
-                mc_target_value = safe_float(row.get("MC대상", 1))  # AB열
+                mc_challenge = row.get("MC도전구간", 0)
+                mc_shortage = row.get("MC부족최종", 0)
+                
+                # 🔧 수정 3: AB열(MC대상) 읽기 - 컬럼 인덱스로 직접 접근
+                try:
+                    # AB열은 28번째 컬럼 (0-based index = 27)
+                    mc_target_value = safe_float(df.iloc[row.name, 27])
+                except:
+                    mc_target_value = 1
+                
                 render_mc_box(mc_challenge, mc_shortage, is_authentic=True, is_mc_plus=False, mc_target_value=mc_target_value)
             else:
                 st.markdown("<h3 style='color: #4a5568;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
@@ -806,14 +805,7 @@ with tab2:
     col1, col2 = st.columns([3, 1])
     with col1:
         st.markdown("<div class='search-label'>🔍 전화번호 또는 설계사명 입력</div>", unsafe_allow_html=True)
-        # 🔧 수정 5: 매번 빈 값으로 리셋
-        contact_search = st.text_input(
-            "검색", 
-            value="",
-            placeholder="예: 01012345678, 1234567, 123-4567, 홍길동", 
-            label_visibility="collapsed", 
-            key=f"contact_search_{st.session_state.contact_search_reset}"
-        )
+        contact_search = st.text_input("검색", placeholder="예: 01012345678, 1234567, 123-4567, 홍길동", label_visibility="collapsed", key="contact_search", autocomplete="new-password")
     
     with col2:
         st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
@@ -848,7 +840,7 @@ with tab2:
             else:
                 st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>검색 결과가 여러 개입니다. 선택해주세요:</p>", unsafe_allow_html=True)
                 
-                # 🔧 수정 3: 동명이인 선택 로직 (딕셔너리로 저장)
+                # 🔧 수정 2: 동명이인 선택 로직 (.to_dict() 제거)
                 for idx, (row_idx, contact_row) in enumerate(filtered_contacts.iterrows()):
                     contact_office = str(contact_row.get('지점', 'N/A')).strip()
                     contact_branch = str(contact_row.get('지사', 'N/A')).strip()
@@ -857,16 +849,11 @@ with tab2:
                     
                     if st.button(contact_display, key=f"contact_select_{row_idx}_{idx}", use_container_width=True):
                         st.session_state.contact_search_performed = True
-                        st.session_state.contact_selected_row = contact_row.to_dict()
+                        st.session_state.contact_selected_row = contact_row
                         st.rerun()
     
-    # 🔧 수정 4: 조회 결과 표시 (dict → Series 변환)
     if st.session_state.contact_search_performed and st.session_state.contact_selected_row is not None:
-        # dict를 Series로 변환
-        if isinstance(st.session_state.contact_selected_row, dict):
-            row = pd.Series(st.session_state.contact_selected_row)
-        else:
-            row = st.session_state.contact_selected_row
+        row = st.session_state.contact_selected_row
         
         name = str(row.get("설계사명", "N/A")).strip()
         code = str(row.get("설계사코드", "N/A")).strip()
@@ -923,11 +910,9 @@ with tab2:
         
         st.markdown("<hr style='border: 1px solid #e2e8f0; margin: 15px 0;'>", unsafe_allow_html=True)
         
-        # 🔧 수정 5: 초기화 버튼에서 입력 필드 키 변경
         if st.button("🔄 초기화", use_container_width=True, key="reset_contact"):
             st.session_state.contact_search_performed = False
             st.session_state.contact_selected_row = None
-            st.session_state.contact_search_reset += 1
             st.rerun()
     
     elif not st.session_state.contact_search_performed:
