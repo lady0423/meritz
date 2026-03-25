@@ -404,6 +404,21 @@ def load_contact_data_from_google_sheets():
         st.error(f"전화번호 데이터 로드 실패: {e}")
         return None
 
+def create_vcard(name, phone, company, title, department):
+    """vCard 파일 생성"""
+    phone_clean = phone.replace("-", "").replace(" ", "")
+    
+    vcard = f"""BEGIN:VCARD
+VERSION:3.0
+FN:{name}
+TEL;TYPE=CELL:{phone_clean}
+ORG:{company}
+TITLE:{title}
+NOTE:부서: {department}
+END:VCARD"""
+    
+    return vcard
+
 def load_leaflet_template_from_drive(file_id):
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -752,7 +767,7 @@ with tab2:
     col1, col2 = st.columns([3, 1])
     with col1:
         st.markdown("<div class='search-label'>🔍 전화번호 또는 설계사명 입력</div>", unsafe_allow_html=True)
-        contact_search = st.text_input("검색", placeholder="예: 23456789, 2345-6789 또는 홍길동", label_visibility="collapsed", key="contact_search")
+        contact_search = st.text_input("검색", placeholder="예: 010-1234-5678 또는 홍길동", label_visibility="collapsed", key="contact_search")
     
     with col2:
         st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
@@ -764,12 +779,9 @@ with tab2:
         else:
             search_value = contact_search.strip()
             
-            # 전화번호에서 - 제거하여 검색
-            search_value_clean = search_value.replace("-", "").replace(" ", "")
-            
             # 전화번호 또는 설계사명으로 검색
             filtered_contacts = contact_df[
-                (contact_df["휴대전화"].astype(str).str.replace("-", "").str.replace(" ", "").str.contains(search_value_clean, na=False)) |
+                (contact_df["휴대전화"].astype(str).str.contains(search_value, na=False)) |
                 (contact_df["설계사명"].astype(str).str.contains(search_value, na=False))
             ]
             
@@ -780,14 +792,14 @@ with tab2:
                 st.session_state.contact_search_performed = True
                 st.session_state.contact_selected_row = filtered_contacts.iloc[0]
             else:
-                st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>검색 결과가 여러 개입니다. 소속을 선택해주세요:</p>", unsafe_allow_html=True)
+                st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>검색 결과가 여러 개입니다. 선택해주세요:</p>", unsafe_allow_html=True)
                 
                 for idx, (_, contact_row) in enumerate(filtered_contacts.iterrows()):
-                    contact_office = str(contact_row.get('지점', 'N/A')).strip()
+                    contact_name = str(contact_row.get('설계사명', 'N/A')).strip()
+                    contact_phone = str(contact_row.get('휴대전화', 'N/A')).strip()
                     contact_branch = str(contact_row.get('지사', 'N/A')).strip()
                     
-                    # 지점명 | 지사명만 표시
-                    contact_display = f"{contact_office} | {contact_branch}"
+                    contact_display = f"{contact_name} - {contact_phone} ({contact_branch})"
                     
                     if st.button(contact_display, key=f"contact_{idx}", use_container_width=True):
                         st.session_state.contact_search_performed = True
@@ -807,43 +819,45 @@ with tab2:
         prev_month = format_display(row.get("전월실적", 0))
         prev_prev_month = format_display(row.get("전전월실적", 0))
         
-        st.markdown("<h3 style='color: #4a5568;'>📋 설계사 정보 (길게 눌러 복사)</h3>", unsafe_allow_html=True)
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("**👤 설계사명**")
-            st.code(name, language=None)
-            
-            st.markdown("**📞 휴대전화**")
-            st.code(phone, language=None)
-            
-            st.markdown("**🏢 소속지사**")
-            st.code(branch, language=None)
-        
-        with col2:
-            st.markdown("**🔢 설계사코드**")
-            st.code(code, language=None)
-            
-            st.markdown("**🏪 소속지점**")
-            st.code(office, language=None)
-            
-            st.markdown("**👔 담당매니저**")
-            st.code(manager, language=None)
-        
-        st.markdown("**📅 위촉일자**")
-        st.code(join_date, language=None)
+        st.markdown("<h3 style='color: #4a5568;'>📋 설계사 정보</h3>", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class='contact-box'>
+        <strong>설계사명:</strong> {name}<br>
+        <strong>설계사코드:</strong> {code}<br>
+        <strong>📞 휴대전화:</strong> <span style='color: #48bb78; font-weight: 700; font-size: 16px;'>{phone}</span><br>
+        <strong>소속지사:</strong> {branch}<br>
+        <strong>소속지점:</strong> {office}<br>
+        <strong>담당매니저:</strong> {manager}<br>
+        <strong>위촉일자:</strong> {join_date}
+        </div>
+        """, unsafe_allow_html=True)
         
         st.markdown("<h3 style='color: #4a5568;'>📊 최근 실적</h3>", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class='info-box'>
+        <strong>1월 실적:</strong> {prev_prev_month}<br>
+        <strong>2월 실적:</strong> {prev_month}
+        </div>
+        """, unsafe_allow_html=True)
         
-        col3, col4 = st.columns(2)
-        with col3:
-            st.markdown("**1월 실적**")
-            st.code(prev_prev_month, language=None)
+        # vCard 생성 및 다운로드
+        vcard_content = create_vcard(name, phone, branch, "설계사", office)
         
-        with col4:
-            st.markdown("**2월 실적**")
-            st.code(prev_month, language=None)
+        col1, col2 = st.columns(2)
+        with col1:
+            st.download_button(
+                label="📥 연락처 저장 (vCard)",
+                data=vcard_content,
+                file_name=f"{name}_연락처.vcf",
+                mime="text/vcard",
+                use_container_width=True
+            )
+        
+        with col2:
+            if st.button("📋 정보 복사", use_container_width=True):
+                copy_text = f"{name}\n{phone}\n{branch} | {office}\n담당: {manager}"
+                st.code(copy_text, language=None)
+                st.success("✅ 위 정보를 복사하세요!")
         
         st.markdown("<hr style='border: 1px solid #e2e8f0; margin: 15px 0;'>", unsafe_allow_html=True)
         
@@ -856,6 +870,6 @@ with tab2:
         st.markdown("""
         <div style='text-align: center; margin-top: 30px; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);'>
         <p style='color: #4a5568; font-weight: 600; font-size: 15px; margin-bottom: 8px;'>📞 전화번호 또는 설계사명을 입력하고 검색하세요.</p>
-        <p style='color: #718096; font-weight: 400; font-size: 13px; margin-top: 8px;'>💡 전화번호는 010 없이도 검색됩니다 (예: 23456789, 2345-6789)</p>
+        <p style='color: #718096; font-weight: 400; font-size: 13px; margin-top: 8px;'>예: 010-1234-5678 또는 홍길동</p>
         </div>
         """, unsafe_allow_html=True)
