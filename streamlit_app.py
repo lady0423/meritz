@@ -533,7 +533,7 @@ if not st.session_state.authenticated:
     
     col1, col2, col3 = st.columns([0.5, 2, 0.5])
     with col2:
-        password_input = st.text_input("비밀번호", type="password", placeholder="비밀번호 입력", label_visibility="collapsed", key="login_password")
+        password_input = st.text_input("비밀번호", type="password", placeholder="비밀번호 입력", label_visibility="collapsed")
         
         if st.button("로그인", use_container_width=True):
             if password_input == PASSWORD:
@@ -588,28 +588,28 @@ with tab1:
         search_clicked = st.button("🔍 검색", use_container_width=True)
 
     if search_clicked:
-        # 🔧 수정 3: 검색 시 기존 세션 상태 초기화
-        st.session_state.search_performed = False
-        st.session_state.selected_row = None
-        st.session_state.show_duplicates = False
-        st.session_state.filtered_data = None
-        
         if not agent_name:
             st.error("⚠️ 설계사명을 입력해주세요.")
+            st.session_state.search_performed = False
+            st.session_state.show_duplicates = False
         else:
             filtered = df[(df["지점명"].astype(str).str.strip() == selected_branch.strip()) &
                           (df["설계사명"].astype(str).str.strip() == agent_name.strip())]
             
             if len(filtered) == 0:
                 st.error(f"❌ 데이터를 찾을 수 없습니다")
+                st.session_state.search_performed = False
+                st.session_state.show_duplicates = False
             elif len(filtered) == 1:
                 st.session_state.search_performed = True
                 st.session_state.selected_row = filtered.iloc[0]
+                st.session_state.show_duplicates = False
             else:
                 st.session_state.show_duplicates = True
                 st.session_state.filtered_data = filtered
+                st.session_state.search_performed = False
 
-    # 🔧 수정 2: 동명이인 선택 로직 수정
+    # 🔧 수정 2: 동명이인 선택 처리
     if st.session_state.show_duplicates and st.session_state.filtered_data is not None:
         st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>동명이인이 있습니다. 선택해주세요:</p>", unsafe_allow_html=True)
         
@@ -701,15 +701,15 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
             
-            # 🔧 수정 1: 어센틱 구분에 따라 브릿지 또는 MC만 표시
+            # 🔧 수정 1: 어센틱 구분 로직 수정 - if-else 구조로 변경
             if is_authentic:
-                # 어센틱 = MC 성과만
+                # 어센틱 설계사 = MC만 표시
                 st.markdown("<h3 style='color: #4a5568;'>💰 MC 성과</h3>", unsafe_allow_html=True)
                 mc_challenge = row["MC도전구간"]
                 mc_shortage = row["MC부족최종"]
                 render_mc_box(mc_challenge, mc_shortage, is_authentic=True, is_mc_plus=False)
             else:
-                # 브릿지 = 브릿지 성과만
+                # 브릿지 설계사 = 브릿지만 표시
                 st.markdown("<h3 style='color: #4a5568;'>🌉 브릿지 성과</h3>", unsafe_allow_html=True)
                 bridge_target = row["브릿지 도전구간"]
                 bridge_shortage = row["브릿지부족최종"]
@@ -782,17 +782,21 @@ with tab2:
     col1, col2 = st.columns([3, 1])
     with col1:
         st.markdown("<div class='search-label'>🔍 전화번호 또는 설계사명 입력</div>", unsafe_allow_html=True)
-        contact_search = st.text_input("검색", placeholder="예: 01012345678, 1234567, 123-4567, 홍길동", label_visibility="collapsed", key="contact_search")
+        # 🔧 수정 3: 매번 빈 값으로 초기화
+        contact_search_value = ""
+        if 'temp_contact_search' in st.session_state:
+            contact_search_value = st.session_state.temp_contact_search
+        
+        contact_search = st.text_input("검색", value=contact_search_value, placeholder="예: 01012345678, 1234567, 123-4567, 홍길동", label_visibility="collapsed", key="contact_search_input")
+        
+        if contact_search:
+            st.session_state.temp_contact_search = contact_search
     
     with col2:
         st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
         contact_search_clicked = st.button("🔍 검색", use_container_width=True, key="contact_search_btn")
     
     if contact_search_clicked:
-        # 🔧 수정 3: 검색 시 기존 세션 상태 초기화
-        st.session_state.contact_search_performed = False
-        st.session_state.contact_selected_row = None
-        
         if not contact_search:
             st.warning("⚠️ 전화번호 또는 설계사명을 입력해주세요.")
         else:
@@ -814,13 +818,14 @@ with tab2:
             
             if len(filtered_contacts) == 0:
                 st.error(f"❌ '{search_value}'에 해당하는 데이터를 찾을 수 없습니다.")
+                st.session_state.contact_search_performed = False
             elif len(filtered_contacts) == 1:
                 st.session_state.contact_search_performed = True
                 st.session_state.contact_selected_row = filtered_contacts.iloc[0]
             else:
                 st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>검색 결과가 여러 개입니다. 선택해주세요:</p>", unsafe_allow_html=True)
                 
-                # 🔧 수정 2: 동명이인 선택 로직 수정
+                # 🔧 수정 2: 동명이인 선택 로직
                 for idx, (row_idx, contact_row) in enumerate(filtered_contacts.iterrows()):
                     contact_office = str(contact_row.get('지점', 'N/A')).strip()
                     contact_branch = str(contact_row.get('지사', 'N/A')).strip()
@@ -893,6 +898,8 @@ with tab2:
         if st.button("🔄 초기화", use_container_width=True, key="reset_contact"):
             st.session_state.contact_search_performed = False
             st.session_state.contact_selected_row = None
+            if 'temp_contact_search' in st.session_state:
+                del st.session_state.temp_contact_search
             st.rerun()
     
     elif not st.session_state.contact_search_performed:
