@@ -21,13 +21,13 @@ LEAFLET_TEMPLATE_IDS = {
     "더금융": "1DeUpP_czQzEpa2CTiWyvcg_42e0FT-_Y",
     "더좋은보험": "1OLsK7oilx3OacZSw8f1VZP3pKBvYsLRj",
     "프라임에셋": "1iZie57BZYUNguiiuympKd4wsg_kkZxVt",
-    "에이플러스": "1EFc4RNsiKo1Rgv0M0tAXVvALY6lC74V0",
+    "에이플러스": "1KYkiPglCCgKZ59HGSebkpKjPanr-os1b",  # 🔧 수정
     "지에이코리아": "1xsc5JVGxyercM0553s2Cdx5vw8PbjccS",
     "메타리치": "13MXbTMcaq0E9ugf9V4Yh1wGfNcavQSvX",
     "글로벌금융": "1rLX4jeoFvzgQCEEBaMLYWp5eSs_XdNNE",
     "인카금융": "15l_dvr73h5RwdrEEi2GP4lbVReMyj8KJ",
     "아너스": "1DrMIR4hDRcXuI3l6Ue-l4aCfP0aEP0JS",
-    "굿리치": "1vNoopxTYV5cK1zlOPlNvSGseK_dbXkXl",
+    "굿리치": "1xF8N3LCMECplAurB9sVpmlzzmUdcHh2_",  # 🔧 수정
     "신한금융": "1XAAncz-bWC4scblwtO7sLxsprqpcmu7_",
     "어센틱": "1pCtQjJQ_Vb_FWxhaicGBT0GWHwiVJJ1-",
     "none": "19ZnaS2s4X8JKv27NW9FFuMUVh32i3hc0"
