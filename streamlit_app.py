@@ -21,13 +21,13 @@ LEAFLET_TEMPLATE_IDS = {
     "더금융": "1DeUpP_czQzEpa2CTiWyvcg_42e0FT-_Y",
     "더좋은보험": "1OLsK7oilx3OacZSw8f1VZP3pKBvYsLRj",
     "프라임에셋": "1iZie57BZYUNguiiuympKd4wsg_kkZxVt",
-    "에이플러스": "1KYkiPglCCgKZ59HGSebkpKjPanr-os1b",  # 🔧 수정
+    "에이플러스": "1KYkiPglCCgKZ59HGSebkpKjPanr-os1b",
     "지에이코리아": "1xsc5JVGxyercM0553s2Cdx5vw8PbjccS",
     "메타리치": "13MXbTMcaq0E9ugf9V4Yh1wGfNcavQSvX",
     "글로벌금융": "1rLX4jeoFvzgQCEEBaMLYWp5eSs_XdNNE",
     "인카금융": "15l_dvr73h5RwdrEEi2GP4lbVReMyj8KJ",
     "아너스": "1DrMIR4hDRcXuI3l6Ue-l4aCfP0aEP0JS",
-    "굿리치": "1xF8N3LCMECplAurB9sVpmlzzmUdcHh2_",  # 🔧 수정
+    "굿리치": "1xF8N3LCMECplAurB9sVpmlzzmUdcHh2_",
     "신한금융": "1XAAncz-bWC4scblwtO7sLxsprqpcmu7_",
     "어센틱": "1pCtQjJQ_Vb_FWxhaicGBT0GWHwiVJJ1-",
     "none": "19ZnaS2s4X8JKv27NW9FFuMUVh32i3hc0"
@@ -528,7 +528,6 @@ if 'contact_search_performed' not in st.session_state:
     st.session_state.contact_search_performed = False
 if 'contact_selected_row' not in st.session_state:
     st.session_state.contact_selected_row = None
-# 🔧 추가: 전화번호 조회 중복자 표시용 상태
 if 'contact_show_duplicates' not in st.session_state:
     st.session_state.contact_show_duplicates = False
 if 'contact_filtered_data' not in st.session_state:
@@ -729,9 +728,7 @@ with tab1:
                 mc_challenge = row.get("MC도전구간", 0)
                 mc_shortage = row.get("MC부족최종", 0)
                 
-                # 🔧 수정: AB열(MC대상) 읽기
                 try:
-                    # AB열은 28번째 컬럼 (0-based index = 27)
                     mc_target_value = safe_float(df.iloc[row.name, 27])
                 except:
                     mc_target_value = 1
@@ -754,6 +751,102 @@ with tab1:
             mc_plus_challenge = row["MC+구간"]
             mc_plus_shortage = row["MC+부족최종"]
             render_mc_box(mc_plus_challenge, mc_plus_shortage, is_authentic=is_authentic, is_mc_plus=True)
+            
+            # 🔧 카카오톡 발송 섹션 추가
+            st.markdown("<hr style='border: 1px solid #e2e8f0; margin: 15px 0;'>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color: #4a5568;'>📱 카카오톡 발송</h3>", unsafe_allow_html=True)
+            
+            # MC 또는 브릿지 정보 생성
+            if is_authentic:
+                try:
+                    mc_target_value = safe_float(df.iloc[row.name, 27])
+                except:
+                    mc_target_value = 1
+                
+                if mc_target_value == 0 or mc_target_value == 2:
+                    mc_info = """💰 MC 성과
+ • 도전구간: 대상아님
+ • 부족금액: ₩ 0
+ • 상태: 이번달 20만원 도전"""
+                else:
+                    mc_challenge = row.get("MC도전구간", 0)
+                    mc_shortage = row.get("MC부족최종", 0)
+                    mc_info = f"""💰 MC 성과
+ • 도전구간: {format_display(mc_challenge)}
+ • 부족금액: {format_display(mc_shortage)}"""
+            else:
+                bridge_target = row["브릿지 도전구간"]
+                bridge_shortage = row["브릿지부족최종"]
+                mc_info = f"""🌉 브릿지 성과
+ • 목표: {format_display(bridge_target)}
+ • 부족금액: {format_display(bridge_shortage)}"""
+            
+            # 주차별 실적 텍스트 (현재 주차까지만)
+            week_text = ""
+            week_columns = ["1주차", "2주차", "3주차", "4주차", "5주차"]
+            for idx, week_col in enumerate(week_columns, 1):
+                if idx > current_week:
+                    break
+                week_value = row[week_col]
+                is_current_week_mark = (idx == current_week)
+                current_mark = " ⭐" if is_current_week_mark else ""
+                week_text += f" • {week_col}: {format_display(week_value)}{current_mark}\n"
+            
+            # 현재 주차 목표
+            if is_authentic:
+                weekly_target = row.get("어센틱주차목표", "0")
+                weekly_shortage = row.get("어센틱주차부족", "0")
+            else:
+                weekly_target = row.get("주차목표", "0")
+                weekly_shortage = row.get("주차부족최종", "0")
+            
+            # 카톡 메시지 생성
+            kakao_message = f"""📊메리츠 3월 실적 현황
+{agency_branch} {agent_name_display}팀장님!
+
+📈 3월 누계 실적
+ {format_display(cumulative)}
+
+📅 주차별 실적
+{week_text}
+⭐ 현재주차 목표
+ • 목표: {format_display(weekly_target)}
+ • 부족금액: {format_display(weekly_shortage)}
+
+{mc_info}
+
+💰 MC PLUS+ 성과
+ • 도전구간: {format_display(mc_plus_challenge)}
+ • 부족금액: {format_display(mc_plus_shortage)}
+
+💡 시상관련 궁금하신게 있다면 문의주세요~
+이번주도 화이팅입니다!"""
+            
+            # 메시지 미리보기
+            st.text_area(
+                "메시지 미리보기",
+                value=kakao_message,
+                height=350,
+                label_visibility="collapsed",
+                key="kakao_preview"
+            )
+            
+            # 복사 버튼
+            col_copy1, col_copy2 = st.columns([1, 1])
+            
+            with col_copy1:
+                if st.button("📋 메시지 복사하기", use_container_width=True, key="copy_kakao"):
+                    st.code(kakao_message, language=None)
+                    st.success("✅ 위 메시지를 드래그하여 복사한 후 카톡에 붙여넣기 하세요!")
+            
+            with col_copy2:
+                st.download_button(
+                    label="💾 텍스트 파일로 저장",
+                    data=kakao_message,
+                    file_name=f"{agent_name_display}_{agency_branch}_실적현황.txt",
+                    mime="text/plain",
+                    use_container_width=True
+                )
         
         with col_right:
             st.markdown("<h3 style='color: #4a5568;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
@@ -810,7 +903,6 @@ with tab2:
     col1, col2 = st.columns([3, 1])
     with col1:
         st.markdown("<div class='search-label'>🔍 전화번호 또는 설계사명 입력</div>", unsafe_allow_html=True)
-        # 🔧 수정: autocomplete="off" 및 name 속성 추가로 검색 이력 방지
         contact_search = st.text_input(
             "검색", 
             placeholder="예: 01012345678, 1234567, 123-4567, 홍길동", 
@@ -854,12 +946,10 @@ with tab2:
                 st.session_state.contact_selected_row = filtered_contacts.iloc[0]
                 st.session_state.contact_show_duplicates = False
             else:
-                # 🔧 수정: 중복자 표시 상태 변경
                 st.session_state.contact_show_duplicates = True
                 st.session_state.contact_filtered_data = filtered_contacts
                 st.session_state.contact_search_performed = False
     
-    # 🔧 수정: 전화번호 조회 동명이인 선택 처리
     if st.session_state.contact_show_duplicates and st.session_state.contact_filtered_data is not None:
         st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>검색 결과가 여러 개입니다. 선택해주세요:</p>", unsafe_allow_html=True)
         
@@ -877,7 +967,6 @@ with tab2:
                 st.session_state.contact_filtered_data = None
                 st.rerun()
     
-    # 조회 결과 표시
     if st.session_state.contact_search_performed and st.session_state.contact_selected_row is not None:
         row = st.session_state.contact_selected_row
         
@@ -889,14 +978,12 @@ with tab2:
         manager = str(row.get("매니저", "N/A")).strip()
         join_date = str(row.get("위촉일자", "N/A")).strip()
         
-        # 실적 데이터 가져오기 (AA열: 전월실적, AB열: 전전월실적)
         prev_month_raw = row.get("전월실적", 0)
         prev_prev_month_raw = row.get("전전월실적", 0)
         
         prev_month = format_display(prev_month_raw)
         prev_prev_month = format_display(prev_prev_month_raw)
         
-        # 이번달 실적은 시트1에서 가져오기
         current_month_perf = get_current_month_performance(performance_df, code)
         current_month = format_display(current_month_perf)
         
@@ -922,7 +1009,6 @@ with tab2:
         </div>
         """, unsafe_allow_html=True)
         
-        # vCard 생성 및 다운로드 (지사명+설계사명)
         vcard_name = f"{branch} {name}"
         vcard_content = create_vcard(vcard_name, phone, branch)
         
