@@ -965,33 +965,32 @@ with tab3:
                 st.session_state.manager_search_performed = True
                 st.session_state.manager_expanded_idx = None
 
-    # ── 동명이인 선택 UI ──
+     # ── 동명이인 선택 UI (버튼 리스트) ──
     if st.session_state.manager_duplicate_list:
-        st.markdown("---")
-        st.markdown("#### 🔎 동명이인 매니저가 검색되었습니다. 해당 매니저를 선택해 주세요.")
-        dup_labels = [d["label"] for d in st.session_state.manager_duplicate_list]
-        selected_label = st.selectbox("매니저 선택", dup_labels, key="manager_dup_selectbox")
-        if st.button("✅ 선택 확인", key="manager_dup_confirm"):
-            selected_dup = next(
-                d for d in st.session_state.manager_duplicate_list if d["label"] == selected_label
-            )
-            mgr_code_col2 = next((c for c in possible_code_cols if c in df_main.columns), None)
-            sel_mask = df_main[mgr_code_col2].astype(str).str.strip() == selected_dup["code"]
-            agents = df_main[sel_mask].copy()
-            cumul_col = next((c for c in ["누계실적", "누계", "cumulative"] if c in agents.columns), None)
-            if cumul_col:
-                agents["_cumul_float"] = agents[cumul_col].apply(safe_float)
-                agents = agents[agents["_cumul_float"] > 0].sort_values(
-                    "_cumul_float", ascending=False).reset_index(drop=True)
-            st.session_state.manager_agent_list = agents
-            st.session_state.manager_name_display = (
-                selected_dup["name"] + f" ({selected_dup['office']} / {selected_dup['branch']})"
-            )
-            st.session_state.manager_duplicate_list = []
-            st.session_state.manager_duplicate_selected = selected_dup["code"]
-            st.session_state.manager_search_performed = True
-            st.session_state.manager_expanded_idx = None
-            st.rerun()
+        st.markdown(
+            "<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>"
+            "동명이인 매니저가 있습니다. 선택해주세요:</p>",
+            unsafe_allow_html=True
+        )
+        for dup in st.session_state.manager_duplicate_list:
+            if st.button(dup["label"], key=f"mgr_dup_{dup['code']}", use_container_width=True):
+                mgr_code_col2 = next((c for c in possible_code_cols if c in df_main.columns), None)
+                sel_mask = df_main[mgr_code_col2].astype(str).str.strip() == dup["code"]
+                agents = df_main[sel_mask].copy()
+                cumul_col = next((c for c in ["누계실적", "누계", "cumulative"] if c in agents.columns), None)
+                if cumul_col:
+                    agents["_cumul_float"] = agents[cumul_col].apply(safe_float)
+                    agents = agents[agents["_cumul_float"] > 0].sort_values(
+                        "_cumul_float", ascending=False).reset_index(drop=True)
+                st.session_state.manager_agent_list = agents
+                st.session_state.manager_name_display = (
+                    f"{dup['name']} ({dup['office']} / {dup['branch']})"
+                )
+                st.session_state.manager_duplicate_list = []
+                st.session_state.manager_duplicate_selected = dup["code"]
+                st.session_state.manager_search_performed = True
+                st.session_state.manager_expanded_idx = None
+                st.rerun()
 
     # ── 설계사 리스트 표시 ──  ← 여기가 핵심: manager_reset 버튼과 완전히 분리
     if st.session_state.manager_search_performed and st.session_state.manager_agent_list is not None and not st.session_state.manager_agent_list.empty:
