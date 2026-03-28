@@ -883,67 +883,58 @@ with tab3:
     df_main = load_data_from_google_sheets()
     current_week = get_current_week()
 
-    possible_code_cols = ["매니저코드", "관리자코드", "MGR코드", "mgr_code", "manager_code"]
-    possible_name_cols = ["매니저명", "관리자명", "매니저이름", "MGR명", "mgr_name", "manager_name"]
-    mgr_code_col = next((c for c in possible_code_cols if c in df_main.columns), None)
-    mgr_name_col = next((c for c in possible_name_cols if c in df_main.columns), None)
+    # D열=매니저명(index 3), E열=매니저코드(index 4), C열=지점명(index 2)
+    col_names      = list(df_main.columns)
+    mgr_name_col   = col_names[3]   # D열
+    mgr_code_col   = col_names[4]   # E열
+    branch_col_mgr = col_names[2]   # C열
 
+    # ── 검색창 ──
     search_col1, search_col2 = st.columns([4, 1])
     with search_col1:
         manager_search_input = st.text_input(
             "매니저 검색",
-            placeholder="매니저 코드 또는 이름 입력 (예: 326111222, 박메리)",
+            placeholder="매니저 코드 또는 이름 입력 (예: M001, 김대길)",
             key="manager_search_input"
         )
     with search_col2:
         st.markdown("<br>", unsafe_allow_html=True)
         search_btn = st.button("🔍 조회", key="manager_search_btn", use_container_width=True)
 
+    # ── 검색 실행 ──
     if search_btn and manager_search_input.strip():
         query = manager_search_input.strip()
-        mask = pd.Series([False] * len(df_main), index=df_main.index)
-
-        if mgr_code_col:
-            mask |= df_main[mgr_code_col].astype(str).str.strip() == query
-        if mgr_name_col:
-            mask |= df_main[mgr_name_col].astype(str).str.strip() == query
-
+        mask = (
+            (df_main[mgr_name_col].astype(str).str.strip() == query) |
+            (df_main[mgr_code_col].astype(str).str.strip() == query)
+        )
         matched = df_main[mask].copy()
 
         if matched.empty:
-            st.warning("검색 결과가 없습니다.")
+            st.warning(f"'{query}'에 해당하는 매니저를 찾을 수 없습니다.")
             st.session_state.manager_search_performed = False
             st.session_state.manager_duplicate_list = []
             st.session_state.manager_duplicate_selected = None
         else:
-            if mgr_code_col:
-                unique_codes = matched[mgr_code_col].astype(str).str.strip().unique()
-            else:
-                unique_codes = []
+            unique_codes = matched[mgr_code_col].astype(str).str.strip().unique()
 
             if len(unique_codes) > 1:
-                # ── 동명이인: 선택 목록 구성 ──
-                dup_list = []
-                branch_col_dup = next((c for c in ["지점명", "지점", "branch"] if c in df_main.columns), None)
-                office_col_dup = next((c for c in ["지사명", "지사", "office"] if c in df_main.columns), None)
-                for code in unique_codes:
-                    code_mask = df_main[mgr_code_col].astype(str).str.strip() == code
-                    sub = df_main[code_mask]
-                    branch_val = sub[branch_col_dup].iloc[0] if branch_col_dup and not sub.empty else ""
-                    office_val = sub[office_col_dup].iloc[0] if office_col_dup and not sub.empty else ""
-                    mgr_nm_dup = sub[mgr_name_col].iloc[0] if mgr_name_col and not sub.empty else query
-                    dup_list.append({
-                        "code": code,
-                        "name": mgr_nm_dup,
-                        "branch": branch_val,
-                        "office": office_val,
-                        "label": f"{mgr_nm_dup} ({office_val} / {branch_val}) [{code}]"
-                    })
-
+                # ── 동명이인: 지점명 + 매니저코드 버튼 리스트 구성 ──
                 def extract_ga4_num_dup(s):
                     m = re.search(r'GA4[-\s]?(\d+)', str(s), re.IGNORECASE)
                     return int(m.group(1)) if m else 9999
 
+                dup_list = []
+                for code in unique_codes:
+                    sub = df_main[df_main[mgr_code_col].astype(str).str.strip() == code]
+                    branch_val = str(sub[branch_col_mgr].iloc[0]).strip() if not sub.empty else ""
+                    mgr_nm_dup = str(sub[mgr_name_col].iloc[0]).strip() if not sub.empty else query
+                    dup_list.append({
+                        "code": code,
+                        "name": mgr_nm_dup,
+                        "branch": branch_val,
+                        "label": f"{branch_val}  |  {code}"
+                    })
                 dup_list.sort(key=lambda x: extract_ga4_num_dup(x["branch"]))
                 st.session_state.manager_duplicate_list = dup_list
                 st.session_state.manager_duplicate_selected = None
@@ -959,13 +950,12 @@ with tab3:
                     agents["_cumul_float"] = agents[cumul_col].apply(safe_float)
                     agents = agents[agents["_cumul_float"] > 0].sort_values(
                         "_cumul_float", ascending=False).reset_index(drop=True)
-                mgr_nm = matched[mgr_name_col].iloc[0] if mgr_name_col else query
                 st.session_state.manager_agent_list = agents
-                st.session_state.manager_name_display = mgr_nm
+                st.session_state.manager_name_display = str(matched[mgr_name_col].iloc[0]).strip()
                 st.session_state.manager_search_performed = True
                 st.session_state.manager_expanded_idx = None
 
-     # ── 동명이인 선택 UI (버튼 리스트) ──
+    # ── 동명이인 버튼 리스트 UI ──
     if st.session_state.manager_duplicate_list:
         st.markdown(
             "<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>"
@@ -974,8 +964,7 @@ with tab3:
         )
         for dup in st.session_state.manager_duplicate_list:
             if st.button(dup["label"], key=f"mgr_dup_{dup['code']}", use_container_width=True):
-                mgr_code_col2 = next((c for c in possible_code_cols if c in df_main.columns), None)
-                sel_mask = df_main[mgr_code_col2].astype(str).str.strip() == dup["code"]
+                sel_mask = df_main[mgr_code_col].astype(str).str.strip() == dup["code"]
                 agents = df_main[sel_mask].copy()
                 cumul_col = next((c for c in ["누계실적", "누계", "cumulative"] if c in agents.columns), None)
                 if cumul_col:
@@ -983,22 +972,23 @@ with tab3:
                     agents = agents[agents["_cumul_float"] > 0].sort_values(
                         "_cumul_float", ascending=False).reset_index(drop=True)
                 st.session_state.manager_agent_list = agents
-                st.session_state.manager_name_display = (
-                    f"{dup['name']} ({dup['office']} / {dup['branch']})"
-                )
+                st.session_state.manager_name_display = f"{dup['name']} ({dup['branch']})"
                 st.session_state.manager_duplicate_list = []
                 st.session_state.manager_duplicate_selected = dup["code"]
                 st.session_state.manager_search_performed = True
                 st.session_state.manager_expanded_idx = None
                 st.rerun()
 
-    # ── 설계사 리스트 표시 ──  ← 여기가 핵심: manager_reset 버튼과 완전히 분리
-    if st.session_state.manager_search_performed and st.session_state.manager_agent_list is not None and not st.session_state.manager_agent_list.empty:
+    # ── 설계사 리스트 표시 ──
+    if (
+        st.session_state.manager_search_performed
+        and st.session_state.manager_agent_list is not None
+        and not st.session_state.manager_agent_list.empty
+    ):
+        all_agents = st.session_state.manager_agent_list
+        mgr_name   = st.session_state.manager_name_display
 
-        all_agents = st.session_state.manager_agent_list      # ← 변수 정의
-        mgr_name   = st.session_state.manager_name_display    # ← 변수 정의
-
-        # ── 인사말 ──
+        # 인사말
         st.markdown("""
         <div style='background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
             padding:8px 14px;border-radius:8px;margin:10px 0 4px 0;'>
@@ -1011,7 +1001,7 @@ with tab3:
             height=70, label_visibility="collapsed", key="manager_greeting"
         )
 
-        # ── 드롭다운 필터 ──
+        # 드롭다운 필터
         filter_options = {
             "📋 전체": 0,
             "📅 현재주차 유실적자": 1,
@@ -1031,7 +1021,9 @@ with tab3:
                 st.session_state.manager_expanded_idx = None
                 st.rerun()
 
-        filtered_agents = apply_manager_filter(all_agents, st.session_state.manager_filter_mode, current_week)
+        filtered_agents = apply_manager_filter(
+            all_agents, st.session_state.manager_filter_mode, current_week
+        )
 
         with col_count:
             st.markdown(f"""
@@ -1051,17 +1043,13 @@ with tab3:
         else:
             for i, (_, agent_row) in enumerate(filtered_agents.iterrows()):
                 agent_nm      = str(agent_row["설계사명"]).strip()
-                agent_branch  = str(agent_row.get("지사명","")).strip()
-                agent_office  = str(agent_row.get("지점명","")).strip()
+                agent_branch  = str(agent_row.get("지사명", "")).strip()
+                agent_office  = str(agent_row.get("지점명", "")).strip()
                 cumul_display = format_display(agent_row["누계실적"])
                 is_expanded   = (st.session_state.manager_expanded_idx == i)
                 is_auth       = safe_float(agent_row.get("어센틱구분", 0)) == 1
 
-                if i == 0:   rank_bg, rank_tc = "#f6d365", "#92400e"
-                elif i == 1: rank_bg, rank_tc = "#b8c6db", "#1a365d"
-                elif i == 2: rank_bg, rank_tc = "#96e6a1", "#1c4532"
-                else:        rank_bg, rank_tc = "#e2e8f0", "#4a5568"
-
+                # 카드 버튼 (클릭 = 토글)
                 card_css = "agent-card-btn-active" if is_expanded else "agent-card-btn"
                 st.markdown(f"<div class='{card_css}'>", unsafe_allow_html=True)
                 if st.button(
@@ -1074,6 +1062,7 @@ with tab3:
                     st.rerun()
                 st.markdown("</div>", unsafe_allow_html=True)
 
+                # 메시지 복사 버튼 (항상 노출)
                 msg = build_kakao_message(agent_row, df_main, current_week, greeting=greeting_text)
                 copy_to_clipboard_button(
                     msg,
@@ -1082,6 +1071,7 @@ with tab3:
                     height=52
                 )
 
+                # 펼쳐진 세부 내용
                 if is_expanded:
                     st.markdown("""
                     <div style='background:#f8f9fa;border:1px solid #e2e8f0;
@@ -1098,13 +1088,16 @@ with tab3:
                         {format_display(agent_row["누계실적"])}</div>""",
                         unsafe_allow_html=True)
 
-                    st.markdown("<div style='font-size:11px;color:#718096;font-weight:600;margin-bottom:4px;'>📅 주차별 실적</div>",
-                                unsafe_allow_html=True)
+                    st.markdown(
+                        "<div style='font-size:11px;color:#718096;font-weight:600;"
+                        "margin-bottom:4px;'>📅 주차별 실적</div>",
+                        unsafe_allow_html=True
+                    )
                     week_row_cols = st.columns(5)
                     for wi, wc in enumerate(["1주차","2주차","3주차","4주차","5주차"], 1):
                         wv = format_display(agent_row[wc])
                         is_cur = (wi == current_week)
-                        with week_row_cols[wi-1]:
+                        with week_row_cols[wi - 1]:
                             st.markdown(f"""
                             <div style='background:{"#ffd93d" if is_cur else "white"};
                                 border-radius:6px;padding:5px 3px;text-align:center;
@@ -1119,11 +1112,11 @@ with tab3:
                     st.markdown("<div style='height:6px;'></div>", unsafe_allow_html=True)
 
                     if is_auth:
-                        wt = agent_row.get("어센틱주차목표","0")
-                        ws = agent_row.get("어센틱주차부족","0")
+                        wt = agent_row.get("어센틱주차목표", "0")
+                        ws = agent_row.get("어센틱주차부족", "0")
                     else:
-                        wt = agent_row.get("주차목표","0")
-                        ws = agent_row.get("주차부족최종","0")
+                        wt = agent_row.get("주차목표", "0")
+                        ws = agent_row.get("주차부족최종", "0")
                     st.markdown(f"""
                     <div style='background:white;border-left:3px solid #ed8936;
                         padding:6px 10px;border-radius:6px;margin:6px 0;font-size:12px;'>
@@ -1132,9 +1125,11 @@ with tab3:
                     </div>""", unsafe_allow_html=True)
 
                     if is_auth:
-                        try: mc_tv = safe_float(df_main.iloc[agent_row.name, 27])
-                        except: mc_tv = 1
-                        mc_s = str(agent_row.get("MC부족최종","")).strip()
+                        try:
+                            mc_tv = safe_float(df_main.iloc[agent_row.name, 27])
+                        except:
+                            mc_tv = 1
+                        mc_s = str(agent_row.get("MC부족최종", "")).strip()
                         if mc_tv == 0 or mc_tv == 2:
                             mc_status, mc_color = "이번달 20만원 도전", "#ed8936"
                         elif "최종달성" in mc_s or safe_float(mc_s) <= 0:
@@ -1144,8 +1139,8 @@ with tab3:
                         st.markdown(f"""
                         <div style='background:white;border-left:3px solid #fc8181;
                             padding:6px 10px;border-radius:6px;margin:4px 0;font-size:12px;'>
-                        💰 <strong>MC:</strong> {format_display(agent_row.get("MC도전구간",0))}
-                        &nbsp;|&nbsp; <strong>부족:</strong> {format_display(agent_row.get("MC부족최종",0))}
+                        💰 <strong>MC:</strong> {format_display(agent_row.get("MC도전구간", 0))}
+                        &nbsp;|&nbsp; <strong>부족:</strong> {format_display(agent_row.get("MC부족최종", 0))}
                         &nbsp;|&nbsp;
                         <span style='color:{mc_color};font-weight:700;'>{mc_status}</span>
                         </div>""", unsafe_allow_html=True)
@@ -1157,11 +1152,11 @@ with tab3:
                         &nbsp;|&nbsp; <strong>부족:</strong> {format_display(agent_row["브릿지부족최종"])}
                         </div>""", unsafe_allow_html=True)
 
-                    mp_s   = str(agent_row.get("MC+부족최종","")).strip()
+                    mp_s   = str(agent_row.get("MC+부족최종", "")).strip()
                     mp_val = safe_float(mp_s)
                     if mp_val <= 0 or "최종달성" in mp_s:
                         mp_status, mp_color = "✅ 시상금확보", "#48bb78"
-                    elif any(x in mp_s for x in ["대상아님","미달성","다음기회에"]):
+                    elif any(x in mp_s for x in ["대상아님", "미달성", "다음기회에"]):
                         mp_status, mp_color = "⚪ 대상아님", "#718096"
                     else:
                         mp_status, mp_color = "🟡 도전중", "#805ad5"
@@ -1181,7 +1176,7 @@ with tab3:
         st.markdown("<hr style='border:1px solid #e2e8f0;margin:15px 0;'>", unsafe_allow_html=True)
         if st.button("🔄 초기화", use_container_width=True, key="reset_manager"):
             st.session_state.manager_search_performed = False
-            st.session_state.manager_agent_list = None
+            st.session_state.manager_agent_list = pd.DataFrame()
             st.session_state.manager_name_display = ""
             st.session_state.manager_expanded_idx = None
             st.session_state.manager_filter_mode = 0
@@ -1200,4 +1195,3 @@ with tab3:
         <p style='color:#48bb78;font-weight:500;font-size:12px;margin-top:12px;'>
             ✨ 대상자 클릭으로 상세실적 확인, 메시지 복사 버튼으로 바로 발송하세요!</p>
         </div>""", unsafe_allow_html=True)
-
