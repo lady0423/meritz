@@ -893,7 +893,7 @@ with tab3:
     with search_col1:
         manager_search_input = st.text_input(
             "매니저 검색",
-            placeholder="매니저 코드 또는 이름 입력 (예: M001, 김대길)",
+            placeholder="매니저 코드 또는 이름 입력 (예: 326111222, 박메리)",
             key="manager_search_input"
         )
     with search_col2:
