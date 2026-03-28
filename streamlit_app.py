@@ -6,6 +6,7 @@ from PIL import Image
 import gdown
 import tempfile
 import os
+from streamlit_js_eval import copy_to_clipboard  # 🔧 추가
 
 GOOGLE_SHEET_ID = "1NSm_gy0a_QbWXquI2efdM93BjBuHn_sYLpU0NybL5_8"
 
@@ -831,13 +832,13 @@ with tab1:
                 key="kakao_preview"
             )
             
-            # 복사 버튼
+            # 🔧 복사 버튼 (streamlit-js-eval 사용)
             col_copy1, col_copy2 = st.columns([1, 1])
             
             with col_copy1:
                 if st.button("📋 메시지 복사하기", use_container_width=True, key="copy_kakao"):
-                    st.code(kakao_message, language=None)
-                    st.success("✅ 위 메시지를 드래그하여 복사한 후 카톡에 붙여넣기 하세요!")
+                    copy_to_clipboard(kakao_message)
+                    st.success("✅ 클립보드에 복사되었습니다! 카톡에 붙여넣기(Ctrl+V) 하세요!")
             
             with col_copy2:
                 st.download_button(
@@ -950,10 +951,14 @@ with tab2:
                 st.session_state.contact_filtered_data = filtered_contacts
                 st.session_state.contact_search_performed = False
     
+    # 🔧 지점순 정렬 추가
     if st.session_state.contact_show_duplicates and st.session_state.contact_filtered_data is not None:
         st.markdown("<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>검색 결과가 여러 개입니다. 선택해주세요:</p>", unsafe_allow_html=True)
         
-        for idx, (row_idx, contact_row) in enumerate(st.session_state.contact_filtered_data.iterrows()):
+        # 지점명으로 정렬
+        sorted_contacts = st.session_state.contact_filtered_data.sort_values(by='지점', ascending=True)
+        
+        for idx, (row_idx, contact_row) in enumerate(sorted_contacts.iterrows()):
             contact_office = str(contact_row.get('지점', 'N/A')).strip()
             contact_branch = str(contact_row.get('지사', 'N/A')).strip()
             contact_name = str(contact_row.get('설계사명', 'N/A')).strip()
