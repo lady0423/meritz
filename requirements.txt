@@ -4,3 +4,4 @@ pytz
 pillow
 gdown
 html2image
+streamlit-js-eval
