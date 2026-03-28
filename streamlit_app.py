@@ -875,7 +875,6 @@ with tab3:
         st.session_state.manager_expanded_idx = None
     if "manager_filter_mode" not in st.session_state:
         st.session_state.manager_filter_mode = 0
-    # ★ 동명이인 관련 session state 추가
     if "manager_duplicate_list" not in st.session_state:
         st.session_state.manager_duplicate_list = []
     if "manager_duplicate_selected" not in st.session_state:
@@ -884,7 +883,6 @@ with tab3:
     df_main = load_data_from_google_sheets()
     current_week = get_current_week()
 
-    # 매니저 코드/이름 컬럼 자동 탐지
     possible_code_cols = ["매니저코드", "관리자코드", "MGR코드", "mgr_code", "manager_code"]
     possible_name_cols = ["매니저명", "관리자명", "매니저이름", "MGR명", "mgr_name", "manager_name"]
     mgr_code_col = next((c for c in possible_code_cols if c in df_main.columns), None)
@@ -918,94 +916,88 @@ with tab3:
             st.session_state.manager_duplicate_list = []
             st.session_state.manager_duplicate_selected = None
         else:
-            # ★ 동명이인 체크: 매니저 이름으로 검색했고 여러 매니저코드가 존재할 때
-            if mgr_code_col and mgr_name_col:
-                unique_codes = matched[mgr_code_col].astype(str).str.strip().unique()
-            elif mgr_code_col:
+            if mgr_code_col:
                 unique_codes = matched[mgr_code_col].astype(str).str.strip().unique()
             else:
                 unique_codes = []
 
             if len(unique_codes) > 1:
-                # 동명이인: 매니저별 지점/지사 정보 수집해서 선택 목록 구성
+                # ── 동명이인: 선택 목록 구성 ──
                 dup_list = []
-                branch_col = next((c for c in ["지점명", "지점", "branch"] if c in df_main.columns), None)
-                office_col = next((c for c in ["지사명", "지사", "office"] if c in df_main.columns), None)
+                branch_col_dup = next((c for c in ["지점명", "지점", "branch"] if c in df_main.columns), None)
+                office_col_dup = next((c for c in ["지사명", "지사", "office"] if c in df_main.columns), None)
                 for code in unique_codes:
                     code_mask = df_main[mgr_code_col].astype(str).str.strip() == code
                     sub = df_main[code_mask]
-                    branch_val = sub[branch_col].iloc[0] if branch_col and not sub.empty else ""
-                    office_val = sub[office_col].iloc[0] if office_col and not sub.empty else ""
-                    mgr_nm = sub[mgr_name_col].iloc[0] if mgr_name_col and not sub.empty else query
+                    branch_val = sub[branch_col_dup].iloc[0] if branch_col_dup and not sub.empty else ""
+                    office_val = sub[office_col_dup].iloc[0] if office_col_dup and not sub.empty else ""
+                    mgr_nm_dup = sub[mgr_name_col].iloc[0] if mgr_name_col and not sub.empty else query
                     dup_list.append({
                         "code": code,
-                        "name": mgr_nm,
+                        "name": mgr_nm_dup,
                         "branch": branch_val,
                         "office": office_val,
-                        "label": f"{mgr_nm} ({office_val} / {branch_val}) [{code}]"
+                        "label": f"{mgr_nm_dup} ({office_val} / {branch_val}) [{code}]"
                     })
-                # GA4 번호 기준 정렬
-                def extract_ga4_num(s):
+
+                def extract_ga4_num_dup(s):
                     m = re.search(r'GA4[-\s]?(\d+)', str(s), re.IGNORECASE)
                     return int(m.group(1)) if m else 9999
-                dup_list.sort(key=lambda x: extract_ga4_num(x["branch"]))
 
+                dup_list.sort(key=lambda x: extract_ga4_num_dup(x["branch"]))
                 st.session_state.manager_duplicate_list = dup_list
                 st.session_state.manager_duplicate_selected = None
                 st.session_state.manager_search_performed = False
+
             else:
-                # 단일 매니저: 바로 설계사 리스트 로드
+                # ── 단일 매니저: 바로 설계사 리스트 로드 ──
                 st.session_state.manager_duplicate_list = []
                 st.session_state.manager_duplicate_selected = None
                 agents = matched.copy()
-                agents["_cumul_float"] = agents[cumul_col].apply(safe_float) if (cumul_col := next((c for c in ["누계실적","누계","cumulative"] if c in matched.columns), None)) else 0
-                agents = agents[agents["_cumul_float"] > 0].sort_values("_cumul_float", ascending=False).reset_index(drop=True)
+                cumul_col = next((c for c in ["누계실적", "누계", "cumulative"] if c in agents.columns), None)
+                if cumul_col:
+                    agents["_cumul_float"] = agents[cumul_col].apply(safe_float)
+                    agents = agents[agents["_cumul_float"] > 0].sort_values(
+                        "_cumul_float", ascending=False).reset_index(drop=True)
                 mgr_nm = matched[mgr_name_col].iloc[0] if mgr_name_col else query
                 st.session_state.manager_agent_list = agents
                 st.session_state.manager_name_display = mgr_nm
                 st.session_state.manager_search_performed = True
                 st.session_state.manager_expanded_idx = None
 
-    # ★ 동명이인 선택 UI
+    # ── 동명이인 선택 UI ──
     if st.session_state.manager_duplicate_list:
         st.markdown("---")
-        st.markdown("#### 동명이인 매니저가 검색되었습니다. 해당 매니저를 선택해 주세요.")
+        st.markdown("#### 🔎 동명이인 매니저가 검색되었습니다. 해당 매니저를 선택해 주세요.")
         dup_labels = [d["label"] for d in st.session_state.manager_duplicate_list]
-        selected_label = st.selectbox(
-            "매니저 선택",
-            dup_labels,
-            key="manager_dup_selectbox"
-        )
+        selected_label = st.selectbox("매니저 선택", dup_labels, key="manager_dup_selectbox")
         if st.button("✅ 선택 확인", key="manager_dup_confirm"):
-            selected_dup = next(d for d in st.session_state.manager_duplicate_list if d["label"] == selected_label)
+            selected_dup = next(
+                d for d in st.session_state.manager_duplicate_list if d["label"] == selected_label
+            )
             mgr_code_col2 = next((c for c in possible_code_cols if c in df_main.columns), None)
             sel_mask = df_main[mgr_code_col2].astype(str).str.strip() == selected_dup["code"]
             agents = df_main[sel_mask].copy()
             cumul_col = next((c for c in ["누계실적", "누계", "cumulative"] if c in agents.columns), None)
             if cumul_col:
                 agents["_cumul_float"] = agents[cumul_col].apply(safe_float)
-                agents = agents[agents["_cumul_float"] > 0].sort_values("_cumul_float", ascending=False).reset_index(drop=True)
+                agents = agents[agents["_cumul_float"] > 0].sort_values(
+                    "_cumul_float", ascending=False).reset_index(drop=True)
             st.session_state.manager_agent_list = agents
-            st.session_state.manager_name_display = selected_dup["name"] + f" ({selected_dup['office']} / {selected_dup['branch']})"
+            st.session_state.manager_name_display = (
+                selected_dup["name"] + f" ({selected_dup['office']} / {selected_dup['branch']})"
+            )
             st.session_state.manager_duplicate_list = []
             st.session_state.manager_duplicate_selected = selected_dup["code"]
             st.session_state.manager_search_performed = True
             st.session_state.manager_expanded_idx = None
             st.rerun()
 
-    # 설계사 리스트 표시 (기존 코드 그대로 유지)
-    if st.session_state.manager_search_performed and not st.session_state.manager_agent_list.empty:
-        # ... (기존 인사말 입력, 필터 드롭다운, 카드 리스트 코드 그대로) ...
-        pass
+    # ── 설계사 리스트 표시 ──  ← 여기가 핵심: manager_reset 버튼과 완전히 분리
+    if st.session_state.manager_search_performed and st.session_state.manager_agent_list is not None and not st.session_state.manager_agent_list.empty:
 
-    if st.button("🔄 초기화", key="manager_reset"):
-        st.session_state.manager_search_performed = False
-        st.session_state.manager_agent_list = pd.DataFrame()
-        st.session_state.manager_name_display = ""
-        st.session_state.manager_expanded_idx = None
-        st.session_state.manager_duplicate_list = []
-        st.session_state.manager_duplicate_selected = None
-        st.rerun()
+        all_agents = st.session_state.manager_agent_list      # ← 변수 정의
+        mgr_name   = st.session_state.manager_name_display    # ← 변수 정의
 
         # ── 인사말 ──
         st.markdown("""
@@ -1014,9 +1006,11 @@ with tab3:
         <span style='color:white;font-size:12px;font-weight:500;'>
         💬 인사말을 입력하면 각 설계사 메시지 맨 앞에 자동으로 추가됩니다.</span>
         </div>""", unsafe_allow_html=True)
-        greeting_text = st.text_area("인사말",
+        greeting_text = st.text_area(
+            "인사말",
             placeholder="예: 안녕하세요! 이번 주도 파이팅입니다 💪",
-            height=70, label_visibility="collapsed", key="manager_greeting")
+            height=70, label_visibility="collapsed", key="manager_greeting"
+        )
 
         # ── 드롭다운 필터 ──
         filter_options = {
@@ -1064,13 +1058,11 @@ with tab3:
                 is_expanded   = (st.session_state.manager_expanded_idx == i)
                 is_auth       = safe_float(agent_row.get("어센틱구분", 0)) == 1
 
-                # 순위 색상
                 if i == 0:   rank_bg, rank_tc = "#f6d365", "#92400e"
                 elif i == 1: rank_bg, rank_tc = "#b8c6db", "#1a365d"
                 elif i == 2: rank_bg, rank_tc = "#96e6a1", "#1c4532"
                 else:        rank_bg, rank_tc = "#e2e8f0", "#4a5568"
 
-                # ── 카드 버튼 (클릭 = 토글) ──
                 card_css = "agent-card-btn-active" if is_expanded else "agent-card-btn"
                 st.markdown(f"<div class='{card_css}'>", unsafe_allow_html=True)
                 if st.button(
@@ -1083,7 +1075,6 @@ with tab3:
                     st.rerun()
                 st.markdown("</div>", unsafe_allow_html=True)
 
-                # ── 메시지 복사 버튼 (항상 노출) ──
                 msg = build_kakao_message(agent_row, df_main, current_week, greeting=greeting_text)
                 copy_to_clipboard_button(
                     msg,
@@ -1092,7 +1083,6 @@ with tab3:
                     height=52
                 )
 
-                # ── 펼쳐진 세부 내용 ──
                 if is_expanded:
                     st.markdown("""
                     <div style='background:#f8f9fa;border:1px solid #e2e8f0;
@@ -1196,9 +1186,11 @@ with tab3:
             st.session_state.manager_name_display = ""
             st.session_state.manager_expanded_idx = None
             st.session_state.manager_filter_mode = 0
+            st.session_state.manager_duplicate_list = []
+            st.session_state.manager_duplicate_selected = None
             st.rerun()
 
-    elif not st.session_state.manager_search_performed:
+    elif not st.session_state.manager_search_performed and not st.session_state.manager_duplicate_list:
         st.markdown("""
         <div style='text-align:center;margin-top:30px;padding:30px;background:white;
             border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);'>
@@ -1209,3 +1201,4 @@ with tab3:
         <p style='color:#48bb78;font-weight:500;font-size:12px;margin-top:12px;'>
             ✨ 대상자 클릭으로 상세실적 확인, 메시지 복사 버튼으로 바로 발송하세요!</p>
         </div>""", unsafe_allow_html=True)
+
