@@ -883,7 +883,6 @@ with tab3:
     df_main = load_data_from_google_sheets()
     current_week = get_current_week()
 
-    # D열=매니저명(index 3), E열=매니저코드(index 4), C열=지점명(index 2)
     col_names      = list(df_main.columns)
     mgr_name_col   = col_names[3]
     mgr_code_col   = col_names[4]
@@ -894,7 +893,7 @@ with tab3:
     with search_col1:
         manager_search_input = st.text_input(
             "매니저 검색",
-            placeholder="매니저 코드 또는 이름 입력 (예: 326111222, 박메리)",
+            placeholder="매니저 코드 또는 이름 입력 (예: M001, 김대길)",
             key="manager_search_input"
         )
     with search_col2:
@@ -938,7 +937,6 @@ with tab3:
                 st.session_state.manager_duplicate_list = dup_list
                 st.session_state.manager_duplicate_selected = None
                 st.session_state.manager_search_performed = False
-
             else:
                 st.session_state.manager_duplicate_list = []
                 st.session_state.manager_duplicate_selected = None
@@ -953,7 +951,7 @@ with tab3:
                 st.session_state.manager_search_performed = True
                 st.session_state.manager_expanded_idx = None
 
-    # ── 동명이인 버튼 리스트 UI ──
+    # ── 동명이인 버튼 리스트 ──
     if st.session_state.manager_duplicate_list:
         st.markdown(
             "<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>"
@@ -999,7 +997,7 @@ with tab3:
             height=70, label_visibility="collapsed", key="manager_greeting"
         )
 
-        # 드롭다운 필터
+        # 필터 + 카운트
         filter_options = {
             "📋 전체": 0,
             "📅 현재주차 유실적자": 1,
@@ -1058,50 +1056,37 @@ with tab3:
                 col_card, col_copy = st.columns([5, 2])
 
                 with col_card:
-                    # HTML 카드
-                    st.markdown(f"""
-                    <div style='background:{bg_color};
-                        border:1px solid #e8ecf0;
-                        border-left:4px solid {border_color};
-                        border-radius:8px 8px 0 0;
-                        padding:6px 12px;
-                        display:flex;align-items:center;gap:10px;
-                        box-shadow:0 1px 2px rgba(0,0,0,0.04);'>
-                        <span style='font-size:11px;font-weight:800;
-                            color:{border_color};min-width:22px;text-align:center;'>
-                            {rank_label}</span>
-                        <span style='font-size:13px;font-weight:700;color:#1e293b;flex:none;'>
-                            {agent_nm}</span>
-                        <span style='font-size:11px;color:#94a3b8;flex:1;
-                            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>
-                            {agent_office}&nbsp;|&nbsp;{agent_branch}</span>
-                        <span style='font-size:13px;font-weight:800;color:#2563eb;
-                            flex:none;white-space:nowrap;'>
-                            {cumul_display}</span>
-                    </div>""", unsafe_allow_html=True)
-
-                    # 토글 버튼
-                    toggle_bg    = "#fef3c7" if is_expanded else "#f1f5f9"
-                    toggle_color = "#92400e" if is_expanded else "#64748b"
-                    toggle_text  = "▲ 접기" if is_expanded else "▼ 상세"
+                    # ── 카드 전체가 버튼 (클릭 = 토글) ──
+                    # st.button 위에 HTML 스타일을 입혀서 카드처럼 보이게
                     st.markdown(f"""
                     <style>
-                    div[data-testid='stVerticalBlock'] .toggle_btn_{i} > button {{
-                        background: {toggle_bg} !important;
-                        color: {toggle_color} !important;
+                    div[data-testid='stVerticalBlock'] .card_btn_{i} > button {{
+                        background: {bg_color} !important;
+                        color: #1e293b !important;
                         border: 1px solid #e8ecf0 !important;
-                        border-top: none !important;
-                        border-radius: 0 0 8px 8px !important;
-                        padding: 1px 0 !important;
-                        font-size: 10px !important;
-                        min-height: 16px !important;
+                        border-left: 4px solid {border_color} !important;
+                        border-radius: 8px !important;
+                        padding: 6px 12px !important;
+                        font-size: 12px !important;
+                        font-weight: 500 !important;
+                        min-height: 38px !important;
                         width: 100% !important;
-                        box-shadow: none !important;
+                        text-align: left !important;
+                        box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
                         transform: none !important;
+                        transition: none !important;
+                    }}
+                    div[data-testid='stVerticalBlock'] .card_btn_{i} > button:hover {{
+                        background: #f8fafc !important;
+                        border-left-color: #f59e0b !important;
+                        box-shadow: 0 2px 6px rgba(0,0,0,0.08) !important;
                     }}
                     </style>
-                    <div class='toggle_btn_{i}'>""", unsafe_allow_html=True)
-                    if st.button(toggle_text, key=f"card_btn_{i}_{agent_nm}", use_container_width=True):
+                    <div class='card_btn_{i}'>""", unsafe_allow_html=True)
+
+                    # 버튼 라벨에 rank / 이름 / 지점 / 금액 모두 포함
+                    btn_label = f"{rank_label}  {agent_nm}  ·  {agent_office} | {agent_branch}  ·  {cumul_display}"
+                    if st.button(btn_label, key=f"card_btn_{i}_{agent_nm}", use_container_width=True):
                         st.session_state.manager_expanded_idx = None if is_expanded else i
                         st.rerun()
                     st.markdown("</div>", unsafe_allow_html=True)
@@ -1119,7 +1104,7 @@ with tab3:
                             padding:0 10px;
                             color:white; cursor:pointer;
                             width:100%; font-size:12px;
-                            height:58px;
+                            height:38px;
                             box-shadow:0 2px 6px rgba(245,87,108,0.4);">
                             📋 복사
                         </button>
@@ -1157,14 +1142,14 @@ with tab3:
                             setTimeout(() => m.style.display='none', 2000);
                         }}
                         </script>
-                    """, height=62)
+                    """, height=42)
 
                 # ── 펼쳐진 세부 내용 ──
                 if is_expanded:
                     st.markdown("""
                     <div style='background:#f8fafc;border:1px solid #e2e8f0;
-                        border-top:none;border-radius:0 0 8px 8px;
-                        padding:10px 14px;margin-top:-2px;margin-bottom:1px;'>""",
+                        border-radius:8px;padding:10px 14px;
+                        margin-top:2px;margin-bottom:1px;'>""",
                         unsafe_allow_html=True)
 
                     st.markdown(f"""
