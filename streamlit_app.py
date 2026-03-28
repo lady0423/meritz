@@ -510,7 +510,7 @@ if not st.session_state.authenticated:
     with col_title:
         st.markdown("<h1 style='color:#2c3e50;font-size:24px;margin-top:5px;'>메리츠 설계사 성과 조회</h1>", unsafe_allow_html=True)
     st.markdown("<hr style='border:1px solid #e2e8f0;margin:10px 0;'>", unsafe_allow_html=True)
-    st.markdown("<div class='login-box'><h2 style='text-align:center;color:#4a5568;'>🔐 로그인</h2></div>", unsafe_allow_html=True)
+    st.markdown("<div class='login-box'><h2 style='text-align:center;color:#4a5568;'>🔐 로그인하세요</h2></div>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([0.5, 2, 0.5])
     with col2:
         password_input = st.text_input("비밀번호", type="password", placeholder="비밀번호 입력", label_visibility="collapsed")
