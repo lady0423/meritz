@@ -827,7 +827,7 @@ with tab3:
     col1, col2 = st.columns([3, 1])
     with col1:
         st.markdown("<div class='search-label'>🔑 매니저코드 또는 매니저명 입력</div>", unsafe_allow_html=True)
-        manager_search_input = st.text_input("매니저검색", placeholder="예: M001, 김대길",
+        manager_search_input = st.text_input("매니저검색", placeholder="예:326111222, 박메리",
             label_visibility="collapsed", key="manager_search_input", autocomplete="off")
     with col2:
         st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
