@@ -885,16 +885,16 @@ with tab3:
 
     # D열=매니저명(index 3), E열=매니저코드(index 4), C열=지점명(index 2)
     col_names      = list(df_main.columns)
-    mgr_name_col   = col_names[3]   # D열
-    mgr_code_col   = col_names[4]   # E열
-    branch_col_mgr = col_names[2]   # C열
+    mgr_name_col   = col_names[3]
+    mgr_code_col   = col_names[4]
+    branch_col_mgr = col_names[2]
 
     # ── 검색창 ──
     search_col1, search_col2 = st.columns([4, 1])
     with search_col1:
         manager_search_input = st.text_input(
             "매니저 검색",
-            placeholder="매니저 코드 또는 이름 입력 (예: M001, 김대길)",
+            placeholder="매니저 코드 또는 이름 입력 (예: 326111222, 박메리)",
             key="manager_search_input"
         )
     with search_col2:
@@ -919,7 +919,6 @@ with tab3:
             unique_codes = matched[mgr_code_col].astype(str).str.strip().unique()
 
             if len(unique_codes) > 1:
-                # ── 동명이인: 지점명 + 매니저코드 버튼 리스트 구성 ──
                 def extract_ga4_num_dup(s):
                     m = re.search(r'GA4[-\s]?(\d+)', str(s), re.IGNORECASE)
                     return int(m.group(1)) if m else 9999
@@ -941,7 +940,6 @@ with tab3:
                 st.session_state.manager_search_performed = False
 
             else:
-                # ── 단일 매니저: 바로 설계사 리스트 로드 ──
                 st.session_state.manager_duplicate_list = []
                 st.session_state.manager_duplicate_selected = None
                 agents = matched.copy()
@@ -1033,7 +1031,7 @@ with tab3:
             <span style='color:white;font-size:12px;font-weight:600;'>{len(filtered_agents)}명</span>
             </div>""", unsafe_allow_html=True)
 
-        st.markdown("<div style='height:4px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:6px;'></div>", unsafe_allow_html=True)
 
         if len(filtered_agents) == 0:
             st.markdown("""
@@ -1049,48 +1047,95 @@ with tab3:
                 is_expanded   = (st.session_state.manager_expanded_idx == i)
                 is_auth       = safe_float(agent_row.get("어센틱구분", 0)) == 1
 
-                # 카드 버튼 (클릭 = 토글)
+                # ── 카드 + 복사버튼 같은 행 ──
                 card_css = "agent-card-btn-active" if is_expanded else "agent-card-btn"
-                st.markdown(f"<div class='{card_css}'>", unsafe_allow_html=True)
-                if st.button(
-                    f"{'🟡 ' if is_expanded else ''}#{i+1}  {agent_nm}  ·  "
-                    f"{agent_office}  |  {agent_branch}  ·  {cumul_display}",
-                    key=f"card_btn_{i}_{agent_nm}",
-                    use_container_width=True
-                ):
-                    st.session_state.manager_expanded_idx = None if is_expanded else i
-                    st.rerun()
-                st.markdown("</div>", unsafe_allow_html=True)
+                col_card, col_copy = st.columns([5, 2])
 
-                # 메시지 복사 버튼 (항상 노출)
-                msg = build_kakao_message(agent_row, df_main, current_week, greeting=greeting_text)
-                copy_to_clipboard_button(
-                    msg,
-                    button_label=f"📋 {agent_nm} 메시지 복사",
-                    key=f"mgr_copy_{i}_{agent_nm}",
-                    height=52
-                )
+                with col_card:
+                    st.markdown(f"<div class='{card_css}'>", unsafe_allow_html=True)
+                    if st.button(
+                        f"{'🟡' if is_expanded else f'#{i+1}'}  {agent_nm}  "
+                        f"{agent_office} | {agent_branch}  ·  {cumul_display}",
+                        key=f"card_btn_{i}_{agent_nm}",
+                        use_container_width=True
+                    ):
+                        st.session_state.manager_expanded_idx = None if is_expanded else i
+                        st.rerun()
+                    st.markdown("</div>", unsafe_allow_html=True)
 
-                # 펼쳐진 세부 내용
+                with col_copy:
+                    msg = build_kakao_message(agent_row, df_main, current_week, greeting=greeting_text)
+                    escaped = msg.replace("\\", "\\\\").replace("`", "\\`").replace("$", "\\$")
+                    btn_key = f"mgr_copy_{i}_{agent_nm}"
+                    components.html(f"""
+                        <button onclick="copyText_{i}()" style="
+                            font-family:'Noto Sans KR',sans-serif;
+                            font-weight:600;
+                            background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);
+                            border:none; border-radius:8px;
+                            padding:5px 10px;
+                            color:white; cursor:pointer;
+                            width:100%; font-size:11px;
+                            min-height:36px;
+                            box-shadow:0 2px 6px rgba(245,87,108,0.35);">
+                            📋 복사
+                        </button>
+                        <div id="msg_{btn_key}" style="
+                            display:none; margin-top:2px; padding:3px 6px;
+                            background:#c6f6d5; border-left:3px solid #48bb78;
+                            border-radius:4px; color:#276749;
+                            font-family:'Noto Sans KR',sans-serif;
+                            font-size:10px; font-weight:600;">
+                            ✅ 복사완료!
+                        </div>
+                        <script>
+                        function copyText_{i}() {{
+                            const text = `{escaped}`;
+                            if (navigator.clipboard && window.isSecureContext) {{
+                                navigator.clipboard.writeText(text).then(
+                                    () => showOk_{i}(),
+                                    () => fallback_{i}(text)
+                                );
+                            }} else {{ fallback_{i}(text); }}
+                        }}
+                        function fallback_{i}(text) {{
+                            const el = document.createElement('textarea');
+                            el.value = text;
+                            el.style.position='fixed'; el.style.left='-9999px';
+                            document.body.appendChild(el);
+                            el.focus(); el.select();
+                            try {{ document.execCommand('copy'); showOk_{i}(); }}
+                            catch(e) {{ alert('복사 실패'); }}
+                            document.body.removeChild(el);
+                        }}
+                        function showOk_{i}() {{
+                            const m = document.getElementById('msg_{btn_key}');
+                            m.style.display='block';
+                            setTimeout(() => m.style.display='none', 2000);
+                        }}
+                        </script>
+                    """, height=44)
+
+                # ── 펼쳐진 세부 내용 ──
                 if is_expanded:
                     st.markdown("""
                     <div style='background:#f8f9fa;border:1px solid #e2e8f0;
-                        border-radius:0 0 10px 10px;padding:12px 14px;
-                        margin-top:-4px;margin-bottom:4px;'>""",
+                        border-radius:0 0 10px 10px;padding:10px 14px;
+                        margin-top:-2px;margin-bottom:2px;'>""",
                         unsafe_allow_html=True)
 
                     st.markdown(f"""
                     <div style='font-size:11px;color:#718096;font-weight:600;margin-bottom:3px;'>
                         📈 3월 누계 실적</div>
                     <div style='background:linear-gradient(135deg,#4a5568 0%,#2d3748 100%);
-                        padding:8px;border-radius:6px;font-size:17px;font-weight:700;
-                        color:white;text-align:center;margin-bottom:8px;'>
+                        padding:6px;border-radius:6px;font-size:15px;font-weight:700;
+                        color:white;text-align:center;margin-bottom:6px;'>
                         {format_display(agent_row["누계실적"])}</div>""",
                         unsafe_allow_html=True)
 
                     st.markdown(
                         "<div style='font-size:11px;color:#718096;font-weight:600;"
-                        "margin-bottom:4px;'>📅 주차별 실적</div>",
+                        "margin-bottom:3px;'>📅 주차별 실적</div>",
                         unsafe_allow_html=True
                     )
                     week_row_cols = st.columns(5)
@@ -1100,16 +1145,16 @@ with tab3:
                         with week_row_cols[wi - 1]:
                             st.markdown(f"""
                             <div style='background:{"#ffd93d" if is_cur else "white"};
-                                border-radius:6px;padding:5px 3px;text-align:center;
+                                border-radius:6px;padding:4px 2px;text-align:center;
                                 border:1px solid {"#f59e0b" if is_cur else "#e2e8f0"};'>
-                                <div style='font-size:10px;
+                                <div style='font-size:9px;
                                     color:{"#92400e" if is_cur else "#718096"};font-weight:600;'>
                                     {wc}{"⭐" if is_cur else ""}</div>
-                                <div style='font-size:11px;font-weight:700;
+                                <div style='font-size:10px;font-weight:700;
                                     color:{"#92400e" if is_cur else "#48bb78"};'>{wv}</div>
                             </div>""", unsafe_allow_html=True)
 
-                    st.markdown("<div style='height:6px;'></div>", unsafe_allow_html=True)
+                    st.markdown("<div style='height:4px;'></div>", unsafe_allow_html=True)
 
                     if is_auth:
                         wt = agent_row.get("어센틱주차목표", "0")
@@ -1119,7 +1164,7 @@ with tab3:
                         ws = agent_row.get("주차부족최종", "0")
                     st.markdown(f"""
                     <div style='background:white;border-left:3px solid #ed8936;
-                        padding:6px 10px;border-radius:6px;margin:6px 0;font-size:12px;'>
+                        padding:4px 8px;border-radius:6px;margin:4px 0;font-size:11px;'>
                     ⭐ <strong>주차목표:</strong> {format_display(wt)}
                     &nbsp;|&nbsp; <strong>부족:</strong> {format_display(ws)}
                     </div>""", unsafe_allow_html=True)
@@ -1138,7 +1183,7 @@ with tab3:
                             mc_status, mc_color = "🟡 도전중", "#ed8936"
                         st.markdown(f"""
                         <div style='background:white;border-left:3px solid #fc8181;
-                            padding:6px 10px;border-radius:6px;margin:4px 0;font-size:12px;'>
+                            padding:4px 8px;border-radius:6px;margin:3px 0;font-size:11px;'>
                         💰 <strong>MC:</strong> {format_display(agent_row.get("MC도전구간", 0))}
                         &nbsp;|&nbsp; <strong>부족:</strong> {format_display(agent_row.get("MC부족최종", 0))}
                         &nbsp;|&nbsp;
@@ -1147,7 +1192,7 @@ with tab3:
                     else:
                         st.markdown(f"""
                         <div style='background:white;border-left:3px solid #ed64a6;
-                            padding:6px 10px;border-radius:6px;margin:4px 0;font-size:12px;'>
+                            padding:4px 8px;border-radius:6px;margin:3px 0;font-size:11px;'>
                         🌉 <strong>브릿지:</strong> {format_display(agent_row["브릿지 도전구간"])}
                         &nbsp;|&nbsp; <strong>부족:</strong> {format_display(agent_row["브릿지부족최종"])}
                         </div>""", unsafe_allow_html=True)
@@ -1162,7 +1207,7 @@ with tab3:
                         mp_status, mp_color = "🟡 도전중", "#805ad5"
                     st.markdown(f"""
                     <div style='background:white;border-left:3px solid #805ad5;
-                        padding:6px 10px;border-radius:6px;margin:4px 0;font-size:12px;'>
+                        padding:4px 8px;border-radius:6px;margin:3px 0;font-size:11px;'>
                     💰 <strong>MC+:</strong> {format_display(agent_row["MC+구간"])}
                     &nbsp;|&nbsp; <strong>부족:</strong> {format_display(agent_row["MC+부족최종"])}
                     &nbsp;|&nbsp;
@@ -1171,7 +1216,8 @@ with tab3:
 
                     st.markdown("</div>", unsafe_allow_html=True)
 
-                st.markdown("<div style='height:2px;'></div>", unsafe_allow_html=True)
+                # 카드 간 간격 최소화
+                st.markdown("<div style='height:1px;'></div>", unsafe_allow_html=True)
 
         st.markdown("<hr style='border:1px solid #e2e8f0;margin:15px 0;'>", unsafe_allow_html=True)
         if st.button("🔄 초기화", use_container_width=True, key="reset_manager"):
