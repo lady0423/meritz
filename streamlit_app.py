@@ -832,22 +832,54 @@ with tab1:
                 key="kakao_preview"
             )
             
-            # 🔧 복사 버튼 (streamlit-js-eval 사용)
-            col_copy1, col_copy2 = st.columns([1, 1])
-            
-            with col_copy1:
-                if st.button("📋 메시지 복사하기", use_container_width=True, key="copy_kakao"):
-                    copy_to_clipboard(kakao_message)
-                    st.success("✅ 클립보드에 복사되었습니다! 카톡에 붙여넣기(Ctrl+V) 하세요!")
-            
-            with col_copy2:
-                st.download_button(
-                    label="💾 텍스트 파일로 저장",
-                    data=kakao_message,
-                    file_name=f"{agent_name_display}_{agency_branch}_실적현황.txt",
-                    mime="text/plain",
-                    use_container_width=True
-                )
+            # 복사 버튼
+col_copy1, col_copy2 = st.columns([1, 1])
+
+with col_copy1:
+    # HTML/JavaScript로 클립보드 복사
+    import streamlit.components.v1 as components
+    
+    copy_button_html = f"""
+    <script>
+    function copyToClipboard() {{
+        const text = `{kakao_message.replace('`', '\\`').replace('$', '\\$')}`;
+        navigator.clipboard.writeText(text).then(function() {{
+            alert('✅ 클립보드에 복사되었습니다!\\n카톡에 붙여넣기(Ctrl+V) 하세요!');
+        }}, function() {{
+            alert('❌ 복사에 실패했습니다.');
+        }});
+    }}
+    </script>
+    <button onclick="copyToClipboard()" style="
+        width: 100%;
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-family: 'Noto Sans KR', sans-serif;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(74, 85, 104, 0.3);
+        transition: all 0.3s ease;
+    " onmouseover="this.style.background='linear-gradient(135deg, #2d3748 0%, #1a202c 100%)'; this.style.transform='translateY(-2px)';" 
+       onmouseout="this.style.background='linear-gradient(135deg, #4a5568 0%, #2d3748 100%)'; this.style.transform='translateY(0px)';">
+        📋 메시지 복사하기
+    </button>
+    """
+    
+    components.html(copy_button_html, height=60)
+
+with col_copy2:
+    st.download_button(
+        label="💾 텍스트 파일로 저장",
+        data=kakao_message,
+        file_name=f"{agent_name_display}_{agency_branch}_실적현황.txt",
+        mime="text/plain",
+        use_container_width=True
+    )
+
         
         with col_right:
             st.markdown("<h3 style='color: #4a5568;'>🎁 대리점 리플렛</h3>", unsafe_allow_html=True)
