@@ -894,7 +894,7 @@ with tab3:
     with search_col1:
         manager_search_input = st.text_input(
             "매니저 검색",
-            placeholder="매니저 코드 또는 이름 입력 (예: 326111222, 박메리)",
+            placeholder="매니저 코드 또는 이름 입력 (예: M001, 김대길)",
             key="manager_search_input"
         )
     with search_col2:
@@ -1047,18 +1047,61 @@ with tab3:
                 is_expanded   = (st.session_state.manager_expanded_idx == i)
                 is_auth       = safe_float(agent_row.get("어센틱구분", 0)) == 1
 
-                # ── 카드 + 복사버튼 같은 행 ──
-                card_css = "agent-card-btn-active" if is_expanded else "agent-card-btn"
+                if i == 0:   border_color = "#f59e0b"
+                elif i == 1: border_color = "#94a3b8"
+                elif i == 2: border_color = "#86efac"
+                else:        border_color = "#cbd5e1"
+
+                bg_color   = "#fffdf0" if is_expanded else "#ffffff"
+                rank_label = "🟡" if is_expanded else f"#{i+1}"
+
                 col_card, col_copy = st.columns([5, 2])
 
                 with col_card:
-                    st.markdown(f"<div class='{card_css}'>", unsafe_allow_html=True)
-                    if st.button(
-                        f"{'🟡' if is_expanded else f'#{i+1}'}  {agent_nm}  "
-                        f"{agent_office} | {agent_branch}  ·  {cumul_display}",
-                        key=f"card_btn_{i}_{agent_nm}",
-                        use_container_width=True
-                    ):
+                    # HTML 카드
+                    st.markdown(f"""
+                    <div style='background:{bg_color};
+                        border:1px solid #e8ecf0;
+                        border-left:4px solid {border_color};
+                        border-radius:8px 8px 0 0;
+                        padding:6px 12px;
+                        display:flex;align-items:center;gap:10px;
+                        box-shadow:0 1px 2px rgba(0,0,0,0.04);'>
+                        <span style='font-size:11px;font-weight:800;
+                            color:{border_color};min-width:22px;text-align:center;'>
+                            {rank_label}</span>
+                        <span style='font-size:13px;font-weight:700;color:#1e293b;flex:none;'>
+                            {agent_nm}</span>
+                        <span style='font-size:11px;color:#94a3b8;flex:1;
+                            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>
+                            {agent_office}&nbsp;|&nbsp;{agent_branch}</span>
+                        <span style='font-size:13px;font-weight:800;color:#2563eb;
+                            flex:none;white-space:nowrap;'>
+                            {cumul_display}</span>
+                    </div>""", unsafe_allow_html=True)
+
+                    # 토글 버튼
+                    toggle_bg    = "#fef3c7" if is_expanded else "#f1f5f9"
+                    toggle_color = "#92400e" if is_expanded else "#64748b"
+                    toggle_text  = "▲ 접기" if is_expanded else "▼ 상세"
+                    st.markdown(f"""
+                    <style>
+                    div[data-testid='stVerticalBlock'] .toggle_btn_{i} > button {{
+                        background: {toggle_bg} !important;
+                        color: {toggle_color} !important;
+                        border: 1px solid #e8ecf0 !important;
+                        border-top: none !important;
+                        border-radius: 0 0 8px 8px !important;
+                        padding: 1px 0 !important;
+                        font-size: 10px !important;
+                        min-height: 16px !important;
+                        width: 100% !important;
+                        box-shadow: none !important;
+                        transform: none !important;
+                    }}
+                    </style>
+                    <div class='toggle_btn_{i}'>""", unsafe_allow_html=True)
+                    if st.button(toggle_text, key=f"card_btn_{i}_{agent_nm}", use_container_width=True):
                         st.session_state.manager_expanded_idx = None if is_expanded else i
                         st.rerun()
                     st.markdown("</div>", unsafe_allow_html=True)
@@ -1070,14 +1113,14 @@ with tab3:
                     components.html(f"""
                         <button onclick="copyText_{i}()" style="
                             font-family:'Noto Sans KR',sans-serif;
-                            font-weight:600;
+                            font-weight:700;
                             background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);
                             border:none; border-radius:8px;
-                            padding:5px 10px;
+                            padding:0 10px;
                             color:white; cursor:pointer;
-                            width:100%; font-size:11px;
-                            min-height:36px;
-                            box-shadow:0 2px 6px rgba(245,87,108,0.35);">
+                            width:100%; font-size:12px;
+                            height:58px;
+                            box-shadow:0 2px 6px rgba(245,87,108,0.4);">
                             📋 복사
                         </button>
                         <div id="msg_{btn_key}" style="
@@ -1114,27 +1157,27 @@ with tab3:
                             setTimeout(() => m.style.display='none', 2000);
                         }}
                         </script>
-                    """, height=44)
+                    """, height=62)
 
                 # ── 펼쳐진 세부 내용 ──
                 if is_expanded:
                     st.markdown("""
-                    <div style='background:#f8f9fa;border:1px solid #e2e8f0;
-                        border-radius:0 0 10px 10px;padding:10px 14px;
-                        margin-top:-2px;margin-bottom:2px;'>""",
+                    <div style='background:#f8fafc;border:1px solid #e2e8f0;
+                        border-top:none;border-radius:0 0 8px 8px;
+                        padding:10px 14px;margin-top:-2px;margin-bottom:1px;'>""",
                         unsafe_allow_html=True)
 
                     st.markdown(f"""
-                    <div style='font-size:11px;color:#718096;font-weight:600;margin-bottom:3px;'>
+                    <div style='font-size:10px;color:#94a3b8;font-weight:600;margin-bottom:2px;'>
                         📈 3월 누계 실적</div>
-                    <div style='background:linear-gradient(135deg,#4a5568 0%,#2d3748 100%);
+                    <div style='background:linear-gradient(135deg,#1e293b 0%,#334155 100%);
                         padding:6px;border-radius:6px;font-size:15px;font-weight:700;
                         color:white;text-align:center;margin-bottom:6px;'>
                         {format_display(agent_row["누계실적"])}</div>""",
                         unsafe_allow_html=True)
 
                     st.markdown(
-                        "<div style='font-size:11px;color:#718096;font-weight:600;"
+                        "<div style='font-size:10px;color:#94a3b8;font-weight:600;"
                         "margin-bottom:3px;'>📅 주차별 실적</div>",
                         unsafe_allow_html=True
                     )
@@ -1144,14 +1187,14 @@ with tab3:
                         is_cur = (wi == current_week)
                         with week_row_cols[wi - 1]:
                             st.markdown(f"""
-                            <div style='background:{"#ffd93d" if is_cur else "white"};
-                                border-radius:6px;padding:4px 2px;text-align:center;
-                                border:1px solid {"#f59e0b" if is_cur else "#e2e8f0"};'>
+                            <div style='background:{"#fef08a" if is_cur else "white"};
+                                border-radius:5px;padding:3px 2px;text-align:center;
+                                border:1px solid {"#fbbf24" if is_cur else "#e2e8f0"};'>
                                 <div style='font-size:9px;
-                                    color:{"#92400e" if is_cur else "#718096"};font-weight:600;'>
+                                    color:{"#92400e" if is_cur else "#94a3b8"};font-weight:600;'>
                                     {wc}{"⭐" if is_cur else ""}</div>
                                 <div style='font-size:10px;font-weight:700;
-                                    color:{"#92400e" if is_cur else "#48bb78"};'>{wv}</div>
+                                    color:{"#92400e" if is_cur else "#16a34a"};'>{wv}</div>
                             </div>""", unsafe_allow_html=True)
 
                     st.markdown("<div style='height:4px;'></div>", unsafe_allow_html=True)
@@ -1163,8 +1206,8 @@ with tab3:
                         wt = agent_row.get("주차목표", "0")
                         ws = agent_row.get("주차부족최종", "0")
                     st.markdown(f"""
-                    <div style='background:white;border-left:3px solid #ed8936;
-                        padding:4px 8px;border-radius:6px;margin:4px 0;font-size:11px;'>
+                    <div style='background:white;border-left:3px solid #f97316;
+                        padding:3px 8px;border-radius:5px;margin:3px 0;font-size:11px;'>
                     ⭐ <strong>주차목표:</strong> {format_display(wt)}
                     &nbsp;|&nbsp; <strong>부족:</strong> {format_display(ws)}
                     </div>""", unsafe_allow_html=True)
@@ -1176,14 +1219,14 @@ with tab3:
                             mc_tv = 1
                         mc_s = str(agent_row.get("MC부족최종", "")).strip()
                         if mc_tv == 0 or mc_tv == 2:
-                            mc_status, mc_color = "이번달 20만원 도전", "#ed8936"
+                            mc_status, mc_color = "이번달 20만원 도전", "#f97316"
                         elif "최종달성" in mc_s or safe_float(mc_s) <= 0:
-                            mc_status, mc_color = "✅ 시상금확보", "#48bb78"
+                            mc_status, mc_color = "✅ 시상금확보", "#16a34a"
                         else:
-                            mc_status, mc_color = "🟡 도전중", "#ed8936"
+                            mc_status, mc_color = "🟡 도전중", "#f97316"
                         st.markdown(f"""
-                        <div style='background:white;border-left:3px solid #fc8181;
-                            padding:4px 8px;border-radius:6px;margin:3px 0;font-size:11px;'>
+                        <div style='background:white;border-left:3px solid #f87171;
+                            padding:3px 8px;border-radius:5px;margin:3px 0;font-size:11px;'>
                         💰 <strong>MC:</strong> {format_display(agent_row.get("MC도전구간", 0))}
                         &nbsp;|&nbsp; <strong>부족:</strong> {format_display(agent_row.get("MC부족최종", 0))}
                         &nbsp;|&nbsp;
@@ -1191,8 +1234,8 @@ with tab3:
                         </div>""", unsafe_allow_html=True)
                     else:
                         st.markdown(f"""
-                        <div style='background:white;border-left:3px solid #ed64a6;
-                            padding:4px 8px;border-radius:6px;margin:3px 0;font-size:11px;'>
+                        <div style='background:white;border-left:3px solid #f472b6;
+                            padding:3px 8px;border-radius:5px;margin:3px 0;font-size:11px;'>
                         🌉 <strong>브릿지:</strong> {format_display(agent_row["브릿지 도전구간"])}
                         &nbsp;|&nbsp; <strong>부족:</strong> {format_display(agent_row["브릿지부족최종"])}
                         </div>""", unsafe_allow_html=True)
@@ -1200,14 +1243,14 @@ with tab3:
                     mp_s   = str(agent_row.get("MC+부족최종", "")).strip()
                     mp_val = safe_float(mp_s)
                     if mp_val <= 0 or "최종달성" in mp_s:
-                        mp_status, mp_color = "✅ 시상금확보", "#48bb78"
+                        mp_status, mp_color = "✅ 시상금확보", "#16a34a"
                     elif any(x in mp_s for x in ["대상아님", "미달성", "다음기회에"]):
-                        mp_status, mp_color = "⚪ 대상아님", "#718096"
+                        mp_status, mp_color = "⚪ 대상아님", "#94a3b8"
                     else:
-                        mp_status, mp_color = "🟡 도전중", "#805ad5"
+                        mp_status, mp_color = "🟡 도전중", "#7c3aed"
                     st.markdown(f"""
-                    <div style='background:white;border-left:3px solid #805ad5;
-                        padding:4px 8px;border-radius:6px;margin:3px 0;font-size:11px;'>
+                    <div style='background:white;border-left:3px solid #a78bfa;
+                        padding:3px 8px;border-radius:5px;margin:3px 0;font-size:11px;'>
                     💰 <strong>MC+:</strong> {format_display(agent_row["MC+구간"])}
                     &nbsp;|&nbsp; <strong>부족:</strong> {format_display(agent_row["MC+부족최종"])}
                     &nbsp;|&nbsp;
@@ -1216,7 +1259,6 @@ with tab3:
 
                     st.markdown("</div>", unsafe_allow_html=True)
 
-                # 카드 간 간격 최소화
                 st.markdown("<div style='height:1px;'></div>", unsafe_allow_html=True)
 
         st.markdown("<hr style='border:1px solid #e2e8f0;margin:15px 0;'>", unsafe_allow_html=True)
