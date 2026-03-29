@@ -1028,11 +1028,7 @@ with tab3:
                 color:#718096;font-size:14px;'>해당 조건의 설계사가 없습니다.</div>""",
                 unsafe_allow_html=True)
         else:
-            # ──────────────────────────────────────────
-            # 전체 리스트를 단일 components.html 블록으로
-            # ──────────────────────────────────────────
-
-            # 1) 각 행 데이터 및 메시지 미리 계산
+            # ── 각 행 데이터 및 메시지 미리 계산 ──
             rows_data = []
             for i, (_, agent_row) in enumerate(filtered_agents.iterrows()):
                 agent_nm     = str(agent_row["설계사명"]).strip()
@@ -1119,7 +1115,7 @@ with tab3:
                     f"<b style='color:{mp_color};'>({mp_status})</b></span></div>"
                 )
 
-                # 카카오 메시지 (줄바꿈 이스케이프)
+                # 카카오 메시지
                 raw_msg = build_kakao_message(agent_row, df_main, current_week, greeting=greeting_text)
                 escaped_msg = (
                     raw_msg
@@ -1145,7 +1141,7 @@ with tab3:
                     "escaped_msg": escaped_msg,
                 })
 
-            # 2) 전체 HTML 빌드
+            # ── 전체 HTML 빌드 ──
             items_html = ""
             for rd in rows_data:
                 i            = rd["i"]
@@ -1164,28 +1160,24 @@ with tab3:
 
                 items_html += f"""
                 <div class="card" id="card_{i}" style="border-left:3px solid {border_color};">
-                  <!-- 메인 행 -->
                   <div class="card-main" onclick="toggle({i})">
                     <div class="card-info">
                       <span class="rank">{rank_label}</span>
                       <span class="name">{agent_nm}</span>
                       <span class="sub"> · {agent_office} | {agent_branch}</span>
-                      <span class="cumul"> {cumul_val}</span>
+                      <span class="cumul">{cumul_val}</span>
                     </div>
                     <button class="copy-btn" id="cbtn_{i}"
                       onclick="event.stopPropagation(); copyMsg({i})">
                       📋 복사
                     </button>
                   </div>
-                  <!-- 상세 -->
                   <div class="detail" id="detail_{i}">
                     <div class="cumul-bar">📈 3월 누계: {cumul_val}</div>
-                    <!-- 주차별 -->
                     <div class="detail-row" style="border-left-color:#38bdf8;flex-direction:column;align-items:stretch;">
                       <span class="dl" style="margin-bottom:3px;">📅 주차별 실적</span>
                       {week_lines}
                     </div>
-                    <!-- 주차목표 -->
                     <div class="detail-row" style="border-left-color:#f97316;">
                       <span class="dl">⭐ 주차목표</span>
                       <span class="dr">{wt} · 부족 <b style="color:#e53e3e;">{ws}</b></span>
@@ -1194,13 +1186,11 @@ with tab3:
                     {mc_plus_row}
                   </div>
                 </div>
-                <script>
-                  messages[{i}] = `{escaped_msg}`;
-                </script>
+                <script>messages[{i}] = `{escaped_msg}`;</script>
                 """
 
-            # 높이 계산: 행당 44px + 여유
-            estimated_height = len(rows_data) * 44 + 40
+            # 높이: 항목당 44px 기본 + 상세 펼쳤을 때 여유분(220px) + 전체 패딩
+            estimated_height = len(rows_data) * 44 + 260
 
             full_html = f"""
             <!DOCTYPE html>
@@ -1210,11 +1200,10 @@ with tab3:
             <style>
               * {{ box-sizing:border-box; margin:0; padding:0;
                    font-family:'Noto Sans KR',sans-serif; }}
-              body {{ background:#f8f9fa; padding:0; }}
+              body {{ background:#f8f9fa; padding:2px 0 8px 0; overflow:hidden; }}
 
               .card {{
                 background:#fff;
-                border-radius:0;
                 border-bottom:1px solid #f1f5f9;
                 overflow:hidden;
               }}
@@ -1224,22 +1213,22 @@ with tab3:
               .card-main {{
                 display:flex;
                 align-items:center;
-                padding:6px 6px 6px 10px;
+                padding:5px 6px 5px 10px;
                 cursor:pointer;
-                min-height:40px;
+                min-height:38px;
                 gap:6px;
               }}
-              .card-main:hover {{ background:#f8fafc; }}
+              .card-main:active {{ background:#f0f4f8; }}
 
               .card-info {{
                 flex:1;
                 min-width:0;
                 font-size:12px;
-                line-height:1.4;
+                line-height:1.35;
               }}
-              .rank  {{ font-weight:700; margin-right:3px; }}
-              .name  {{ font-weight:700; color:#1e293b; }}
-              .sub   {{ color:#64748b; font-size:11px; }}
+              .rank  {{ font-weight:700; margin-right:3px; font-size:12px; }}
+              .name  {{ font-weight:700; color:#1e293b; font-size:12px; }}
+              .sub   {{ color:#64748b; font-size:10px; }}
               .cumul {{ color:#16a34a; font-weight:700; font-size:12px;
                         display:block; margin-top:1px; }}
 
@@ -1251,10 +1240,9 @@ with tab3:
                 cursor:pointer; white-space:nowrap;
                 font-family:'Noto Sans KR',sans-serif;
                 box-shadow:0 1px 3px rgba(74,85,104,0.35);
+                min-width:52px; text-align:center;
               }}
-              .copy-btn:active {{ opacity:0.8; }}
 
-              /* 상세 */
               .detail {{
                 display:none;
                 background:#f8fafc;
@@ -1280,12 +1268,13 @@ with tab3:
                 gap:6px;
                 flex-wrap:wrap;
               }}
-              .dl {{ color:#64748b; flex-shrink:0; font-weight:500; }}
-              .dr {{ color:#334155; font-weight:600; text-align:right; flex:1; }}
+              .dl {{ color:#64748b; flex-shrink:0; font-weight:500; font-size:11px; }}
+              .dr {{ color:#334155; font-weight:600; text-align:right;
+                     flex:1; font-size:11px; }}
               .week-row {{
                 display:flex;
                 justify-content:space-between;
-                padding:1px 0;
+                padding:2px 0;
                 font-size:11px;
               }}
             </style>
@@ -1294,27 +1283,53 @@ with tab3:
 
             <script>
               var messages = {{}};
+              var openIdx  = -1;
+
               function toggle(i) {{
                 var el = document.getElementById('detail_' + i);
-                var card = document.getElementById('card_' + i);
-                var isOpen = el.style.display === 'block';
-                // 모두 닫기
-                document.querySelectorAll('.detail').forEach(function(d) {{
-                  d.style.display = 'none';
-                }});
-                // 클릭한 것만 열기 (토글)
-                if (!isOpen) {{
+                if (!el) return;
+
+                if (openIdx === i) {{
+                  // 같은 거 클릭 → 닫기
+                  el.style.display = 'none';
+                  openIdx = -1;
+                }} else {{
+                  // 다른 거 클릭 → 기존 닫고 새로 열기
+                  if (openIdx >= 0) {{
+                    var prev = document.getElementById('detail_' + openIdx);
+                    if (prev) prev.style.display = 'none';
+                  }}
                   el.style.display = 'block';
+                  openIdx = i;
+                  // 열린 카드가 보이도록 스크롤
+                  setTimeout(function() {{
+                    document.getElementById('card_' + i).scrollIntoView(
+                      {{behavior:'smooth', block:'nearest'}}
+                    );
+                    resizeFrame();
+                  }}, 50);
                 }}
-                // 높이 재조정
                 resizeFrame();
               }}
+
+              function resizeFrame() {{
+                // 충분한 딜레이 후 실제 높이 측정
+                setTimeout(function() {{
+                  var h = document.documentElement.scrollHeight;
+                  window.parent.postMessage(
+                    {{type:'streamlit:setFrameHeight', height: h + 20}},
+                    '*'
+                  );
+                }}, 100);
+              }}
+
               function copyMsg(i) {{
                 var text = messages[i].replace(/\\\\n/g, '\\n');
-                var btn = document.getElementById('cbtn_' + i);
+                var btn  = document.getElementById('cbtn_' + i);
                 function flash() {{
+                  if (!btn) return;
                   var orig = btn.innerHTML;
-                  btn.innerHTML = '✅ 완료';
+                  btn.innerHTML = '✅';
                   btn.style.background = 'linear-gradient(135deg,#38a169,#276749)';
                   setTimeout(function() {{
                     btn.innerHTML = orig;
@@ -1322,27 +1337,29 @@ with tab3:
                   }}, 2000);
                 }}
                 if (navigator.clipboard && window.isSecureContext) {{
-                  navigator.clipboard.writeText(text).then(flash, function() {{ fallback(text, flash); }});
+                  navigator.clipboard.writeText(text).then(flash,
+                    function() {{ fallback(text, flash); }});
                 }} else {{ fallback(text, flash); }}
               }}
+
               function fallback(text, cb) {{
                 var el = document.createElement('textarea');
                 el.value = text;
                 el.style.position = 'fixed'; el.style.left = '-9999px';
                 document.body.appendChild(el);
                 el.focus(); el.select();
-                try {{ document.execCommand('copy'); cb(); }} catch(e) {{ alert('복사 실패'); }}
+                try {{ document.execCommand('copy'); cb(); }}
+                catch(e) {{ alert('복사 실패'); }}
                 document.body.removeChild(el);
               }}
-              function resizeFrame() {{
-                var h = document.body.scrollHeight;
-                window.parent.postMessage({{type:'streamlit:setFrameHeight', height: h + 10}}, '*');
-              }}
-              window.addEventListener('load', resizeFrame);
+
+              window.addEventListener('load', function() {{
+                resizeFrame();
+              }});
             </script>
 
-            <div style="background:white;border-radius:8px;
-                        box-shadow:0 2px 10px rgba(0,0,0,0.08);overflow:hidden;">
+            <div style="background:white; border-radius:8px;
+                        box-shadow:0 2px 10px rgba(0,0,0,0.08); overflow:visible;">
               {items_html}
             </div>
 
@@ -1350,7 +1367,8 @@ with tab3:
             </html>
             """
 
-            components.html(full_html, height=estimated_height, scrolling=False)
+            # scrolling=True 로 잘림 방지 보험
+            components.html(full_html, height=estimated_height, scrolling=True)
 
         st.markdown("<hr style='border:1px solid #e2e8f0;margin:12px 0;'>", unsafe_allow_html=True)
         if st.button("🔄 초기화", use_container_width=True, key="reset_manager"):
