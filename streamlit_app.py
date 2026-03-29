@@ -1029,8 +1029,7 @@ with tab3:
             <span style='color:white;font-size:12px;font-weight:600;'>{len(filtered_agents)}명</span>
             </div>""", unsafe_allow_html=True)
 
-        # ── 전체 복사 버튼 ──
-        st.markdown("<div style='height:4px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:6px;'></div>", unsafe_allow_html=True)
 
         if len(filtered_agents) == 0:
             st.markdown("""
@@ -1038,186 +1037,69 @@ with tab3:
                 color:#718096;font-size:14px;'>해당 조건의 설계사가 없습니다.</div>""",
                 unsafe_allow_html=True)
         else:
-            # ── 노트형 리스트 컨테이너 시작 ──
-            st.markdown("""
-            <style>
-            .note-list-container {
-                background: white;
-                border-radius: 10px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-                overflow: hidden;
-                margin: 0 0 6px 0;
-            }
-            </style>
-            <div class='note-list-container'>
-            """, unsafe_allow_html=True)
-
+            # ── 메시지 미리 생성 ──
+            messages_dict = {}
             for i, (_, agent_row) in enumerate(filtered_agents.iterrows()):
-                agent_nm      = str(agent_row["설계사명"]).strip()
-                agent_branch  = str(agent_row.get("지사명", "")).strip()
-                agent_office  = str(agent_row.get("지점명", "")).strip()
-                cumul_display = format_display(agent_row["누계실적"])
-                is_expanded   = (st.session_state.manager_expanded_idx == i)
-                is_auth       = safe_float(agent_row.get("어센틱구분", 0)) == 1
+                msg = build_kakao_message(agent_row, df_main, current_week, greeting=greeting_text)
+                messages_dict[i] = (
+                    msg
+                    .replace("\\", "\\\\")
+                    .replace("`", "\\`")
+                    .replace("$", "\\$")
+                    .replace("\n", "\\n")
+                )
+
+            # ── 각 항목을 순수 HTML 카드로 렌더링 ──
+            for i, (_, agent_row) in enumerate(filtered_agents.iterrows()):
+                agent_nm     = str(agent_row["설계사명"]).strip()
+                agent_branch = str(agent_row.get("지사명", "")).strip()
+                agent_office = str(agent_row.get("지점명", "")).strip()
+                cumul_val    = format_display(agent_row["누계실적"])
+                is_auth      = safe_float(agent_row.get("어센틱구분", 0)) == 1
+                is_expanded  = (st.session_state.manager_expanded_idx == i)
 
                 if i == 0:   border_color = "#f59e0b"
                 elif i == 1: border_color = "#94a3b8"
                 elif i == 2: border_color = "#86efac"
                 else:        border_color = "#cbd5e1"
 
-                rank_emoji = ["🥇","🥈","🥉"]
+                rank_emoji = ["🥇", "🥈", "🥉"]
                 rank_label = rank_emoji[i] if i < 3 else f"#{i+1}"
 
-                # ── 행 구분선 (첫 행 제외) ──
-                if i > 0:
-                    st.markdown(
-                        "<div style='height:1px;background:#f1f5f9;margin:0 12px;'></div>",
-                        unsafe_allow_html=True
-                    )
-
-                col_card, col_copy = st.columns([5, 2])
-
-                with col_card:
-                    # 카드 버튼 스타일
-                    st.markdown(f"""
-                    <style>
-                    div[data-testid='stVerticalBlock'] .card_btn_{i} > button {{
-                        background: {"#fffdf0" if is_expanded else "transparent"} !important;
-                        color: #1e293b !important;
-                        border: none !important;
-                        border-left: 3px solid {border_color} !important;
-                        border-radius: 0px !important;
-                        padding: 4px 10px !important;
-                        font-size: 12px !important;
-                        font-weight: 500 !important;
-                        min-height: 32px !important;
-                        width: 100% !important;
-                        text-align: left !important;
-                        box-shadow: none !important;
-                        transform: none !important;
-                        transition: background 0.15s !important;
-                        line-height: 1.3 !important;
-                    }}
-                    div[data-testid='stVerticalBlock'] .card_btn_{i} > button:hover {{
-                        background: #f8fafc !important;
-                    }}
-                    </style>
-                    <div class='card_btn_{i}'>""", unsafe_allow_html=True)
-
-                    btn_label = f"{rank_label} {agent_nm} · {agent_office} | {agent_branch} · {cumul_display}"
-                    if st.button(btn_label, key=f"card_btn_{i}_{agent_nm}", use_container_width=True):
-                        st.session_state.manager_expanded_idx = None if is_expanded else i
-                        st.rerun()
-                    st.markdown("</div>", unsafe_allow_html=True)
-
-                with col_copy:
-                    msg = build_kakao_message(agent_row, df_main, current_week, greeting=greeting_text)
-                    escaped = msg.replace("\\", "\\\\").replace("`", "\\`").replace("$", "\\$")
-                    btn_key = f"mgr_copy_{i}_{agent_nm}"
-                    components.html(f"""
-                        <button onclick="copyText_{i}()" style="
-                            font-family:'Noto Sans KR',sans-serif;
-                            font-weight:600;
-                            background:linear-gradient(135deg,#4a5568 0%,#2d3748 100%);
-                            border:none; border-radius:6px;
-                            padding:0 8px;
-                            color:white; cursor:pointer;
-                            width:100%; font-size:11px;
-                            height:30px;
-                            box-shadow:0 1px 4px rgba(74,85,104,0.35);
-                            letter-spacing:-0.2px;">
-                            📋 복사
-                        </button>
-                        <div id="msg_{btn_key}" style="
-                            display:none; margin-top:2px; padding:2px 5px;
-                            background:#c6f6d5; border-left:2px solid #48bb78;
-                            border-radius:4px; color:#276749;
-                            font-family:'Noto Sans KR',sans-serif;
-                            font-size:10px; font-weight:600;">
-                            ✅ 복사완료!
-                        </div>
-                        <script>
-                        function copyText_{i}() {{
-                            const text = `{escaped}`;
-                            if (navigator.clipboard && window.isSecureContext) {{
-                                navigator.clipboard.writeText(text).then(
-                                    () => showOk_{i}(),
-                                    () => fallback_{i}(text)
-                                );
-                            }} else {{ fallback_{i}(text); }}
-                        }}
-                        function fallback_{i}(text) {{
-                            const el = document.createElement('textarea');
-                            el.value = text;
-                            el.style.position='fixed'; el.style.left='-9999px';
-                            document.body.appendChild(el);
-                            el.focus(); el.select();
-                            try {{ document.execCommand('copy'); showOk_{i}(); }}
-                            catch(e) {{ alert('복사 실패'); }}
-                            document.body.removeChild(el);
-                        }}
-                        function showOk_{i}() {{
-                            const m = document.getElementById('msg_{btn_key}');
-                            m.style.display='block';
-                            setTimeout(() => m.style.display='none', 2000);
-                        }}
-                        </script>
-                    """, height=34)
-
-                # ── 펼쳐진 세부 내용 ──
+                # ── 상세 펼침 HTML 생성 ──
+                detail_html = ""
                 if is_expanded:
-                    st.markdown("""
-                    <div style='background:#f8fafc;
-                        border-top:1px solid #e8ecf0;
-                        border-bottom:1px solid #e8ecf0;
-                        padding:8px 12px 8px 14px;
-                        margin:0;'>""",
-                        unsafe_allow_html=True)
-
-                    # 누계실적
-                    st.markdown(f"""
-                    <div style='background:linear-gradient(135deg,#1e293b 0%,#334155 100%);
-                        padding:5px 10px;border-radius:6px;font-size:13px;font-weight:700;
-                        color:white;text-align:center;margin-bottom:5px;'>
-                        📈 3월 누계: {format_display(agent_row["누계실적"])}</div>""",
-                        unsafe_allow_html=True)
-
-                    # ── 주차별 실적 한 줄 표기 ──
+                    # 주차별 실적 (현재 주차까지만, 한 줄씩)
                     week_cols_list = ["1주차","2주차","3주차","4주차","5주차"]
-                    week_parts = []
+                    week_lines = ""
                     for wi, wc in enumerate(week_cols_list, 1):
+                        if wi > current_week:
+                            break
                         wv = format_display(agent_row[wc])
-                        is_cur = (wi == current_week)
-                        if is_cur:
-                            week_parts.append(
-                                f"<span style='color:#92400e;font-weight:700;'>"
-                                f"{wc}⭐: {wv}</span>"
+                        if wi == current_week:
+                            week_lines += (
+                                f"<div style='display:flex;justify-content:space-between;"
+                                f"padding:2px 0;'>"
+                                f"<span style='color:#92400e;font-weight:700;'>{wc} ⭐</span>"
+                                f"<span style='color:#92400e;font-weight:700;'>{wv}</span>"
+                                f"</div>"
                             )
                         else:
-                            week_parts.append(
-                                f"<span style='color:#475569;'>{wc}: {wv}</span>"
+                            week_lines += (
+                                f"<div style='display:flex;justify-content:space-between;"
+                                f"padding:2px 0;'>"
+                                f"<span style='color:#64748b;'>{wc}</span>"
+                                f"<span style='color:#475569;font-weight:600;'>{wv}</span>"
+                                f"</div>"
                             )
-                    week_inline = " &nbsp;|&nbsp; ".join(week_parts)
-                    st.markdown(f"""
-                    <div style='background:white;border-left:3px solid #38bdf8;
-                        padding:4px 8px;border-radius:5px;margin:3px 0;
-                        font-size:11px;line-height:1.7;overflow-x:auto;white-space:nowrap;'>
-                        📅 {week_inline}
-                    </div>""", unsafe_allow_html=True)
 
                     # 주차 목표
                     if is_auth:
-                        wt = agent_row.get("어센틱주차목표", "0")
-                        ws = agent_row.get("어센틱주차부족", "0")
+                        wt = format_display(agent_row.get("어센틱주차목표", "0"))
+                        ws = format_display(agent_row.get("어센틱주차부족", "0"))
                     else:
-                        wt = agent_row.get("주차목표", "0")
-                        ws = agent_row.get("주차부족최종", "0")
-                    st.markdown(f"""
-                    <div style='background:white;border-left:3px solid #f97316;
-                        padding:4px 8px;border-radius:5px;margin:3px 0;font-size:11px;'>
-                    ⭐ <strong>주차목표:</strong> {format_display(wt)}
-                    &nbsp;|&nbsp; <strong>부족:</strong> {format_display(ws)}
-                    </div>""", unsafe_allow_html=True)
+                        wt = format_display(agent_row.get("주차목표", "0"))
+                        ws = format_display(agent_row.get("주차부족최종", "0"))
 
                     # MC 또는 브릿지
                     if is_auth:
@@ -1227,49 +1109,215 @@ with tab3:
                             mc_tv = 1
                         mc_s = str(agent_row.get("MC부족최종", "")).strip()
                         if mc_tv == 0 or mc_tv == 2:
-                            mc_status, mc_color = "이번달 20만원 도전", "#f97316"
+                            mc_status, mc_color = "20만원 도전", "#f97316"
                         elif "최종달성" in mc_s or safe_float(mc_s) <= 0:
-                            mc_status, mc_color = "✅ 시상금확보", "#16a34a"
+                            mc_status, mc_color = "✅ 확보", "#16a34a"
                         else:
                             mc_status, mc_color = "🟡 도전중", "#f97316"
-                        st.markdown(f"""
-                        <div style='background:white;border-left:3px solid #f87171;
-                            padding:4px 8px;border-radius:5px;margin:3px 0;font-size:11px;'>
-                        💰 <strong>MC:</strong> {format_display(agent_row.get("MC도전구간", 0))}
-                        &nbsp;|&nbsp; <strong>부족:</strong> {format_display(agent_row.get("MC부족최종", 0))}
-                        &nbsp;|&nbsp;
-                        <span style='color:{mc_color};font-weight:700;'>{mc_status}</span>
-                        </div>""", unsafe_allow_html=True)
+                        mc_detail = (
+                            f"<div style='display:flex;justify-content:space-between;padding:2px 0;'>"
+                            f"<span style='color:#64748b;'>💰 MC</span>"
+                            f"<span style='color:#475569;font-weight:600;'>"
+                            f"{format_display(agent_row.get('MC도전구간',0))} · 부족 "
+                            f"{format_display(agent_row.get('MC부족최종',0))} "
+                            f"<span style='color:{mc_color};font-weight:700;'>({mc_status})</span>"
+                            f"</span></div>"
+                        )
                     else:
-                        st.markdown(f"""
-                        <div style='background:white;border-left:3px solid #f472b6;
-                            padding:4px 8px;border-radius:5px;margin:3px 0;font-size:11px;'>
-                        🌉 <strong>브릿지:</strong> {format_display(agent_row["브릿지 도전구간"])}
-                        &nbsp;|&nbsp; <strong>부족:</strong> {format_display(agent_row["브릿지부족최종"])}
-                        </div>""", unsafe_allow_html=True)
+                        mc_detail = (
+                            f"<div style='display:flex;justify-content:space-between;padding:2px 0;'>"
+                            f"<span style='color:#64748b;'>🌉 브릿지</span>"
+                            f"<span style='color:#475569;font-weight:600;'>"
+                            f"{format_display(agent_row['브릿지 도전구간'])} · 부족 "
+                            f"{format_display(agent_row['브릿지부족최종'])}"
+                            f"</span></div>"
+                        )
 
                     # MC+
-                    mp_s   = str(agent_row.get("MC+부족최종", "")).strip()
+                    mp_s = str(agent_row.get("MC+부족최종", "")).strip()
                     mp_val = safe_float(mp_s)
                     if mp_val <= 0 or "최종달성" in mp_s:
-                        mp_status, mp_color = "✅ 시상금확보", "#16a34a"
+                        mp_status, mp_color = "✅ 확보", "#16a34a"
                     elif any(x in mp_s for x in ["대상아님", "미달성", "다음기회에"]):
                         mp_status, mp_color = "⚪ 대상아님", "#94a3b8"
                     else:
                         mp_status, mp_color = "🟡 도전중", "#7c3aed"
-                    st.markdown(f"""
-                    <div style='background:white;border-left:3px solid #a78bfa;
-                        padding:4px 8px;border-radius:5px;margin:3px 0;font-size:11px;'>
-                    💰 <strong>MC+:</strong> {format_display(agent_row["MC+구간"])}
-                    &nbsp;|&nbsp; <strong>부족:</strong> {format_display(agent_row["MC+부족최종"])}
-                    &nbsp;|&nbsp;
-                    <span style='color:{mp_color};font-weight:700;'>{mp_status}</span>
-                    </div>""", unsafe_allow_html=True)
+                    mc_plus_detail = (
+                        f"<div style='display:flex;justify-content:space-between;padding:2px 0;'>"
+                        f"<span style='color:#64748b;'>💰 MC+</span>"
+                        f"<span style='color:#475569;font-weight:600;'>"
+                        f"{format_display(agent_row['MC+구간'])} · 부족 "
+                        f"{format_display(agent_row['MC+부족최종'])} "
+                        f"<span style='color:{mp_color};font-weight:700;'>({mp_status})</span>"
+                        f"</span></div>"
+                    )
 
-                    st.markdown("</div>", unsafe_allow_html=True)
+                    detail_html = f"""
+                    <div style='
+                        background:#f8fafc;
+                        border-top:1px dashed #e2e8f0;
+                        padding:8px 12px;
+                        font-size:12px;
+                        line-height:1.6;
+                    '>
+                        <!-- 누계 -->
+                        <div style='
+                            background:linear-gradient(135deg,#1e293b,#334155);
+                            color:white;font-weight:700;font-size:13px;
+                            border-radius:6px;padding:5px 10px;
+                            text-align:center;margin-bottom:6px;
+                        '>📈 3월 누계: {cumul_val}</div>
 
-            # ── 노트형 리스트 컨테이너 종료 ──
-            st.markdown("</div>", unsafe_allow_html=True)
+                        <!-- 주차별 -->
+                        <div style='
+                            background:white;border-left:3px solid #38bdf8;
+                            border-radius:5px;padding:4px 8px;margin:3px 0;
+                        '>
+                            <div style='color:#64748b;font-size:10px;font-weight:600;
+                                margin-bottom:2px;'>📅 주차별 실적</div>
+                            {week_lines}
+                        </div>
+
+                        <!-- 주차목표 -->
+                        <div style='
+                            background:white;border-left:3px solid #f97316;
+                            border-radius:5px;padding:4px 8px;margin:3px 0;
+                        '>
+                            <div style='display:flex;justify-content:space-between;'>
+                                <span style='color:#64748b;'>⭐ 주차목표</span>
+                                <span style='color:#475569;font-weight:600;'>{wt}</span>
+                            </div>
+                            <div style='display:flex;justify-content:space-between;'>
+                                <span style='color:#64748b;'>부족금액</span>
+                                <span style='color:#e53e3e;font-weight:700;'>{ws}</span>
+                            </div>
+                        </div>
+
+                        <!-- MC / 브릿지 -->
+                        <div style='
+                            background:white;border-left:3px solid #f472b6;
+                            border-radius:5px;padding:4px 8px;margin:3px 0;
+                        '>{mc_detail}</div>
+
+                        <!-- MC+ -->
+                        <div style='
+                            background:white;border-left:3px solid #a78bfa;
+                            border-radius:5px;padding:4px 8px;margin:3px 0;
+                        '>{mc_plus_detail}</div>
+                    </div>
+                    """
+
+                escaped_msg = messages_dict[i]
+                btn_key     = f"copy_{i}_{agent_nm}"
+                toggle_key  = f"toggle_{i}"
+                expanded_bg = "#fffdf0" if is_expanded else "#ffffff"
+                arrow       = "▲" if is_expanded else "▼"
+
+                # ── 카드 전체 HTML (항목 + 복사 한 줄) + 상세 ──
+                card_html = f"""
+                <div style='
+                    background:white;
+                    border-radius:8px;
+                    margin-bottom:3px;
+                    box-shadow:0 1px 4px rgba(0,0,0,0.07);
+                    overflow:hidden;
+                    border:1px solid #f0f4f8;
+                '>
+                    <!-- 메인 행: 항목 + 복사 버튼 -->
+                    <div style='
+                        display:flex;
+                        align-items:center;
+                        border-left:3px solid {border_color};
+                        background:{expanded_bg};
+                        min-height:36px;
+                    '>
+                        <!-- 이름/정보 영역 (클릭 = 토글) -->
+                        <div onclick="toggleDetail_{i}()" style='
+                            flex:1;
+                            padding:6px 8px;
+                            cursor:pointer;
+                            font-size:12px;
+                            color:#1e293b;
+                            font-weight:500;
+                            line-height:1.3;
+                            font-family:"Noto Sans KR",sans-serif;
+                        '>
+                            <span style='font-weight:700;margin-right:4px;'>{rank_label}</span>
+                            <span style='font-weight:700;'>{agent_nm}</span>
+                            <span style='color:#64748b;font-size:11px;'>
+                                &nbsp;·&nbsp;{agent_office}
+                                &nbsp;|&nbsp;{agent_branch}
+                            </span><br>
+                            <span style='color:#2d6a4f;font-weight:700;font-size:12px;'>{cumul_val}</span>
+                            <span style='color:#94a3b8;font-size:10px;margin-left:4px;'>{arrow}</span>
+                        </div>
+                        <!-- 복사 버튼 -->
+                        <div style='padding:4px 6px;flex-shrink:0;'>
+                            <button
+                                id='btn_{btn_key}'
+                                onclick="copyMsg_{i}()"
+                                style='
+                                    font-family:"Noto Sans KR",sans-serif;
+                                    font-weight:600;font-size:11px;
+                                    background:linear-gradient(135deg,#4a5568,#2d3748);
+                                    color:white;border:none;border-radius:6px;
+                                    padding:5px 10px;cursor:pointer;
+                                    white-space:nowrap;
+                                    box-shadow:0 1px 3px rgba(74,85,104,0.4);
+                                '>
+                                📋 복사
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 상세 펼침 영역 -->
+                    <div id='detail_{toggle_key}' style='display:{"block" if is_expanded else "none"};'>
+                        {detail_html}
+                    </div>
+                </div>
+
+                <script>
+                function toggleDetail_{i}() {{
+                    // Streamlit 세션과 동기화는 불가하므로 순수 JS 토글
+                    const el = document.getElementById('detail_{toggle_key}');
+                    if (!el) return;
+                    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+                }}
+                function copyMsg_{i}() {{
+                    const text = `{escaped_msg}`.replace(/\\\\n/g, '\\n');
+                    const btn  = document.getElementById('btn_{btn_key}');
+                    if (navigator.clipboard && window.isSecureContext) {{
+                        navigator.clipboard.writeText(text).then(
+                            () => flashBtn_{i}(),
+                            () => fallback_{i}(text)
+                        );
+                    }} else {{ fallback_{i}(text); }}
+                }}
+                function fallback_{i}(text) {{
+                    const el = document.createElement('textarea');
+                    el.value = text;
+                    el.style.position='fixed'; el.style.left='-9999px';
+                    document.body.appendChild(el);
+                    el.focus(); el.select();
+                    try {{ document.execCommand('copy'); flashBtn_{i}(); }}
+                    catch(e) {{ alert('복사 실패'); }}
+                    document.body.removeChild(el);
+                }}
+                function flashBtn_{i}() {{
+                    const btn = document.getElementById('btn_{btn_key}');
+                    if (!btn) return;
+                    const orig = btn.innerHTML;
+                    btn.innerHTML = '✅ 완료';
+                    btn.style.background = 'linear-gradient(135deg,#38a169,#276749)';
+                    setTimeout(() => {{
+                        btn.innerHTML = orig;
+                        btn.style.background = 'linear-gradient(135deg,#4a5568,#2d3748)';
+                    }}, 2000);
+                }}
+                </script>
+                """
+
+                components.html(card_html, height=38 if not is_expanded else 320, scrolling=False)
 
         st.markdown("<hr style='border:1px solid #e2e8f0;margin:12px 0;'>", unsafe_allow_html=True)
         if st.button("🔄 초기화", use_container_width=True, key="reset_manager"):
