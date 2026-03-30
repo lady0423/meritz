@@ -621,7 +621,7 @@ with tab1:
                 💡 대리점 시상안을 보고 달성 시상금을 확인하세요</p>
             </div>""", unsafe_allow_html=True)
 
-                        manager_name_val = str(row.get(df.columns[3], "N/A")).strip()
+            manager_name_val = str(row.get(df.columns[3], "N/A")).strip()
             st.markdown("<h3 style='color:#4a5568;'>📋 기본 정보</h3>", unsafe_allow_html=True)
             st.markdown(f"""
             <div class='info-box'>
@@ -629,7 +629,6 @@ with tab1:
             <strong>설계사명(코드):</strong> {agent_name_display} ({agent_code})<br>
             <strong>매니저명:</strong> {manager_name_val}
             </div>""", unsafe_allow_html=True)
-
 
             cumulative = row["누계실적"]
             st.markdown("<h3 style='color:#4a5568;'>📈 3월 누계 실적</h3>", unsafe_allow_html=True)
