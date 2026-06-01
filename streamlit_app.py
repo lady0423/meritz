@@ -6,21 +6,20 @@ from PIL import Image
 import os
 import streamlit.components.v1 as components
 import re
+import json
 
 
 # ============================================================
 # 기본 설정
 # ============================================================
+GOOGLE_SHEET_ID = "1NSm_gy0a_QbWXquI2efdM93BjBuHn_sYLpU0NybL5_8"
 PASSWORD = "2233"
-
-DATA_FILE_PATH = "data.xlsx"
-PHONE_FILE_PATH = "phone.xlsx"
 
 st.set_page_config(page_title="메리츠 실적현황", layout="wide")
 
 
 # ============================================================
-# 컬럼명 매핑
+# 새 컬럼명 매핑
 # ============================================================
 COLS = {
     "manager": "매니저명",
@@ -54,9 +53,7 @@ def get_week_columns():
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-* {
-    font-family: 'Noto Sans KR', sans-serif !important;
-}
+* { font-family: 'Noto Sans KR', sans-serif !important; }
 
 html, body, [data-testid="stAppViewContainer"], .main, [data-testid="stDecoration"] {
     background: #f8f9fa !important;
@@ -159,6 +156,21 @@ h1, h2, h3 {
     display: block;
 }
 
+input, select {
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 10px !important;
+    font-weight: 500 !important;
+}
+
+input:focus, select:focus {
+    border-color: #4a5568 !important;
+    box-shadow: 0 0 0 3px rgba(74,85,104,0.1) !important;
+    outline: none !important;
+}
+
 .login-box {
     max-width: 320px;
     margin: 30px auto;
@@ -224,21 +236,16 @@ h3 {
 def safe_float(value):
     if pd.isna(value):
         return 0.0
-
     if value is None or value == "":
         return 0.0
 
     try:
         v = str(value).strip()
-
         if v == "" or v.lower() == "nan":
             return 0.0
-
         if "만원" in v:
             return float(v.replace("만원", "").replace(",", "").strip()) * 10000
-
         return float(v.replace(",", ""))
-
     except:
         return 0.0
 
@@ -256,7 +263,6 @@ def format_display(value):
 
         num = float(v.replace(",", ""))
         return f"₩ {num:,.0f}"
-
     except:
         return v
 
@@ -264,7 +270,6 @@ def format_display(value):
 def normalize_phone_number(phone):
     if pd.isna(phone):
         return ""
-
     return (
         str(phone)
         .replace("-", "")
@@ -295,7 +300,6 @@ def get_prev_months():
 
     if prev_month <= 0:
         prev_month += 12
-
     if prev_prev_month <= 0:
         prev_prev_month += 12
 
@@ -319,15 +323,9 @@ def get_current_week():
         return 5
 
 
-def get_file_modified_time(file_path):
-    try:
-        modified_timestamp = os.path.getmtime(file_path)
-        kst = pytz.timezone("Asia/Seoul")
-        modified_dt = datetime.datetime.fromtimestamp(modified_timestamp, kst)
-        return modified_dt.strftime("%Y-%m-%d %H:%M")
-
-    except:
-        return None
+def get_now_kst_string():
+    kst = pytz.timezone("Asia/Seoul")
+    return datetime.datetime.now(kst).strftime("%Y-%m-%d %H:%M")
 
 
 def require_columns(df, required_cols, title="데이터"):
@@ -346,7 +344,6 @@ def require_columns(df, required_cols, title="데이터"):
 def load_logo():
     if os.path.exists("meritz.png"):
         return Image.open("meritz.png")
-
     return None
 
 
@@ -364,40 +361,76 @@ def create_vcard(name, phone, company):
 
 
 # ============================================================
-# 엑셀 로드
+# 구글시트 로드
 # ============================================================
 @st.cache_data(ttl=300)
-def load_data_from_excel():
+def load_data_from_google_sheets():
+    url = f"https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/export?format=csv&gid=0"
+
     try:
-        df = pd.read_excel(DATA_FILE_PATH, dtype=str)
+        df = pd.read_csv(url, dtype=str)
         df.columns = df.columns.str.strip()
         return df
-
     except Exception as e:
         st.error(f"실적 데이터 로드 실패: {e}")
         return None
 
 
 @st.cache_data(ttl=300)
-def load_contact_data_from_excel():
+def load_contact_data_from_google_sheets():
+    url = f"https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/export?format=csv&gid=363789500"
+
     try:
-        df = pd.read_excel(PHONE_FILE_PATH, dtype=str)
+        df = pd.read_csv(url, dtype=str)
         df.columns = df.columns.str.strip()
-
-        df = df.rename(columns={
-            "이름": "설계사명",
-            "ID": "설계사코드",
-            "휴대전화": "휴대전화",
-            "지사": "지사",
-            "지점": "지점",
-            "매니저": "매니저",
-            "위촉일자": "위촉일자",
-        })
-
         return df
-
     except Exception as e:
         st.error(f"전화번호 데이터 로드 실패: {e}")
+        return None
+
+
+@st.cache_data(ttl=300)
+def get_google_sheet_modified_time():
+    """
+    Drive API 설정이 있으면 실제 구글시트 수정일 표시.
+    설정이 없으면 None 반환 후 데이터 확인 시각으로 대체.
+    """
+    try:
+        from google.oauth2 import service_account
+        from googleapiclient.discovery import build
+
+        if "gcp_service_account" not in st.secrets:
+            return None
+
+        scopes = ["https://www.googleapis.com/auth/drive.metadata.readonly"]
+
+        credentials = service_account.Credentials.from_service_account_info(
+            st.secrets["gcp_service_account"],
+            scopes=scopes
+        )
+
+        service = build("drive", "v3", credentials=credentials)
+
+        file = service.files().get(
+            fileId=GOOGLE_SHEET_ID,
+            fields="modifiedTime"
+        ).execute()
+
+        modified_time = file.get("modifiedTime")
+
+        if not modified_time:
+            return None
+
+        dt_utc = datetime.datetime.fromisoformat(
+            modified_time.replace("Z", "+00:00")
+        )
+
+        kst = pytz.timezone("Asia/Seoul")
+        dt_kst = dt_utc.astimezone(kst)
+
+        return dt_kst.strftime("%Y-%m-%d %H:%M")
+
+    except:
         return None
 
 
@@ -405,14 +438,7 @@ def load_contact_data_from_excel():
 # 복사 버튼
 # ============================================================
 def copy_to_clipboard_button(text, button_label="📋 메시지 복사하기", key="clipboard_btn", height=80):
-    escaped_text = (
-        text
-        .replace("\\", "\\\\")
-        .replace("`", "\\`")
-        .replace("$", "\\$")
-        .replace("\r\n", "\\n")
-        .replace("\n", "\\n")
-    )
+    text_js = json.dumps(text, ensure_ascii=False)
 
     components.html(f"""
         <button onclick="copyText_{key}()" style="
@@ -446,12 +472,11 @@ def copy_to_clipboard_button(text, button_label="📋 메시지 복사하기", k
 
         <script>
         function copyText_{key}() {{
-            const text = `{escaped_text}`.replace(/\\\\n/g, '\\n');
+            const text = {text_js};
 
             function showSuccess() {{
                 const msg = document.getElementById('copyMsg_{key}');
                 msg.style.display = 'block';
-
                 setTimeout(function() {{
                     msg.style.display = 'none';
                 }}, 2500);
@@ -462,7 +487,6 @@ def copy_to_clipboard_button(text, button_label="📋 메시지 복사하기", k
                 el.value = text;
                 el.style.position = 'fixed';
                 el.style.left = '-9999px';
-
                 document.body.appendChild(el);
                 el.focus();
                 el.select();
@@ -490,7 +514,7 @@ def copy_to_clipboard_button(text, button_label="📋 메시지 복사하기", k
 
 
 # ============================================================
-# 메시지 생성
+# 메시지 / 실적 관련 함수
 # ============================================================
 def build_kakao_message(row, current_week, greeting=""):
     current_month = get_current_month()
@@ -562,6 +586,15 @@ def get_performance_row_by_agent_code(performance_df, agent_code):
         return None
 
 
+def get_current_month_performance(performance_df, agent_code):
+    row = get_performance_row_by_agent_code(performance_df, agent_code)
+
+    if row is None:
+        return 0.0
+
+    return safe_float(row.get(COLS["current_cumulative"], 0))
+
+
 def get_recent_performance_html(performance_df, contact_row):
     current_month, prev_month, prev_prev_month = get_prev_months()
 
@@ -573,7 +606,7 @@ def get_recent_performance_html(performance_df, contact_row):
         prev_value = format_display(perf_row.get(COLS["prev_cumulative"], 0))
         prev_prev_value = format_display(perf_row.get(COLS["prev_prev_cumulative"], 0))
     else:
-        current_value = "₩ 0"
+        current_value = format_display(get_current_month_performance(performance_df, code))
         prev_value = format_display(contact_row.get("전월실적", 0))
         prev_prev_value = format_display(contact_row.get("전전월실적", 0))
 
@@ -665,7 +698,6 @@ col_logo, col_title = st.columns([1, 4])
 
 with col_logo:
     logo = load_logo()
-
     if logo:
         st.image(logo, width=60)
     else:
@@ -677,15 +709,18 @@ with col_title:
         unsafe_allow_html=True
     )
 
-data_modified_at = get_file_modified_time(DATA_FILE_PATH)
-phone_modified_at = get_file_modified_time(PHONE_FILE_PATH)
+modified_at = get_google_sheet_modified_time()
 
-st.markdown(f"""
-<div class='update-box'>
-    실적 파일 수정일: {data_modified_at or '-'} /
-    연락처 파일 수정일: {phone_modified_at or '-'}
-</div>
-""", unsafe_allow_html=True)
+if modified_at:
+    st.markdown(
+        f"<div class='update-box'>구글시트 최종 수정일: {modified_at}</div>",
+        unsafe_allow_html=True
+    )
+else:
+    st.markdown(
+        f"<div class='update-box'>데이터 확인 시각: {get_now_kst_string()}</div>",
+        unsafe_allow_html=True
+    )
 
 st.markdown("<hr style='border:1px solid #e2e8f0;margin:8px 0;'>", unsafe_allow_html=True)
 
@@ -696,7 +731,7 @@ tab1, tab2, tab3 = st.tabs(["📊 실적조회", "📞 전화번호 조회", "�
 # 탭1: 실적조회
 # ============================================================
 with tab1:
-    df = load_data_from_excel()
+    df = load_data_from_google_sheets()
 
     if df is None:
         st.stop()
@@ -712,7 +747,7 @@ with tab1:
         COLS["current_cumulative"],
     ] + get_week_columns()
 
-    if not require_columns(df, required_cols_tab1, "실적 파일 data.xlsx"):
+    if not require_columns(df, required_cols_tab1, "실적조회 시트"):
         st.stop()
 
     current_week = get_current_week()
@@ -932,8 +967,8 @@ with tab1:
 # 탭2: 전화번호 조회
 # ============================================================
 with tab2:
-    contact_df = load_contact_data_from_excel()
-    performance_df = load_data_from_excel()
+    contact_df = load_contact_data_from_google_sheets()
+    performance_df = load_data_from_google_sheets()
 
     if contact_df is None:
         st.error("❌ 전화번호 데이터를 불러올 수 없습니다.")
@@ -949,7 +984,7 @@ with tab2:
         "위촉일자",
     ]
 
-    if not require_columns(contact_df, required_contact_cols, "연락처 파일 phone.xlsx"):
+    if not require_columns(contact_df, required_contact_cols, "전화번호 시트"):
         st.stop()
 
     contact_df["휴대전화_normalized"] = contact_df["휴대전화"].apply(normalize_phone_number)
@@ -1109,7 +1144,7 @@ with tab2:
 with tab3:
     st.markdown("### 👔 매니저별 발송")
 
-    df_main = load_data_from_excel()
+    df_main = load_data_from_google_sheets()
 
     if df_main is None:
         st.stop()
@@ -1124,7 +1159,7 @@ with tab3:
         COLS["current_cumulative"],
     ] + get_week_columns()
 
-    if not require_columns(df_main, required_cols_manager, "실적 파일 data.xlsx"):
+    if not require_columns(df_main, required_cols_manager, "매니저별 발송 시트"):
         st.stop()
 
     current_week = get_current_week()
