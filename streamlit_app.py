@@ -8,7 +8,6 @@ import streamlit.components.v1 as components
 import re
 import json
 
-
 # ============================================================
 # 기본 설정
 # ============================================================
@@ -17,22 +16,18 @@ PASSWORD = "2233"
 
 st.set_page_config(page_title="메리츠 실적현황", layout="wide")
 
-
 # ============================================================
-# 새 컬럼명 매핑
+# 컬럼명 매핑
 # ============================================================
 COLS = {
     "manager": "매니저명",
     "manager_code": "매니저코드",
-
     "agent_code": "현재대리점설계사조직코드",
     "agent_name": "현재대리점설계사조직명",
-
     "agency_name": "현재영업가족명",
     "branch_name": "현재대리점지사명",
     "hq_name": "현재영업단조직명",
     "office_name": "현재지점조직명",
-
     "current_cumulative": "인정실적",
     "prev_cumulative": "이전월인정실적",
     "prev_prev_cumulative": "전전월인정실적",
@@ -48,12 +43,14 @@ def get_week_columns():
 
 
 # ============================================================
-# CSS
+# CSS - 중요: unsafe_allow_html=True 포함
 # ============================================================
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-* { font-family: 'Noto Sans KR', sans-serif !important; }
+* {
+    font-family: 'Noto Sans KR', sans-serif !important;
+}
 
 html, body, [data-testid="stAppViewContainer"], .main, [data-testid="stDecoration"] {
     background: #f8f9fa !important;
@@ -238,7 +235,6 @@ def safe_float(value):
         return 0.0
     if value is None or value == "":
         return 0.0
-
     try:
         v = str(value).strip()
         if v == "" or v.lower() == "nan":
@@ -252,15 +248,12 @@ def safe_float(value):
 
 def format_display(value):
     v = str(value).strip()
-
     if v == "" or v.lower() == "nan" or v == "None":
         return "₩ 0"
-
     try:
         if "만원" in v:
             num = float(v.replace("만원", "").replace(",", "").strip()) * 10000
             return f"₩ {num:,.0f}"
-
         num = float(v.replace(",", ""))
         return f"₩ {num:,.0f}"
     except:
@@ -270,13 +263,7 @@ def format_display(value):
 def normalize_phone_number(phone):
     if pd.isna(phone):
         return ""
-    return (
-        str(phone)
-        .replace("-", "")
-        .replace(" ", "")
-        .replace(".0", "")
-        .strip()
-    )
+    return str(phone).replace("-", "").replace(" ", "").replace(".0", "").strip()
 
 
 def extract_ga4_number(branch_str):
@@ -286,15 +273,11 @@ def extract_ga4_number(branch_str):
 
 def get_current_month():
     kst = pytz.timezone("Asia/Seoul")
-    today = datetime.datetime.now(kst).date()
-    return today.month
+    return datetime.datetime.now(kst).date().month
 
 
 def get_prev_months():
-    kst = pytz.timezone("Asia/Seoul")
-    today = datetime.datetime.now(kst).date()
-
-    current_month = today.month
+    current_month = get_current_month()
     prev_month = current_month - 1
     prev_prev_month = current_month - 2
 
@@ -308,8 +291,7 @@ def get_prev_months():
 
 def get_current_week():
     kst = pytz.timezone("Asia/Seoul")
-    today = datetime.datetime.now(kst).date()
-    day = today.day
+    day = datetime.datetime.now(kst).date().day
 
     if day <= 7:
         return 1
@@ -330,14 +312,12 @@ def get_now_kst_string():
 
 def require_columns(df, required_cols, title="데이터"):
     missing = [c for c in required_cols if c not in df.columns]
-
     if missing:
         st.error(
             f"❌ {title}에 필요한 컬럼이 없습니다.\n\n"
             f"누락 컬럼: {', '.join(missing)}"
         )
         return False
-
     return True
 
 
@@ -349,7 +329,6 @@ def load_logo():
 
 def create_vcard(name, phone, company):
     phone_clean = normalize_phone_number(phone)
-
     return (
         f"BEGIN:VCARD\n"
         f"VERSION:3.0\n"
@@ -366,7 +345,6 @@ def create_vcard(name, phone, company):
 @st.cache_data(ttl=300)
 def load_data_from_google_sheets():
     url = f"https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/export?format=csv&gid=0"
-
     try:
         df = pd.read_csv(url, dtype=str)
         df.columns = df.columns.str.strip()
@@ -379,7 +357,6 @@ def load_data_from_google_sheets():
 @st.cache_data(ttl=300)
 def load_contact_data_from_google_sheets():
     url = f"https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/export?format=csv&gid=363789500"
-
     try:
         df = pd.read_csv(url, dtype=str)
         df.columns = df.columns.str.strip()
@@ -391,10 +368,6 @@ def load_contact_data_from_google_sheets():
 
 @st.cache_data(ttl=300)
 def get_google_sheet_modified_time():
-    """
-    Drive API 설정이 있으면 실제 구글시트 수정일 표시.
-    설정이 없으면 None 반환 후 데이터 확인 시각으로 대체.
-    """
     try:
         from google.oauth2 import service_account
         from googleapiclient.discovery import build
@@ -417,18 +390,12 @@ def get_google_sheet_modified_time():
         ).execute()
 
         modified_time = file.get("modifiedTime")
-
         if not modified_time:
             return None
 
-        dt_utc = datetime.datetime.fromisoformat(
-            modified_time.replace("Z", "+00:00")
-        )
-
+        dt_utc = datetime.datetime.fromisoformat(modified_time.replace("Z", "+00:00"))
         kst = pytz.timezone("Asia/Seoul")
-        dt_kst = dt_utc.astimezone(kst)
-
-        return dt_kst.strftime("%Y-%m-%d %H:%M")
+        return dt_utc.astimezone(kst).strftime("%Y-%m-%d %H:%M")
 
     except:
         return None
@@ -438,10 +405,11 @@ def get_google_sheet_modified_time():
 # 복사 버튼
 # ============================================================
 def copy_to_clipboard_button(text, button_label="📋 메시지 복사하기", key="clipboard_btn", height=80):
+    safe_key = re.sub(r"[^a-zA-Z0-9_]", "_", key)
     text_js = json.dumps(text, ensure_ascii=False)
 
     components.html(f"""
-        <button onclick="copyText_{key}()" style="
+        <button onclick="copyText_{safe_key}()" style="
             font-family:'Noto Sans KR',sans-serif;
             font-weight:600;
             background:linear-gradient(135deg,#4a5568 0%,#2d3748 100%);
@@ -456,7 +424,7 @@ def copy_to_clipboard_button(text, button_label="📋 메시지 복사하기", k
             {button_label}
         </button>
 
-        <div id="copyMsg_{key}" style="
+        <div id="copyMsg_{safe_key}" style="
             display:none;
             margin-top:6px;
             padding:6px 10px;
@@ -471,11 +439,11 @@ def copy_to_clipboard_button(text, button_label="📋 메시지 복사하기", k
         </div>
 
         <script>
-        function copyText_{key}() {{
+        function copyText_{safe_key}() {{
             const text = {text_js};
 
             function showSuccess() {{
-                const msg = document.getElementById('copyMsg_{key}');
+                const msg = document.getElementById('copyMsg_{safe_key}');
                 msg.style.display = 'block';
                 setTimeout(function() {{
                     msg.style.display = 'none';
@@ -514,7 +482,7 @@ def copy_to_clipboard_button(text, button_label="📋 메시지 복사하기", k
 
 
 # ============================================================
-# 메시지 / 실적 관련 함수
+# 메시지 / 실적 함수
 # ============================================================
 def build_kakao_message(row, current_week, greeting=""):
     current_month = get_current_month()
@@ -524,16 +492,12 @@ def build_kakao_message(row, current_week, greeting=""):
     cumulative = row.get(COLS["current_cumulative"], 0)
 
     week_text = ""
-
     for idx in range(1, 6):
         if idx > current_week:
             break
-
         week_col = get_week_col(idx)
-
         if week_col not in row.index:
             continue
-
         current_mark = " ⭐" if idx == current_week else ""
         week_text += f" • {idx}주차: {format_display(row.get(week_col, 0))}{current_mark}\n"
 
@@ -557,7 +521,6 @@ def apply_manager_filter(agents_df, filter_mode, current_week):
 
     if filter_mode == 1:
         col = get_week_col(current_week)
-
         if col in agents_df.columns:
             return agents_df[agents_df[col].apply(safe_float) > 0]
 
@@ -568,7 +531,6 @@ def get_performance_row_by_agent_code(performance_df, agent_code):
     try:
         if performance_df is None:
             return None
-
         if COLS["agent_code"] not in performance_df.columns:
             return None
 
@@ -581,17 +543,14 @@ def get_performance_row_by_agent_code(performance_df, agent_code):
             return filtered.iloc[0]
 
         return None
-
     except:
         return None
 
 
 def get_current_month_performance(performance_df, agent_code):
     row = get_performance_row_by_agent_code(performance_df, agent_code)
-
     if row is None:
         return 0.0
-
     return safe_float(row.get(COLS["current_cumulative"], 0))
 
 
@@ -766,7 +725,6 @@ with tab1:
         .drop_duplicates()
         .tolist()
     )
-
     ga4_branches = sorted(ga4_branches, key=extract_ga4_number)
 
     if len(ga4_branches) == 0:
@@ -806,7 +764,6 @@ with tab1:
             st.error("⚠️ 설계사명을 입력해주세요.")
             st.session_state.search_performed = False
             st.session_state.show_duplicates = False
-
         else:
             filtered = df[
                 (df[COLS["office_name"]].astype(str).str.strip() == selected_branch.strip())
@@ -817,12 +774,10 @@ with tab1:
                 st.error("❌ 데이터를 찾을 수 없습니다.")
                 st.session_state.search_performed = False
                 st.session_state.show_duplicates = False
-
             elif len(filtered) == 1:
                 st.session_state.search_performed = True
                 st.session_state.selected_row = filtered.iloc[0]
                 st.session_state.show_duplicates = False
-
             else:
                 st.session_state.show_duplicates = True
                 st.session_state.filtered_data = filtered
@@ -901,7 +856,6 @@ with tab1:
                 <strong style='color:#92400e;'>{format_display(week_value)}</strong>
                 </div>
                 """, unsafe_allow_html=True)
-
             else:
                 st.markdown(f"""
                 <div class='weekly-row'>
@@ -1015,7 +969,6 @@ with tab2:
             st.warning("⚠️ 전화번호 또는 설계사명을 입력해주세요.")
             st.session_state.contact_search_performed = False
             st.session_state.contact_show_duplicates = False
-
         else:
             search_value = contact_search.strip()
             search_normalized = normalize_phone_number(search_value)
@@ -1036,12 +989,10 @@ with tab2:
                 st.error(f"❌ '{search_value}'에 해당하는 데이터를 찾을 수 없습니다.")
                 st.session_state.contact_search_performed = False
                 st.session_state.contact_show_duplicates = False
-
             elif len(filtered_contacts) == 1:
                 st.session_state.contact_search_performed = True
                 st.session_state.contact_selected_row = filtered_contacts.iloc[0]
                 st.session_state.contact_show_duplicates = False
-
             else:
                 filtered_contacts = filtered_contacts.copy()
                 filtered_contacts["_sort"] = filtered_contacts["지점"].apply(extract_ga4_number)
@@ -1192,7 +1143,6 @@ with tab3:
             st.warning(f"'{query}'에 해당하는 매니저를 찾을 수 없습니다.")
             st.session_state.manager_search_performed = False
             st.session_state.manager_duplicate_list = []
-
         else:
             unique_codes = matched[COLS["manager_code"]].astype(str).str.strip().unique()
 
@@ -1201,7 +1151,6 @@ with tab3:
 
                 for code in unique_codes:
                     sub = df_main[df_main[COLS["manager_code"]].astype(str).str.strip() == code]
-
                     branch_val = str(sub[COLS["office_name"]].iloc[0]).strip() if not sub.empty else ""
                     mgr_nm_dup = str(sub[COLS["manager"]].iloc[0]).strip() if not sub.empty else query
 
@@ -1213,10 +1162,8 @@ with tab3:
                     })
 
                 dup_list.sort(key=lambda x: extract_ga4_number(x["branch"]))
-
                 st.session_state.manager_duplicate_list = dup_list
                 st.session_state.manager_search_performed = False
-
             else:
                 agents = matched.copy()
                 agents["_cumul_float"] = agents[COLS["current_cumulative"]].apply(safe_float)
@@ -1254,7 +1201,6 @@ with tab3:
                 st.session_state.manager_name_display = f"{dup['name']} ({dup['branch']})"
                 st.session_state.manager_duplicate_list = []
                 st.session_state.manager_search_performed = True
-
                 st.rerun()
 
     if (
@@ -1296,7 +1242,6 @@ with tab3:
                 label_visibility="collapsed",
                 key="manager_filter_select"
             )
-
             st.session_state.manager_filter_mode = filter_options[selected_filter_label]
 
         filtered_agents = apply_manager_filter(
@@ -1319,7 +1264,6 @@ with tab3:
             <div style='text-align:center;padding:16px;background:white;border-radius:10px;
                 color:#718096;font-size:14px;'>해당 조건의 설계사가 없습니다.</div>
             """, unsafe_allow_html=True)
-
         else:
             for i, (_, agent_row) in enumerate(filtered_agents.iterrows()):
                 agent_nm = str(agent_row.get(COLS["agent_name"], "")).strip()
@@ -1351,7 +1295,6 @@ with tab3:
                             break
 
                         wc = get_week_col(wi)
-
                         if wc not in agent_row.index:
                             continue
 
