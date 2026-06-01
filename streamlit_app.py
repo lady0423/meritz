@@ -4,9 +4,10 @@ import datetime
 import pytz
 from PIL import Image
 import os
-import streamlit.components.v1 as components
 import re
 import json
+import streamlit.components.v1 as components
+
 
 # ============================================================
 # 기본 설정
@@ -16,18 +17,22 @@ PASSWORD = "2233"
 
 st.set_page_config(page_title="메리츠 실적현황", layout="wide")
 
+
 # ============================================================
 # 컬럼명 매핑
 # ============================================================
 COLS = {
     "manager": "매니저명",
     "manager_code": "매니저코드",
+
     "agent_code": "현재대리점설계사조직코드",
     "agent_name": "현재대리점설계사조직명",
+
     "agency_name": "현재영업가족명",
     "branch_name": "현재대리점지사명",
     "hq_name": "현재영업단조직명",
     "office_name": "현재지점조직명",
+
     "current_cumulative": "인정실적",
     "prev_cumulative": "이전월인정실적",
     "prev_prev_cumulative": "전전월인정실적",
@@ -43,45 +48,34 @@ def get_week_columns():
 
 
 # ============================================================
-# CSS - 중요: unsafe_allow_html=True 포함
+# CSS - 반드시 이 블록 안에만 CSS가 있어야 함
 # ============================================================
-st.markdown("""
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+CUSTOM_CSS = """
 <style>
+html, body, [data-testid="stAppViewContainer"] {
+    background-color: #f8f9fa;
+}
+
 * {
-    font-family: 'Noto Sans KR', sans-serif !important;
-}
-
-html, body, [data-testid="stAppViewContainer"], .main, [data-testid="stDecoration"] {
-    background: #f8f9fa !important;
-    color: #2c3e50;
-}
-
-[data-testid="stHeader"] {
-    background: rgba(255,255,255,0.95) !important;
+    font-family: 'Noto Sans KR', sans-serif;
 }
 
 h1, h2, h3 {
-    font-weight: 700;
-    letter-spacing: -0.5px;
     color: #2c3e50;
+    font-weight: 700;
 }
 
 .stButton > button {
-    font-weight: 600;
     background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    color: white;
     border: none;
     border-radius: 8px;
-    padding: 10px 20px;
-    color: white;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 10px rgba(74,85,104,0.3);
+    font-weight: 600;
 }
 
 .stButton > button:hover {
     background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-    box-shadow: 0 4px 15px rgba(74,85,104,0.4);
-    transform: translateY(-2px);
+    color: white;
 }
 
 .info-box {
@@ -91,10 +85,8 @@ h1, h2, h3 {
     border-radius: 8px;
     margin: 8px 0;
     font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.7;
     box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    font-weight: 500;
-    color: #2c3e50;
 }
 
 .contact-box {
@@ -104,10 +96,8 @@ h1, h2, h3 {
     border-radius: 8px;
     margin: 8px 0;
     font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.7;
     box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    font-weight: 500;
-    color: #2c3e50;
 }
 
 .cumulative-box {
@@ -119,8 +109,6 @@ h1, h2, h3 {
     font-weight: 700;
     color: white;
     text-align: center;
-    box-shadow: 0 2px 12px rgba(74,85,104,0.25);
-    letter-spacing: 0.5px;
 }
 
 .weekly-row {
@@ -135,13 +123,11 @@ h1, h2, h3 {
     align-items: center;
     box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     font-weight: 600;
-    color: #2c3e50;
 }
 
 .weekly-row.current {
     background: linear-gradient(135deg, #ffd93d 0%, #ffb93d 100%);
     border-left: 4px solid #f59e0b;
-    box-shadow: 0 2px 10px rgba(245,158,11,0.3);
     color: #92400e;
 }
 
@@ -150,31 +136,16 @@ h1, h2, h3 {
     font-size: 13px;
     color: #4a5568;
     margin-bottom: 6px;
-    display: block;
-}
-
-input, select {
-    background-color: #ffffff !important;
-    color: #2c3e50 !important;
-    border: 2px solid #e2e8f0 !important;
-    border-radius: 8px !important;
-    padding: 10px !important;
-    font-weight: 500 !important;
-}
-
-input:focus, select:focus {
-    border-color: #4a5568 !important;
-    box-shadow: 0 0 0 3px rgba(74,85,104,0.1) !important;
-    outline: none !important;
 }
 
 .login-box {
-    max-width: 320px;
+    max-width: 360px;
     margin: 30px auto;
     padding: 20px;
     background: white;
     border-radius: 12px;
     box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    text-align: center;
 }
 
 .update-box {
@@ -217,14 +188,10 @@ input:focus, select:focus {
     font-weight: 700;
     color: #16a34a;
 }
-
-h3 {
-    font-size: 16px !important;
-    margin-top: 12px !important;
-    margin-bottom: 8px !important;
-}
 </style>
-""", unsafe_allow_html=True)
+"""
+
+st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 
 # ============================================================
@@ -233,14 +200,18 @@ h3 {
 def safe_float(value):
     if pd.isna(value):
         return 0.0
-    if value is None or value == "":
+    if value is None:
         return 0.0
+
     try:
         v = str(value).strip()
+
         if v == "" or v.lower() == "nan":
             return 0.0
+
         if "만원" in v:
             return float(v.replace("만원", "").replace(",", "").strip()) * 10000
+
         return float(v.replace(",", ""))
     except:
         return 0.0
@@ -248,12 +219,15 @@ def safe_float(value):
 
 def format_display(value):
     v = str(value).strip()
+
     if v == "" or v.lower() == "nan" or v == "None":
         return "₩ 0"
+
     try:
         if "만원" in v:
             num = float(v.replace("만원", "").replace(",", "").strip()) * 10000
             return f"₩ {num:,.0f}"
+
         num = float(v.replace(",", ""))
         return f"₩ {num:,.0f}"
     except:
@@ -263,7 +237,14 @@ def format_display(value):
 def normalize_phone_number(phone):
     if pd.isna(phone):
         return ""
-    return str(phone).replace("-", "").replace(" ", "").replace(".0", "").strip()
+
+    return (
+        str(phone)
+        .replace("-", "")
+        .replace(" ", "")
+        .replace(".0", "")
+        .strip()
+    )
 
 
 def extract_ga4_number(branch_str):
@@ -273,16 +254,18 @@ def extract_ga4_number(branch_str):
 
 def get_current_month():
     kst = pytz.timezone("Asia/Seoul")
-    return datetime.datetime.now(kst).date().month
+    return datetime.datetime.now(kst).month
 
 
 def get_prev_months():
     current_month = get_current_month()
+
     prev_month = current_month - 1
     prev_prev_month = current_month - 2
 
     if prev_month <= 0:
         prev_month += 12
+
     if prev_prev_month <= 0:
         prev_prev_month += 12
 
@@ -291,7 +274,7 @@ def get_prev_months():
 
 def get_current_week():
     kst = pytz.timezone("Asia/Seoul")
-    day = datetime.datetime.now(kst).date().day
+    day = datetime.datetime.now(kst).day
 
     if day <= 7:
         return 1
@@ -312,12 +295,14 @@ def get_now_kst_string():
 
 def require_columns(df, required_cols, title="데이터"):
     missing = [c for c in required_cols if c not in df.columns]
+
     if missing:
         st.error(
             f"❌ {title}에 필요한 컬럼이 없습니다.\n\n"
             f"누락 컬럼: {', '.join(missing)}"
         )
         return False
+
     return True
 
 
@@ -329,6 +314,7 @@ def load_logo():
 
 def create_vcard(name, phone, company):
     phone_clean = normalize_phone_number(phone)
+
     return (
         f"BEGIN:VCARD\n"
         f"VERSION:3.0\n"
@@ -345,6 +331,7 @@ def create_vcard(name, phone, company):
 @st.cache_data(ttl=300)
 def load_data_from_google_sheets():
     url = f"https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/export?format=csv&gid=0"
+
     try:
         df = pd.read_csv(url, dtype=str)
         df.columns = df.columns.str.strip()
@@ -357,47 +344,13 @@ def load_data_from_google_sheets():
 @st.cache_data(ttl=300)
 def load_contact_data_from_google_sheets():
     url = f"https://docs.google.com/spreadsheets/d/{GOOGLE_SHEET_ID}/export?format=csv&gid=363789500"
+
     try:
         df = pd.read_csv(url, dtype=str)
         df.columns = df.columns.str.strip()
         return df
     except Exception as e:
         st.error(f"전화번호 데이터 로드 실패: {e}")
-        return None
-
-
-@st.cache_data(ttl=300)
-def get_google_sheet_modified_time():
-    try:
-        from google.oauth2 import service_account
-        from googleapiclient.discovery import build
-
-        if "gcp_service_account" not in st.secrets:
-            return None
-
-        scopes = ["https://www.googleapis.com/auth/drive.metadata.readonly"]
-
-        credentials = service_account.Credentials.from_service_account_info(
-            st.secrets["gcp_service_account"],
-            scopes=scopes
-        )
-
-        service = build("drive", "v3", credentials=credentials)
-
-        file = service.files().get(
-            fileId=GOOGLE_SHEET_ID,
-            fields="modifiedTime"
-        ).execute()
-
-        modified_time = file.get("modifiedTime")
-        if not modified_time:
-            return None
-
-        dt_utc = datetime.datetime.fromisoformat(modified_time.replace("Z", "+00:00"))
-        kst = pytz.timezone("Asia/Seoul")
-        return dt_utc.astimezone(kst).strftime("%Y-%m-%d %H:%M")
-
-    except:
         return None
 
 
@@ -410,7 +363,6 @@ def copy_to_clipboard_button(text, button_label="📋 메시지 복사하기", k
 
     components.html(f"""
         <button onclick="copyText_{safe_key}()" style="
-            font-family:'Noto Sans KR',sans-serif;
             font-weight:600;
             background:linear-gradient(135deg,#4a5568 0%,#2d3748 100%);
             border:none;
@@ -419,8 +371,7 @@ def copy_to_clipboard_button(text, button_label="📋 메시지 복사하기", k
             color:white;
             cursor:pointer;
             width:100%;
-            font-size:13px;
-            box-shadow:0 2px 8px rgba(74,85,104,0.3);">
+            font-size:13px;">
             {button_label}
         </button>
 
@@ -432,7 +383,6 @@ def copy_to_clipboard_button(text, button_label="📋 메시지 복사하기", k
             border-left:4px solid #48bb78;
             border-radius:6px;
             color:#276749;
-            font-family:'Noto Sans KR',sans-serif;
             font-size:12px;
             font-weight:600;">
             ✅ 복사 완료! 카카오톡에 붙여넣기 하세요.
@@ -445,6 +395,7 @@ def copy_to_clipboard_button(text, button_label="📋 메시지 복사하기", k
             function showSuccess() {{
                 const msg = document.getElementById('copyMsg_{safe_key}');
                 msg.style.display = 'block';
+
                 setTimeout(function() {{
                     msg.style.display = 'none';
                 }}, 2500);
@@ -492,12 +443,16 @@ def build_kakao_message(row, current_week, greeting=""):
     cumulative = row.get(COLS["current_cumulative"], 0)
 
     week_text = ""
+
     for idx in range(1, 6):
         if idx > current_week:
             break
+
         week_col = get_week_col(idx)
+
         if week_col not in row.index:
             continue
+
         current_mark = " ⭐" if idx == current_week else ""
         week_text += f" • {idx}주차: {format_display(row.get(week_col, 0))}{current_mark}\n"
 
@@ -521,6 +476,7 @@ def apply_manager_filter(agents_df, filter_mode, current_week):
 
     if filter_mode == 1:
         col = get_week_col(current_week)
+
         if col in agents_df.columns:
             return agents_df[agents_df[col].apply(safe_float) > 0]
 
@@ -531,6 +487,7 @@ def get_performance_row_by_agent_code(performance_df, agent_code):
     try:
         if performance_df is None:
             return None
+
         if COLS["agent_code"] not in performance_df.columns:
             return None
 
@@ -543,14 +500,17 @@ def get_performance_row_by_agent_code(performance_df, agent_code):
             return filtered.iloc[0]
 
         return None
+
     except:
         return None
 
 
 def get_current_month_performance(performance_df, agent_code):
     row = get_performance_row_by_agent_code(performance_df, agent_code)
+
     if row is None:
         return 0.0
+
     return safe_float(row.get(COLS["current_cumulative"], 0))
 
 
@@ -619,14 +579,14 @@ if not st.session_state.authenticated:
 
     with col_title:
         st.markdown(
-            "<h1 style='color:#2c3e50;font-size:24px;margin-top:5px;'>메리츠 설계사 성과 조회</h1>",
+            "<h1 style='font-size:24px;margin-top:5px;'>메리츠 설계사 성과 조회</h1>",
             unsafe_allow_html=True
         )
 
-    st.markdown("<hr style='border:1px solid #e2e8f0;margin:10px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr>", unsafe_allow_html=True)
 
     st.markdown(
-        "<div class='login-box'><h2 style='text-align:center;color:#4a5568;'>🔐 로그인하세요</h2></div>",
+        "<div class='login-box'><h2>🔐 로그인하세요</h2></div>",
         unsafe_allow_html=True
     )
 
@@ -657,6 +617,7 @@ col_logo, col_title = st.columns([1, 4])
 
 with col_logo:
     logo = load_logo()
+
     if logo:
         st.image(logo, width=60)
     else:
@@ -664,24 +625,16 @@ with col_logo:
 
 with col_title:
     st.markdown(
-        "<h1 style='color:#2c3e50;font-size:24px;margin-top:5px;'>메리츠 설계사 성과 조회</h1>",
+        "<h1 style='font-size:24px;margin-top:5px;'>메리츠 설계사 성과 조회</h1>",
         unsafe_allow_html=True
     )
 
-modified_at = get_google_sheet_modified_time()
+st.markdown(
+    f"<div class='update-box'>데이터 확인 시각: {get_now_kst_string()}</div>",
+    unsafe_allow_html=True
+)
 
-if modified_at:
-    st.markdown(
-        f"<div class='update-box'>구글시트 최종 수정일: {modified_at}</div>",
-        unsafe_allow_html=True
-    )
-else:
-    st.markdown(
-        f"<div class='update-box'>데이터 확인 시각: {get_now_kst_string()}</div>",
-        unsafe_allow_html=True
-    )
-
-st.markdown("<hr style='border:1px solid #e2e8f0;margin:8px 0;'>", unsafe_allow_html=True)
+st.markdown("<hr>", unsafe_allow_html=True)
 
 tab1, tab2, tab3 = st.tabs(["📊 실적조회", "📞 전화번호 조회", "👔 매니저별 발송"])
 
@@ -712,10 +665,7 @@ with tab1:
     current_week = get_current_week()
     current_month = get_current_month()
 
-    st.markdown(
-        "<h3 style='color:#4a5568;margin-top:12px;margin-bottom:12px;font-size:16px;'>🔍 검색 정보 입력</h3>",
-        unsafe_allow_html=True
-    )
+    st.markdown("### 🔍 검색 정보 입력")
 
     ga4_branches = (
         df[COLS["office_name"]]
@@ -725,6 +675,7 @@ with tab1:
         .drop_duplicates()
         .tolist()
     )
+
     ga4_branches = sorted(ga4_branches, key=extract_ga4_number)
 
     if len(ga4_branches) == 0:
@@ -774,20 +725,19 @@ with tab1:
                 st.error("❌ 데이터를 찾을 수 없습니다.")
                 st.session_state.search_performed = False
                 st.session_state.show_duplicates = False
+
             elif len(filtered) == 1:
                 st.session_state.search_performed = True
                 st.session_state.selected_row = filtered.iloc[0]
                 st.session_state.show_duplicates = False
+
             else:
                 st.session_state.show_duplicates = True
                 st.session_state.filtered_data = filtered
                 st.session_state.search_performed = False
 
     if st.session_state.show_duplicates and st.session_state.filtered_data is not None:
-        st.markdown(
-            "<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>동명이인이 있습니다. 선택해주세요:</p>",
-            unsafe_allow_html=True
-        )
+        st.markdown("동명이인이 있습니다. 선택해주세요:")
 
         for idx, (row_idx, agent_row) in enumerate(st.session_state.filtered_data.iterrows()):
             agent_display = (
@@ -814,7 +764,7 @@ with tab1:
         hq_name = str(row.get(COLS["hq_name"], "N/A")).strip()
         manager_name_val = str(row.get(COLS["manager"], "N/A")).strip()
 
-        st.markdown("<h3 style='color:#4a5568;'>📋 기본 정보</h3>", unsafe_allow_html=True)
+        st.markdown("### 📋 기본 정보")
 
         st.markdown(f"""
         <div class='info-box'>
@@ -829,17 +779,13 @@ with tab1:
 
         cumulative = row.get(COLS["current_cumulative"], 0)
 
-        st.markdown(
-            f"<h3 style='color:#4a5568;'>📈 {current_month}월 누계 실적</h3>",
-            unsafe_allow_html=True
-        )
-
+        st.markdown(f"### 📈 {current_month}월 누계 실적")
         st.markdown(
             f"<div class='cumulative-box'>{format_display(cumulative)}</div>",
             unsafe_allow_html=True
         )
 
-        st.markdown("<h3 style='color:#4a5568;'>📅 주차별 실적</h3>", unsafe_allow_html=True)
+        st.markdown("### 📅 주차별 실적")
 
         for idx in range(1, 6):
             week_col = get_week_col(idx)
@@ -853,20 +799,20 @@ with tab1:
                 st.markdown(f"""
                 <div class='weekly-row current'>
                 <div><strong>{idx}주차</strong> ⭐</div>
-                <strong style='color:#92400e;'>{format_display(week_value)}</strong>
+                <strong>{format_display(week_value)}</strong>
                 </div>
                 """, unsafe_allow_html=True)
             else:
                 st.markdown(f"""
                 <div class='weekly-row'>
                 <strong>{idx}주차</strong>
-                <strong style='color:#48bb78;'>{format_display(week_value)}</strong>
+                <strong>{format_display(week_value)}</strong>
                 </div>
                 """, unsafe_allow_html=True)
 
-        st.markdown("<hr style='border:1px solid #e2e8f0;margin:15px 0;'>", unsafe_allow_html=True)
+        st.markdown("---")
 
-        st.markdown("<h3 style='color:#4a5568;'>📱 카카오톡 발송</h3>", unsafe_allow_html=True)
+        st.markdown("### 📱 카카오톡 발송")
 
         kakao_message = build_kakao_message(row, current_week, greeting="")
 
@@ -896,7 +842,7 @@ with tab1:
                 use_container_width=True
             )
 
-        st.markdown("<hr style='border:1px solid #e2e8f0;margin:15px 0;'>", unsafe_allow_html=True)
+        st.markdown("---")
 
         if st.button("🔄 초기화", use_container_width=True, key="reset_performance"):
             st.session_state.search_performed = False
@@ -906,15 +852,7 @@ with tab1:
             st.rerun()
 
     elif not st.session_state.show_duplicates:
-        st.markdown("""
-        <div style='text-align:center;margin-top:30px;padding:30px;background:white;
-            border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);'>
-        <p style='color:#4a5568;font-weight:600;font-size:15px;margin-bottom:8px;'>
-            🔒 지점명과 설계사명을 입력하고 검색 버튼을 클릭하세요.</p>
-        <p style='color:#718096;font-weight:400;font-size:13px;margin-top:8px;'>
-            개인정보 보호를 위해 검색 후에만 데이터가 표시됩니다.</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.info("🔒 지점명과 설계사명을 입력하고 검색 버튼을 클릭하세요.")
 
 
 # ============================================================
@@ -943,15 +881,11 @@ with tab2:
 
     contact_df["휴대전화_normalized"] = contact_df["휴대전화"].apply(normalize_phone_number)
 
-    st.markdown(
-        "<h3 style='color:#4a5568;margin-top:12px;margin-bottom:12px;font-size:16px;'>📞 전화번호 검색</h3>",
-        unsafe_allow_html=True
-    )
+    st.markdown("### 📞 전화번호 검색")
 
     col1, col2 = st.columns([3, 1])
 
     with col1:
-        st.markdown("<div class='search-label'>🔍 전화번호 또는 설계사명 입력</div>", unsafe_allow_html=True)
         contact_search = st.text_input(
             "검색",
             placeholder="예: 01012345678, 1234567, 123-4567, 홍길동",
@@ -961,7 +895,6 @@ with tab2:
         )
 
     with col2:
-        st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
         contact_search_clicked = st.button("🔍 검색", use_container_width=True, key="contact_search_btn")
 
     if contact_search_clicked:
@@ -989,10 +922,12 @@ with tab2:
                 st.error(f"❌ '{search_value}'에 해당하는 데이터를 찾을 수 없습니다.")
                 st.session_state.contact_search_performed = False
                 st.session_state.contact_show_duplicates = False
+
             elif len(filtered_contacts) == 1:
                 st.session_state.contact_search_performed = True
                 st.session_state.contact_selected_row = filtered_contacts.iloc[0]
                 st.session_state.contact_show_duplicates = False
+
             else:
                 filtered_contacts = filtered_contacts.copy()
                 filtered_contacts["_sort"] = filtered_contacts["지점"].apply(extract_ga4_number)
@@ -1008,10 +943,7 @@ with tab2:
                 st.session_state.contact_search_performed = False
 
     if st.session_state.contact_show_duplicates and st.session_state.contact_filtered_data is not None:
-        st.markdown(
-            "<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>검색 결과가 여러 개입니다. 선택해주세요:</p>",
-            unsafe_allow_html=True
-        )
+        st.markdown("검색 결과가 여러 개입니다. 선택해주세요:")
 
         for idx, (row_idx, contact_row) in enumerate(st.session_state.contact_filtered_data.iterrows()):
             contact_display = (
@@ -1038,14 +970,13 @@ with tab2:
         manager = str(row.get("매니저", "N/A")).strip()
         join_date = str(row.get("위촉일자", "N/A")).strip()
 
-        st.markdown("<h3 style='color:#4a5568;'>📋 설계사 정보</h3>", unsafe_allow_html=True)
+        st.markdown("### 📋 설계사 정보")
 
         st.markdown(f"""
         <div class='contact-box'>
         <strong>설계사명:</strong> {name}<br>
         <strong>설계사코드:</strong> {code}<br>
-        <strong>📞 휴대전화:</strong>
-            <span style='color:#48bb78;font-weight:700;font-size:16px;'>{phone}</span><br>
+        <strong>📞 휴대전화:</strong> {phone}<br>
         <strong>소속지사:</strong> {branch}<br>
         <strong>소속지점:</strong> {office}<br>
         <strong>담당매니저:</strong> {manager}<br>
@@ -1053,7 +984,7 @@ with tab2:
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown("<h3 style='color:#4a5568;'>📊 최근 실적</h3>", unsafe_allow_html=True)
+        st.markdown("### 📊 최근 실적")
         st.markdown(get_recent_performance_html(performance_df, row), unsafe_allow_html=True)
 
         vcard_content = create_vcard(f"{branch} {name}", phone, branch)
@@ -1066,7 +997,7 @@ with tab2:
             use_container_width=True
         )
 
-        st.markdown("<hr style='border:1px solid #e2e8f0;margin:15px 0;'>", unsafe_allow_html=True)
+        st.markdown("---")
 
         if st.button("🔄 초기화", use_container_width=True, key="reset_contact"):
             st.session_state.contact_search_performed = False
@@ -1076,17 +1007,7 @@ with tab2:
             st.rerun()
 
     elif not st.session_state.contact_show_duplicates:
-        st.markdown("""
-        <div style='text-align:center;margin-top:30px;padding:30px;background:white;
-            border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);'>
-        <p style='color:#4a5568;font-weight:600;font-size:15px;margin-bottom:8px;'>
-            📞 전화번호 또는 설계사명을 입력하고 검색하세요.</p>
-        <p style='color:#718096;font-weight:400;font-size:13px;margin-top:8px;'>
-            예: 01012345678, 1234567, 123-4567, 홍길동</p>
-        <p style='color:#48bb78;font-weight:500;font-size:12px;margin-top:12px;'>
-            ✨ 010 없이도 검색 가능합니다!</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.info("📞 전화번호 또는 설계사명을 입력하고 검색하세요.")
 
 
 # ============================================================
@@ -1151,6 +1072,7 @@ with tab3:
 
                 for code in unique_codes:
                     sub = df_main[df_main[COLS["manager_code"]].astype(str).str.strip() == code]
+
                     branch_val = str(sub[COLS["office_name"]].iloc[0]).strip() if not sub.empty else ""
                     mgr_nm_dup = str(sub[COLS["manager"]].iloc[0]).strip() if not sub.empty else query
 
@@ -1162,11 +1084,13 @@ with tab3:
                     })
 
                 dup_list.sort(key=lambda x: extract_ga4_number(x["branch"]))
+
                 st.session_state.manager_duplicate_list = dup_list
                 st.session_state.manager_search_performed = False
             else:
                 agents = matched.copy()
                 agents["_cumul_float"] = agents[COLS["current_cumulative"]].apply(safe_float)
+
                 agents = (
                     agents[agents["_cumul_float"] > 0]
                     .sort_values("_cumul_float", ascending=False)
@@ -1179,11 +1103,7 @@ with tab3:
                 st.session_state.manager_search_performed = True
 
     if st.session_state.manager_duplicate_list:
-        st.markdown(
-            "<p style='color:#4a5568;font-weight:600;margin-top:12px;font-size:14px;'>"
-            "동명이인 매니저가 있습니다. 선택해주세요:</p>",
-            unsafe_allow_html=True
-        )
+        st.markdown("동명이인 매니저가 있습니다. 선택해주세요:")
 
         for dup in st.session_state.manager_duplicate_list:
             if st.button(dup["label"], key=f"mgr_dup_{dup['code']}", use_container_width=True):
@@ -1191,6 +1111,7 @@ with tab3:
 
                 agents = df_main[sel_mask].copy()
                 agents["_cumul_float"] = agents[COLS["current_cumulative"]].apply(safe_float)
+
                 agents = (
                     agents[agents["_cumul_float"] > 0]
                     .sort_values("_cumul_float", ascending=False)
@@ -1211,19 +1132,10 @@ with tab3:
         all_agents = st.session_state.manager_agent_list
         mgr_name = st.session_state.manager_name_display
 
-        st.markdown("""
-        <div style='background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-            padding:6px 12px;border-radius:8px;margin:8px 0 3px 0;'>
-        <span style='color:white;font-size:11px;font-weight:500;'>
-        💬 인사말을 입력하면 각 설계사 메시지 맨 앞에 자동으로 추가됩니다.</span>
-        </div>
-        """, unsafe_allow_html=True)
-
         greeting_text = st.text_area(
             "인사말",
             placeholder="예: 안녕하세요! 이번 주도 파이팅입니다 💪",
-            height=60,
-            label_visibility="collapsed",
+            height=70,
             key="manager_greeting"
         )
 
@@ -1239,9 +1151,9 @@ with tab3:
                 "대상자 필터",
                 list(filter_options.keys()),
                 index=st.session_state.manager_filter_mode,
-                label_visibility="collapsed",
                 key="manager_filter_select"
             )
+
             st.session_state.manager_filter_mode = filter_options[selected_filter_label]
 
         filtered_agents = apply_manager_filter(
@@ -1251,19 +1163,10 @@ with tab3:
         )
 
         with col_count:
-            st.markdown(f"""
-            <div style='background:linear-gradient(135deg,#4a5568 0%,#2d3748 100%);
-                padding:6px 10px;border-radius:8px;text-align:center;margin-top:2px;'>
-            <span style='color:#ffd93d;font-weight:700;font-size:12px;'>{mgr_name}</span><br>
-            <span style='color:white;font-size:12px;font-weight:600;'>{len(filtered_agents)}명</span>
-            </div>
-            """, unsafe_allow_html=True)
+            st.metric(label=mgr_name, value=f"{len(filtered_agents)}명")
 
         if len(filtered_agents) == 0:
-            st.markdown("""
-            <div style='text-align:center;padding:16px;background:white;border-radius:10px;
-                color:#718096;font-size:14px;'>해당 조건의 설계사가 없습니다.</div>
-            """, unsafe_allow_html=True)
+            st.info("해당 조건의 설계사가 없습니다.")
         else:
             for i, (_, agent_row) in enumerate(filtered_agents.iterrows()):
                 agent_nm = str(agent_row.get(COLS["agent_name"], "")).strip()
@@ -1295,6 +1198,7 @@ with tab3:
                             break
 
                         wc = get_week_col(wi)
+
                         if wc not in agent_row.index:
                             continue
 
@@ -1304,14 +1208,14 @@ with tab3:
                             st.markdown(f"""
                             <div class='weekly-row current'>
                             <div><strong>{wi}주차</strong> ⭐</div>
-                            <strong style='color:#92400e;'>{wv}</strong>
+                            <strong>{wv}</strong>
                             </div>
                             """, unsafe_allow_html=True)
                         else:
                             st.markdown(f"""
                             <div class='weekly-row'>
                             <strong>{wi}주차</strong>
-                            <strong style='color:#48bb78;'>{wv}</strong>
+                            <strong>{wv}</strong>
                             </div>
                             """, unsafe_allow_html=True)
 
@@ -1349,7 +1253,7 @@ with tab3:
                             key=f"mgr_download_{i}"
                         )
 
-        st.markdown("<hr style='border:1px solid #e2e8f0;margin:12px 0;'>", unsafe_allow_html=True)
+        st.markdown("---")
 
         if st.button("🔄 초기화", use_container_width=True, key="reset_manager"):
             st.session_state.manager_search_performed = False
@@ -1360,14 +1264,4 @@ with tab3:
             st.rerun()
 
     elif not st.session_state.manager_search_performed and not st.session_state.manager_duplicate_list:
-        st.markdown("""
-        <div style='text-align:center;margin-top:30px;padding:30px;background:white;
-            border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);'>
-        <p style='color:#4a5568;font-weight:600;font-size:15px;margin-bottom:8px;'>
-            👔 매니저코드 또는 매니저명을 입력하고 조회하세요.</p>
-        <p style='color:#718096;font-weight:400;font-size:13px;margin-top:8px;'>
-            조회된 유실적자를 고실적 순으로 확인하고 카카오톡 메시지를 바로 복사할 수 있습니다.</p>
-        <p style='color:#48bb78;font-weight:500;font-size:12px;margin-top:12px;'>
-            ✨ 대상자를 펼쳐서 상세실적 확인, 메시지 복사 버튼으로 바로 발송하세요!</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.info("👔 매니저코드 또는 매니저명을 입력하고 조회하세요.")
